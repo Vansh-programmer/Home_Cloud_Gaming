@@ -56,7 +56,16 @@ def create_orchestrator_app(
     steam_mgr: SteamLibraryManager,
     orchestrator: SessionOrchestrator,
 ) -> web.Application:
-    app = web.Application()
+    @web.middleware
+    async def no_cache_middleware(request: web.Request, handler):
+        resp = await handler(request)
+        if isinstance(resp, web.StreamResponse):
+            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            resp.headers["CDN-Cache-Control"] = "no-store"
+            resp.headers["Pragma"] = "no-cache"
+        return resp
+
+    app = web.Application(middlewares=[no_cache_middleware])
 
     async def on_startup(_app: web.Application) -> None:
         await orchestrator.start()

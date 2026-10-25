@@ -78,10 +78,11 @@ Home_Cloud_Gaming/
 │   ├── test_phase1.py      # Phase 1 security invariant & WebRTC streaming test suite
 │   ├── test_phase2.py      # Phase 2 multi-user save persistence & Steam library test suite
 │   └── test_phase3.py      # Phase 3 invite-only auth, GPU lock, reconnect & idle timeout test suite
-├── data/                        # Runtime storage (ignored by Git: cloud_gaming.db, shared_steam_library, users/)
-├── SETUP_AND_REQUIREMENTS.md    # Complete guide for running on this PC & any other Linux PC
-├── README.md                    # Quickstart & operational guide (this file)
-└── PLAN.md                      # Complete architectural blueprint and 6-phase roadmap
+├── data/                                # Runtime storage (ignored by Git: cloud_gaming.db, shared_steam_library, users/)
+├── COMPLETE_WORKFLOW_AND_DEPLOYMENT.md  # Complete end-to-end architecture workflow & global Cloudflare deployment guide
+├── SETUP_AND_REQUIREMENTS.md            # Complete guide for running on this PC & any other Linux PC
+├── README.md                            # Quickstart & operational guide (this file)
+└── PLAN.md                              # Complete architectural blueprint and 6-phase roadmap
 ```
 
 ---

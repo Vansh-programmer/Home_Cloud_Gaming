@@ -3,193 +3,153 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ryoku Cloud — Gaming PC Offline</title>
+  <title>RYOKU // HOST OFFLINE</title>
   <style>
     :root {
-      --bg-0: #060913;
-      --bg-1: #0d1326;
-      --card: rgba(17, 25, 48, 0.85);
-      --border: rgba(99, 125, 195, 0.22);
-      --text: #eef2ff;
-      --muted: #94a3b8;
-      --accent: #38bdf8;
-      --amber: #f59e0b;
-      --emerald: #10b981;
+      --bg-base: #090a0d;
+      --bg-panel: #111318;
+      --bg-input: #0c0e12;
+      --border-dim: #222631;
+      --accent: #c8ff00;
+      --warn: #ffb800;
+      --ok: #00e676;
+      --text-main: #f1f5f9;
+      --text-sub: #94a3b8;
+      --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       min-height: 100vh;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.10), transparent 45%),
-        radial-gradient(circle at 80% 80%, rgba(245, 158, 11, 0.08), transparent 45%),
-        linear-gradient(160deg, var(--bg-0) 0%, var(--bg-1) 100%);
-      color: var(--text);
+      font-family: var(--font-ui);
+      background: var(--bg-base);
+      color: var(--text-main);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 24px;
     }
     .offline-card {
-      max-width: 540px;
+      max-width: 480px;
       width: 100%;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 36px 32px;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
-      backdrop-filter: blur(16px);
-      text-align: center;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-dim);
+      border-top: 3px solid var(--warn);
+      padding: 28px;
     }
     .brand-row {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 22px;
-      padding: 6px 14px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
       color: var(--accent);
+      margin-bottom: 14px;
     }
     .status-badge {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 16px;
-      border-radius: 999px;
-      background: rgba(245, 158, 11, 0.14);
-      border: 1px solid rgba(245, 158, 11, 0.38);
-      color: #fcd34d;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 20px;
+      gap: 8px;
+      padding: 4px 10px;
+      background: var(--bg-input);
+      border: 1px solid var(--warn);
+      color: var(--warn);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 16px;
     }
     .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--amber);
-      box-shadow: 0 0 12px var(--amber);
-      animation: pulse 2s infinite ease-in-out;
+      width: 7px;
+      height: 7px;
+      background: var(--warn);
     }
     .status-badge.online {
-      background: rgba(16, 185, 129, 0.16);
-      border-color: rgba(16, 185, 129, 0.45);
-      color: #6ee7b7;
+      border-color: var(--ok);
+      color: var(--ok);
     }
     .status-badge.online .status-dot {
-      background: var(--emerald);
-      box-shadow: 0 0 12px var(--emerald);
-    }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(0.82); opacity: 0.5; }
+      background: var(--ok);
     }
     h1 {
-      font-size: 26px;
-      font-weight: 800;
-      line-height: 1.25;
-      margin-bottom: 12px;
+      font-size: 22px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 8px;
     }
     p.lead {
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.6;
-      margin-bottom: 24px;
+      color: var(--text-sub);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      margin-bottom: 20px;
     }
     .specs-box {
-      background: rgba(6, 9, 19, 0.65);
-      border: 1px solid rgba(99, 125, 195, 0.18);
-      border-radius: 14px;
-      padding: 16px 18px;
-      text-align: left;
-      margin-bottom: 24px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-dim);
+      padding: 14px;
+      margin-bottom: 20px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      font-size: 13px;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
     }
     .spec-item span.label {
       display: block;
-      color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 3px;
+      color: var(--text-sub);
+      font-size: 10px;
+      margin-bottom: 2px;
     }
     .spec-item span.value {
-      font-weight: 600;
-      color: var(--text);
-    }
-    .actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
+      font-weight: 700;
+      color: var(--text-main);
     }
     button.btn {
       cursor: pointer;
-      padding: 11px 20px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #fff;
-      transition: transform 0.15s ease, opacity 0.15s ease;
-    }
-    button.btn:hover { transform: translateY(-1px); }
-    .poll-note {
-      margin-top: 18px;
+      width: 100%;
+      padding: 10px 16px;
       font-size: 12px;
-      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #000;
+      border-radius: 0;
+    }
+    .poll-note {
+      margin-top: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-sub);
     }
   </style>
 </head>
 <body>
   <main class="offline-card">
-    <div class="brand-row">⚡ RYOKU CLOUD GAMING</div>
+    <div class="brand-row">RYOKU // CLOUD CLIENT</div>
     <div>
       <div id="status-badge" class="status-badge">
         <span class="status-dot"></span>
-        <span id="status-badge-text">HOST PC OFFLINE / SLEEPING</span>
+        <span id="status-badge-text">HOST NODE OFFLINE</span>
       </div>
     </div>
     <h1 id="headline">Gaming PC is Currently Powered Off</h1>
-    <p class="lead" id="subtext">
-      The Ryoku Cloud web portal is online, but the home gaming host (NVIDIA GeForce RTX 4060)
-      is currently powered down or in maintenance mode. As soon as the host boots up, this page
-      will automatically connect you to the Game Library.
-    </p>
+    <p class="lead" id="subtext">AUTO-CONNECTS WHEN HOST BOOTS.</p>
 
     <div class="specs-box">
       <div class="spec-item">
-        <span class="label">Host GPU</span>
-        <span class="value">NVIDIA RTX 4060 (NVENC)</span>
+        <span class="label">GPU</span>
+        <span class="value">RTX 4060 NVENC</span>
       </div>
       <div class="spec-item">
-        <span class="label">Isolation Engine</span>
-        <span class="value">Bubblewrap Ephemeral Kiosk</span>
-      </div>
-      <div class="spec-item">
-        <span class="label">Edge Gateway</span>
-        <span class="value">Active (HTTPS Always-On)</span>
-      </div>
-      <div class="spec-item">
-        <span class="label">Auto-Reconnect</span>
-        <span class="value" id="poll-counter">Checking every 5s...</span>
+        <span class="label">POLL INTERVAL</span>
+        <span class="value" id="poll-counter">5 SECONDS</span>
       </div>
     </div>
 
-    <div class="actions">
-      <button class="btn" id="check-now-btn" type="button">Check Host Status Now</button>
-    </div>
-    <div class="poll-note" id="last-checked">Waiting for host heartbeat...</div>
+    <button class="btn" id="check-now-btn" type="button">PING HOST NOW</button>
+    <div class="poll-note" id="last-checked">WAITING FOR HEARTBEAT...</div>
   </main>
 
   <script>
@@ -202,24 +162,23 @@
       const checkBtn = document.getElementById("check-now-btn");
 
       async function checkHealth() {
-        lastChecked.textContent = "Checking host heartbeat...";
+        lastChecked.textContent = "PINGING HOST...";
         try {
           const res = await fetch("/api/health", { cache: "no-store" });
           const data = await res.json();
           if (res.ok && data && data.online === true) {
             badge.classList.add("online");
-            badgeText.textContent = "HOST PC ONLINE — REDIRECTING";
-            headline.textContent = "Gaming PC is Back Online!";
-            subtext.textContent = "Launching Ryoku Cloud Game Library...";
+            badgeText.textContent = "HOST ONLINE";
+            headline.textContent = "HOST NODE ONLINE";
+            subtext.textContent = "REDIRECTING...";
             setTimeout(() => {
               window.location.href = "/";
-            }, 600);
+            }, 400);
             return;
           }
-          const reason = (data && data.message) ? data.message : "Host PC is powered off.";
-          lastChecked.textContent = "Last checked: " + new Date().toLocaleTimeString() + " — " + reason;
+          lastChecked.textContent = "CHECKED " + new Date().toLocaleTimeString() + " // OFFLINE";
         } catch (_err) {
-          lastChecked.textContent = "Last checked: " + new Date().toLocaleTimeString() + " — Host unreachable (powered off).";
+          lastChecked.textContent = "CHECKED " + new Date().toLocaleTimeString() + " // UNREACHABLE";
         }
       }
 
@@ -230,4 +189,3 @@
   </script>
 </body>
 </html>
-

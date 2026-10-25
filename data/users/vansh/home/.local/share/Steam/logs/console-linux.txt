@@ -6514,3 +6514,244 @@
 [2026-10-26 02:38:57] [2026-10-26 02:38:57] Manifest download: finished
 [2026-10-26 02:38:57] [2026-10-26 02:38:57] Download skipped by HTTP 304 Not Modified
 [2026-10-26 02:38:57] [2026-10-26 02:38:57] Nothing to do
+[2026-10-26 02:57:16] pressure-vessel-wrap[1074]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 02:57:16] pressure-vessel-wrap[1072]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 02:57:16] pressure-vessel-wrap[1160]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 02:57:16] pressure-vessel-wrap[1161]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 02:57:16] pressure-vessel-wrap[1200]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 02:57:16] Proton: Upgrading prefix from None to 11.0-100 (/home/gamer/.local/share/Steam/steamapps/compatdata/1493710/)
+[2026-10-26 02:57:16] ProtonFixes[1493] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 02:57:16] ProtonFixes[1490] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 02:57:16] Proton: Upgrading prefix from None to 11.0-100 (/home/gamer/.local/share/Steam/steamapps/compatdata/2218460/)
+[2026-10-26 02:57:17] Proton: Upgrading prefix from None to CachyOS-11.0-100 (/home/gamer/.local/share/Steam/steamapps/compatdata/0/)
+[2026-10-26 02:57:17] Proton: Error: unable to use parent for game drive, path 
+[2026-10-26 02:57:17] Proton: Error: unable to use parent for game drive, path 
+[2026-10-26 02:57:17] fsync: up and running.
+[2026-10-26 02:57:17] fsync: up and running.
+[2026-10-26 02:57:17] Proton: Error: unable to use parent for game drive, path 
+[2026-10-26 02:57:17] Proton: Error: unable to use parent for game drive, path 
+[2026-10-26 02:57:18] ProtonFixes[1493] INFO: Setting up fsr4 version "default".
+[2026-10-26 02:57:18] ProtonFixes[1490] INFO: Setting up fsr4 version "default".
+[2026-10-26 02:57:18] ProtonFixes[1490] WARN: Error while reading version file "/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files"
+[2026-10-26 02:57:18] ProtonFixes[1490] WARN: [Errno 2] No such file or directory: '/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files'
+[2026-10-26 02:57:18] ProtonFixes[1490] INFO: Failed to validate fsr4 files.
+[2026-10-26 02:57:18] ProtonFixes[1490] INFO: Downloading upscaler file "amdxcffx64.dll"
+[2026-10-26 02:57:18] ProtonFixes[1493] WARN: Error while reading version file "/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files"
+[2026-10-26 02:57:18] ProtonFixes[1493] WARN: [Errno 2] No such file or directory: '/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files'
+[2026-10-26 02:57:18] ProtonFixes[1493] INFO: Failed to validate fsr4 files.
+[2026-10-26 02:57:18] ProtonFixes[1493] INFO: Downloading upscaler file "amdxcffx64.dll"
+[2026-10-26 02:57:18] ProtonFixes[1493] CRIT: MD5 mismatch between manifest and cached "amdxcffx64_v4.1.1_398EA93C15D554EFB7ECE1F4CD057554.xz"
+[2026-10-26 02:57:20] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 02:57:20] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 02:57:20] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 02:57:21] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 02:57:22] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 02:57:25] ProtonFixes[1490] CRIT: Error while downloading file "amdxcffx64.dll"
+[2026-10-26 02:57:25] ProtonFixes[1490] CRIT: Malformed download /home/gamer/.cache/protonfixes/upscalers/amdxcffx64_v4.1.1_398EA93C15D554EFB7ECE1F4CD057554.xz
+[2026-10-26 02:57:25] ProtonFixes[1490] CRIT: Failed to download fsr4 dlls.
+[2026-10-26 02:57:25] ProtonFixes[1490] CRIT: 
+[2026-10-26 02:57:25] ProtonFixes[1490] WARN: Error while reading version file "/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files"
+[2026-10-26 02:57:25] ProtonFixes[1490] WARN: [Errno 2] No such file or directory: '/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files'
+[2026-10-26 02:57:25] ProtonFixes[1490] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 02:57:25] fsync: up and running.
+[2026-10-26 02:57:26] ProtonFixes[1493] CRIT: Error while downloading file "amdxcffx64.dll"
+[2026-10-26 02:57:26] ProtonFixes[1493] CRIT: [Errno 2] No such file or directory: '/home/gamer/.cache/protonfixes/upscalers/amdxcffx64_v4.1.1_398EA93C15D554EFB7ECE1F4CD057554.xz'
+[2026-10-26 02:57:26] ProtonFixes[1493] CRIT: Failed to download fsr4 dlls.
+[2026-10-26 02:57:26] ProtonFixes[1493] CRIT: 
+[2026-10-26 02:57:26] ProtonFixes[1493] WARN: Error while reading version file "/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files"
+[2026-10-26 02:57:26] ProtonFixes[1493] WARN: [Errno 2] No such file or directory: '/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files'
+[2026-10-26 02:57:26] ProtonFixes[1493] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 02:57:27] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 02:57:27] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 02:57:27] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 02:57:27] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 02:57:27] Fossilize ERROR: Failed to create directory /home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache.923fa87291dfec1c.
+[2026-10-26 02:57:27] Fossilize ERROR: Failed to prepare database, will not dump data to database.
+[2026-10-26 02:57:28] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 02:57:28] Fossilize ERROR: Failed to create directory /home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache.3554f158047e28bf.
+[2026-10-26 02:57:28] Fossilize ERROR: Failed to prepare database, will not dump data to database.
+[2026-10-25 21:36:22+0000] srt-logger[317]: Log opened
+[2026-10-26 03:06:22] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 03:06:22] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 03:06:22] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 03:06:24] steam.sh[307]: Log already open
+[2026-10-26 03:06:24] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 03:06:24] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 03:06:24] 10/26 03:06:24 minidumps folder is set to /tmp/dumps
+[2026-10-26 03:06:24] 10/26 03:06:24 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 03:06:24] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 03:06:24] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 03:06:24] 10/26 03:06:24 minidumps folder is set to /tmp/dumps
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Using update UI: xwin
+[2026-10-26 03:06:24] 10/26 03:06:24 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Create window
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Checking for update on startup
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Checking for available updates...
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Manifest download: send request
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Set percent complete: 0
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Set status message: Checking for available updates...
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Set percent complete: -1
+[2026-10-26 03:06:24] [2026-10-26 03:06:24] Manifest download: waiting for download to finish
+[2026-10-26 03:06:25] [2026-10-26 03:06:25] Manifest download: finished
+[2026-10-26 03:06:25] [2026-10-26 03:06:25] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 03:06:25] [2026-10-26 03:06:25] Nothing to do
+[2026-10-26 03:06:25] [2026-10-26 03:06:25] Verifying installation...
+[2026-10-26 03:06:25] [2026-10-26 03:06:25] Verifying all executable checksums
+[2026-10-26 03:06:25] [2026-10-26 03:06:25] Set percent complete: -1
+[2026-10-26 03:06:25] [2026-10-26 03:06:25] Set status message: Verifying installation...
+[2026-10-26 03:06:25] [2026-10-26 03:06:25] Show window
+[2026-10-26 03:06:27] [2026-10-26 03:06:27] Verification complete
+[2026-10-26 03:06:27] UpdateUI: skip show logo
+[2026-10-26 03:06:27] [2026-10-26 03:06:27] Destroy window
+[2026-10-26 03:06:27] [2026-10-26 03:06:27] Shutdown
+[2026-10-26 03:06:27] 
+[2026-10-26 03:06:27] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 03:06:27] 
+[2026-10-26 03:06:27] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 03:06:27] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5fd2ec0
+[2026-10-26 03:06:27] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5fd1590
+[2026-10-26 03:06:27] 10/26 03:06:27 minidumps folder is set to /tmp/dumps
+[2026-10-26 03:06:27] 10/26 03:06:27 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(495)
+[2026-10-26 03:06:27] Running query: 1 - GpuTopology
+[2026-10-26 03:06:27] Response: gpu_topology {
+[2026-10-26 03:06:27]   gpus {
+[2026-10-26 03:06:27]     id: 1
+[2026-10-26 03:06:27]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 03:06:27]     vram_size_bytes: 8843689984
+[2026-10-26 03:06:27]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 03:06:27]     driver_version_major: 615
+[2026-10-26 03:06:27]     driver_version_minor: 71
+[2026-10-26 03:06:27]     driver_version_patch: 9
+[2026-10-26 03:06:27]     luid: 0
+[2026-10-26 03:06:27]   }
+[2026-10-26 03:06:27]   default_gpu_id: 1
+[2026-10-26 03:06:27] }
+[2026-10-26 03:06:27] 
+[2026-10-26 03:06:27] Exit code: 0
+[2026-10-26 03:06:27] Saving response to: /tmp/steamEfLAGP - 50 bytes
+[2026-10-26 03:06:29] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 03:06:29] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 760
+[2026-10-26 03:06:29] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 03:06:34] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 03:06:34] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 03:06:35] pressure-vessel-wrap[857]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 03:06:35] ProtonFixes[996] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 03:06:35] pressure-vessel-wrap[859]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 03:06:35] ProtonFixes[996] INFO: Setting up fsr4 version "default".
+[2026-10-26 03:06:35] ProtonFixes[1024] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 03:06:36] ProtonFixes[996] WARN: Error while reading version file "/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files"
+[2026-10-26 03:06:36] ProtonFixes[996] WARN: [Errno 2] No such file or directory: '/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files'
+[2026-10-26 03:06:36] ProtonFixes[996] INFO: Failed to validate fsr4 files.
+[2026-10-26 03:06:36] ProtonFixes[996] INFO: Downloading upscaler file "amdxcffx64.dll"
+[2026-10-26 03:06:36] ProtonFixes[1024] INFO: Setting up fsr4 version "default".
+[2026-10-26 03:06:36] ProtonFixes[1024] WARN: Error while reading version file "/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files"
+[2026-10-26 03:06:36] ProtonFixes[1024] WARN: [Errno 2] No such file or directory: '/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files'
+[2026-10-26 03:06:36] ProtonFixes[1024] INFO: Failed to validate fsr4 files.
+[2026-10-26 03:06:36] ProtonFixes[1024] INFO: Downloading upscaler file "amdxcffx64.dll"
+[2026-10-26 03:06:36] ProtonFixes[1024] CRIT: MD5 mismatch between manifest and cached "amdxcffx64_v4.1.1_398EA93C15D554EFB7ECE1F4CD057554.xz"
+[2026-10-26 03:06:40] ProtonFixes[996] CRIT: Error while downloading file "amdxcffx64.dll"
+[2026-10-26 03:06:40] ProtonFixes[996] CRIT: Malformed download /home/gamer/.cache/protonfixes/upscalers/amdxcffx64_v4.1.1_398EA93C15D554EFB7ECE1F4CD057554.xz
+[2026-10-26 03:06:40] ProtonFixes[996] CRIT: Failed to download fsr4 dlls.
+[2026-10-26 03:06:40] ProtonFixes[996] CRIT: 
+[2026-10-26 03:06:40] ProtonFixes[996] WARN: Error while reading version file "/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files"
+[2026-10-26 03:06:40] ProtonFixes[996] WARN: [Errno 2] No such file or directory: '/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files'
+[2026-10-26 03:06:40] ProtonFixes[996] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 03:06:40] fsync: up and running.
+[2026-10-26 03:06:41] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 03:06:41] ProtonFixes[1024] CRIT: Error while downloading file "amdxcffx64.dll"
+[2026-10-26 03:06:41] ProtonFixes[1024] CRIT: [Errno 2] No such file or directory: '/home/gamer/.cache/protonfixes/upscalers/amdxcffx64_v4.1.1_398EA93C15D554EFB7ECE1F4CD057554.xz'
+[2026-10-26 03:06:41] ProtonFixes[1024] CRIT: Failed to download fsr4 dlls.
+[2026-10-26 03:06:41] ProtonFixes[1024] CRIT: 
+[2026-10-26 03:06:41] ProtonFixes[1024] WARN: Error while reading version file "/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files"
+[2026-10-26 03:06:41] ProtonFixes[1024] WARN: [Errno 2] No such file or directory: '/home/gamer/.local/share/Steam/steamapps/compatdata/0/upscaler_files'
+[2026-10-26 03:06:41] ProtonFixes[1024] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 03:06:42] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 03:06:42] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 03:06:42] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 03:06:42] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 03:06:42] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 03:06:42] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 03:06:42] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 03:06:42] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 03:06:42] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 03:06:42] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 03:06:42] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 03:06:42] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 03:06:43] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 03:06:44] pressure-vessel-wrap[1200]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 03:06:44] fsync: up and running.
+[2026-10-26 03:06:53] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine2_0.dll'
+[2026-10-26 03:06:53] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine2_1.dll'
+[2026-10-26 03:06:53] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine2_2.dll'
+[2026-10-26 03:06:54] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine2_3.dll'
+[2026-10-26 03:06:54] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine2_4.dll'
+[2026-10-26 03:06:55] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine2_5.dll'
+[2026-10-26 03:06:55] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine2_6.dll'
+[2026-10-26 03:06:55] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine2_7.dll'
+[2026-10-26 03:06:56] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine2_8.dll'
+[2026-10-26 03:06:57] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine2_9.dll'
+[2026-10-26 03:06:57] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine2_10.dll'
+[2026-10-26 03:06:58] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine3_0.dll'
+[2026-10-26 03:06:58] regsvr32: Successfully registered DLL 'C:\windows\system32\XAudio2_0.dll'
+[2026-10-26 03:06:59] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine3_1.dll'
+[2026-10-26 03:06:59] regsvr32: Successfully registered DLL 'C:\windows\system32\XAudio2_1.dll'
+[2026-10-26 03:06:59] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine3_2.dll'
+[2026-10-26 03:07:00] regsvr32: Successfully registered DLL 'C:\windows\system32\XAudio2_2.dll'
+[2026-10-26 03:07:00] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine3_3.dll'
+[2026-10-26 03:07:00] regsvr32: Successfully registered DLL 'C:\windows\system32\XAudio2_3.dll'
+[2026-10-26 03:07:01] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine3_4.dll'
+[2026-10-26 03:07:01] regsvr32: Successfully registered DLL 'C:\windows\system32\XAudio2_4.dll'
+[2026-10-26 03:07:02] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine3_5.dll'
+[2026-10-26 03:07:03] regsvr32: Successfully registered DLL 'C:\windows\system32\XAudio2_5.dll'
+[2026-10-26 03:07:03] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine3_6.dll'
+[2026-10-26 03:07:03] regsvr32: Successfully registered DLL 'C:\windows\system32\XAudio2_6.dll'
+[2026-10-26 03:07:04] regsvr32: Successfully registered DLL 'C:\windows\system32\xactengine3_7.dll'
+[2026-10-26 03:07:04] regsvr32: Successfully registered DLL 'C:\windows\system32\XAudio2_7.dll'
+[2026-10-26 03:07:06] chdir "/home/gamer/.local/share/Steam/steamapps/common/Bunny Guys!"
+[2026-10-26 03:07:06] Game Recording - would start recording game 2218460, but recording for this game is disabled
+[2026-10-26 03:07:06] Adding process 1646 for gameID 2218460
+[2026-10-26 03:07:06] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 03:07:06] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 03:07:06] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 03:07:06] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 03:07:06] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 03:07:06] Adding process 1647 for gameID 2218460
+[2026-10-26 03:07:06] Adding process 1648 for gameID 2218460
+[2026-10-26 03:07:07] pressure-vessel-wrap[1647]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 03:07:07] Adding process 1729 for gameID 2218460
+[2026-10-26 03:07:07] fsync: up and running.
+[2026-10-26 03:07:07] Adding process 1730 for gameID 2218460
+[2026-10-26 03:07:07] Adding process 1731 for gameID 2218460
+[2026-10-26 03:07:07] Adding process 1732 for gameID 2218460
+[2026-10-26 03:07:07] Adding process 1735 for gameID 2218460
+[2026-10-26 03:07:07] Adding process 1737 for gameID 2218460
+[2026-10-26 03:07:07] Adding process 1740 for gameID 2218460
+[2026-10-26 03:07:07] Adding process 1750 for gameID 2218460
+[2026-10-26 03:07:08] Adding process 1756 for gameID 2218460
+[2026-10-26 03:07:08] Adding process 1763 for gameID 2218460
+[2026-10-26 03:07:08] Adding process 1786 for gameID 2218460
+[2026-10-26 03:07:08] Adding process 1796 for gameID 2218460
+[2026-10-26 03:07:08] Adding process 1798 for gameID 2218460
+[2026-10-26 03:07:08] Adding process 1804 for gameID 2218460
+[2026-10-26 03:07:09] Adding process 1818 for gameID 2218460
+[2026-10-26 03:07:10] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/steamapps/shadercache/2218460/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 03:07:11] 10/26 03:07:11 minidumps folder is set to /tmp/dumps
+[2026-10-26 03:07:11] 10/26 03:07:11 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(20261021210950)/tid(1897)
+[2026-10-26 03:07:11] 10/26 03:07:11 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(1.0)/tid(1897)
+[2026-10-26 03:08:28] [2026-10-26 03:08:28] Background update loop checking for update. . .
+[2026-10-26 03:08:28] [2026-10-26 03:08:28] Checking for available updates...
+[2026-10-26 03:08:28] [2026-10-26 03:08:28] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 03:08:28] [2026-10-26 03:08:28] Manifest download: send request
+[2026-10-26 03:08:28] [2026-10-26 03:08:28] Manifest download: waiting for download to finish
+[2026-10-26 03:08:29] [2026-10-26 03:08:29] Manifest download: finished
+[2026-10-26 03:08:29] [2026-10-26 03:08:29] Download skipped by HTTP 304 Not Modified
+[2026-10-26 03:08:29] [2026-10-26 03:08:29] Nothing to do

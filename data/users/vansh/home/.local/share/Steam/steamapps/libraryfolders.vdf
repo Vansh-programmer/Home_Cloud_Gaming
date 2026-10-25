@@ -6,10 +6,14 @@
 		"label"		"UserPersistent"
 		"contentid"		"4352317811188679243"
 		"totalsize"		"0"
-		"update_clean_bytes_tally"		"0"
-		"time_last_update_verified"		"0"
+		"update_clean_bytes_tally"		"2148446054"
+		"time_last_update_verified"		"1792963633"
 		"apps"
 		{
+			"228980"		"329931729"
+			"1493710"		"1537142909"
+			"2218460"		"4295307606"
+			"4183110"		"711197025"
 		}
 	}
 	"1"

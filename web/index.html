@@ -3,250 +3,242 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Ryoku Cloud Gaming — Personal RTX 4060 Cloud Platform</title>
-  <link rel="stylesheet" href="/assets/styles.css" />
+  <title>RYOKU // CLIENT</title>
+  <link rel="stylesheet" href="/assets/styles.css?v=3" />
 </head>
 <body>
-  <!-- Sticky Product Navigation Bar -->
+  <!-- Left Vertical Command Rail -->
   <header class="navbar">
     <div class="brand">
       <span class="brand-logo">R</span>
-      <span>RYOKU CLOUD</span>
-      <span class="brand-badge">RTX 4060 NVENC</span>
+      <span>RYOKU</span>
+      <span class="brand-badge">4060</span>
     </div>
 
     <nav class="nav-links" id="nav-center" style="display:none;">
-      <button class="nav-tab active" id="nav-tab-library">Game Library</button>
-      <button class="nav-tab" id="nav-tab-profile">My Profile &amp; Saves</button>
-      <button class="nav-tab" id="nav-tab-admin" style="display:none;">Admin Console</button>
+      <button class="nav-tab active" id="nav-tab-library">01 // LIBRARY</button>
+      <button class="nav-tab" id="nav-tab-profile">02 // PROFILE</button>
+      <button class="nav-tab" id="nav-tab-admin" style="display:none;">03 // SYSTEM</button>
     </nav>
 
     <div class="nav-right" id="nav-right" style="display:none;">
       <div class="server-pill">
         <span class="status-dot" id="server-dot"></span>
-        <span id="server-pill-text">GPU Ready</span>
+        <span id="server-pill-text">READY</span>
       </div>
-      <button class="btn btn-primary" id="btn-resume-nav" style="display:none;">▶ Resume Stream</button>
-      <span id="nav-username" style="font-size:13px; font-weight:700; color:var(--text-secondary);"></span>
-      <button class="btn" id="btn-logout">Log Out</button>
+      <button class="btn btn-primary" id="btn-resume-nav" style="display:none; width:100%;">▶ RESUME</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <span id="nav-username" style="font-family:var(--font-mono); font-size:11px; font-weight:800; color:var(--fg-1); text-transform:uppercase;"></span>
+        <button class="btn" id="btn-logout" style="padding:5px 10px;">EXIT</button>
+      </div>
     </div>
   </header>
 
-  <!-- Invite-Only Authentication Screen -->
+  <!-- Authentication Screen -->
   <section class="auth-wrapper" id="auth-view">
     <div class="auth-header">
-      <h1>Welcome to Ryoku Cloud</h1>
-      <p>Private, isolated hardware-accelerated cloud gaming</p>
+      <h1>RYOKU // CLIENT</h1>
+      <p>PRIVATE NODE ACCESS</p>
     </div>
 
     <div class="auth-tabs">
-      <div class="auth-tab active" id="auth-tab-login">Sign In</div>
-      <div class="auth-tab" id="auth-tab-invite">Redeem Invite</div>
+      <div class="auth-tab active" id="auth-tab-login">SIGN IN</div>
+      <div class="auth-tab" id="auth-tab-invite">REDEEM KEY</div>
     </div>
 
-    <div class="alert-error" id="auth-error"></div>
+    <div class="auth-error" id="auth-error"></div>
 
     <form id="form-login">
       <div class="field">
-        <label for="login-user">Username</label>
-        <input type="text" id="login-user" required autocomplete="username" placeholder="Enter your username" />
+        <label for="login-user">OPERATOR ID</label>
+        <input type="text" id="login-user" required autocomplete="username" placeholder="USERNAME" />
       </div>
       <div class="field">
-        <label for="login-pass">Password</label>
+        <label for="login-pass">PASSKEY</label>
         <input type="password" id="login-pass" required autocomplete="current-password" placeholder="••••••••" />
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%; padding:12px;">Sign In &amp; Open Library</button>
+      <button type="submit" class="btn btn-primary" style="width:100%; padding:11px;">ENTER</button>
     </form>
 
     <form id="form-invite" style="display:none;">
       <div class="field">
-        <label for="inv-code">Single-Use Invite Code</label>
+        <label for="inv-code">ACCESS KEY</label>
         <input type="text" id="inv-code" required placeholder="RYOKU-XXXX-XXXXXX" />
       </div>
       <div class="field">
-        <label for="inv-user">Choose Username</label>
-        <input type="text" id="inv-user" required placeholder="2-32 letters, numbers, underscore" />
+        <label for="inv-user">OPERATOR ID</label>
+        <input type="text" id="inv-user" required placeholder="2-32 CHARS" />
       </div>
       <div class="field">
-        <label for="inv-pass">Choose Password (min 6 chars)</label>
-        <input type="password" id="inv-pass" required placeholder="••••••••" />
+        <label for="inv-pass">PASSKEY</label>
+        <input type="password" id="inv-pass" required placeholder="MIN 6 CHARS" />
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%; padding:12px;">Redeem Invite &amp; Create Account</button>
+      <button type="submit" class="btn btn-primary" style="width:100%; padding:11px;">ACTIVATE</button>
     </form>
   </section>
 
-  <!-- Main Authenticated Product Shell -->
+  <!-- Main Desktop Client Workspace -->
   <main class="app-shell" id="app-view">
-    <div id="pc-offline-banner" class="stat-card" style="display:none; margin-bottom:18px; border-color:rgba(245,158,11,0.5); background:rgba(120,53,15,0.28);">
+    <div id="pc-offline-banner" class="stat-card" style="display:none; margin-bottom:16px; border-left:4px solid var(--amber);">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
         <div>
-          <span class="badge-pill warn">HOST PC OFFLINE / SLEEPING</span>
-          <strong style="margin-left:8px; font-size:14px;">Gaming PC is currently powered off or in maintenance mode.</strong>
-          <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
-            The web portal remains online. Game launches will automatically re-enable as soon as the RTX 4060 host reports ready.
-          </div>
+          <span class="badge-pill warn">OFFLINE</span>
+          <strong style="margin-left:8px; font-family:var(--font-mono); font-size:12px;">HOST NODE POWERED DOWN</strong>
         </div>
-        <a href="/offline" class="btn" style="text-decoration:none; font-size:12px;">Open Offline Status Page</a>
+        <a href="/offline" class="btn" style="text-decoration:none;">STATUS</a>
       </div>
     </div>
 
-    <!-- TAB 1: GAME LIBRARY -->
+    <!-- TAB 1: SPLIT-SCREEN GAME LAUNCHER -->
     <div id="section-library">
-      <!-- Featured Hero Spotlight Banner -->
-      <section class="hero-spotlight">
-        <div class="hero-content">
-          <span class="hero-tag" id="hero-tag">FEATURED 60 FPS OPENGL ARENA</span>
-          <h2 class="hero-title" id="hero-title">CyberArena 3D</h2>
-          <p class="hero-desc" id="hero-desc">
-            Hardware-accelerated 3D arena running on your NVIDIA RTX 4060 inside an unprivileged Bubblewrap container. Includes real-time synth stereo audio and per-user persistent high score saves.
-          </p>
-          <div class="hero-controls">
-            <button class="btn btn-primary" id="hero-btn-play" style="padding:11px 22px; font-size:14px;">▶ Launch Game</button>
-            <select class="btn" id="launch-resolution" aria-label="Stream Resolution">
-              <option value="1280x720" selected>720p • 60 FPS</option>
-              <option value="1920x1080">1080p • 60 FPS</option>
-            </select>
-            <select class="btn" id="launch-quality" aria-label="Stream Bitrate Quality">
-              <option value="low">Low (4 Mbps)</option>
-              <option value="medium">Medium (8 Mbps)</option>
-              <option value="high" selected>High (15 Mbps)</option>
-              <option value="ultra">Ultra (25 Mbps)</option>
-            </select>
+      <div class="library-split-deck">
+        <!-- Left Column: Filter Toolbar + Poster Grid -->
+        <div>
+          <div class="library-toolbar">
+            <div class="search-box">
+              <span class="search-icon">&gt;</span>
+              <input type="search" id="game-search-input" placeholder="SEARCH TITLE OR APPID..." />
+            </div>
+            <div class="filter-pills">
+              <button class="filter-chip active" data-filter="all">ALL</button>
+              <button class="filter-chip" data-filter="steam">STEAM</button>
+              <button class="filter-chip" data-filter="builtin">NATIVE</button>
+              <button class="filter-chip" data-filter="account">AUTH</button>
+            </div>
           </div>
-          <div class="hero-badges">
-            <span class="pill-info" id="hero-badge-user">User: —</span>
-            <span class="pill-info" id="hero-badge-steam">Steam: —</span>
-            <span class="pill-info" id="hero-badge-save">High Score: 0</span>
-          </div>
-        </div>
-      </section>
 
-      <!-- Search & Category Filter Toolbar -->
-      <div class="library-toolbar">
-        <div class="search-box">
-          <span class="search-icon">⌕</span>
-          <input type="search" id="game-search-input" placeholder="Search games by title or Steam AppID..." />
+          <div class="games-grid" id="games-grid"></div>
         </div>
-        <div class="filter-pills">
-          <button class="filter-chip active" data-filter="all">All Games</button>
-          <button class="filter-chip" data-filter="steam">Steam Library</button>
-          <button class="filter-chip" data-filter="builtin">Built-in Arena</button>
-          <button class="filter-chip" data-filter="account">Steam Login Setup</button>
-        </div>
+
+        <!-- Right Column: Docked Game Inspector & Launch Deck -->
+        <aside class="hero-spotlight">
+          <div class="hero-content">
+            <span class="hero-tag" id="hero-tag">NATIVE // 60 FPS</span>
+            <h2 class="hero-title" id="hero-title">CyberArena 3D</h2>
+            <p class="hero-desc" id="hero-desc">NVENC H.264 // OPUS // CLOUD SAVES</p>
+            <div class="hero-controls">
+              <select class="btn" id="launch-resolution" aria-label="Resolution">
+                <option value="1280x720" selected>720P 60FPS</option>
+                <option value="1920x1080">1080P 60FPS</option>
+              </select>
+              <select class="btn" id="launch-quality" aria-label="Bitrate">
+                <option value="low">4 MBPS</option>
+                <option value="medium">8 MBPS</option>
+                <option value="high" selected>15 MBPS</option>
+                <option value="ultra">25 MBPS</option>
+              </select>
+              <button class="btn btn-primary" id="hero-btn-play">▶ LAUNCH</button>
+            </div>
+            <div class="hero-badges">
+              <span class="pill-info" id="hero-badge-user">USER: —</span>
+              <span class="pill-info" id="hero-badge-steam">STEAM: —</span>
+              <span class="pill-info" id="hero-badge-save">BEST: 0</span>
+            </div>
+          </div>
+        </aside>
       </div>
-
-      <!-- 600x900 Cover Art Grid -->
-      <div class="games-grid" id="games-grid"></div>
     </div>
 
-    <!-- TAB 2: MY PROFILE & PERSISTENT SAVES -->
+    <!-- TAB 2: PROFILE -->
     <div id="section-profile" style="display:none;">
       <section class="panel-section">
         <div class="panel-header">
-          <h3>My Persistent Storage &amp; Isolation Profile</h3>
+          <h3>02 // OPERATOR PROFILE &amp; SAVES</h3>
         </div>
         <div id="profile-details"></div>
       </section>
     </div>
 
-    <!-- TAB 3: ADMIN CONSOLE -->
+    <!-- TAB 3: SYSTEM / ADMIN -->
     <div id="section-admin" style="display:none;">
       <section class="panel-section">
         <div class="panel-header">
-          <div>
-            <h3>Server Administration &amp; Live GPU Telemetry</h3>
-            <p style="font-size:12px; color:var(--text-muted); margin-top:3px;">
-              Monitor active sessions, RTX 4060 NVENC utilization, invite-only users, and safety limits.
-            </p>
-          </div>
+          <h3>03 // NODE TELEMETRY &amp; ACCESS</h3>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <input type="text" id="invite-note-input" placeholder="Invite note (e.g. Friend name)" style="padding:7px 11px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:8px; font-size:12px;" />
-            <button class="btn btn-primary" id="btn-gen-invite">+ Generate Single-Use Invite</button>
-            <button class="btn btn-danger" id="btn-force-stop" style="display:none;">⚡ Force-End Active Session</button>
+            <input type="text" id="invite-note-input" placeholder="TAG" style="padding:7px 10px; background:var(--bg-0); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:11px;" />
+            <button class="btn btn-primary" id="btn-gen-invite">+ KEY</button>
+            <button class="btn btn-danger" id="btn-force-stop" style="display:none;">KILL SESSION</button>
           </div>
         </div>
 
-        <!-- Live Active Session Monitor Banner -->
-        <div class="stat-card" id="admin-active-session-box" style="margin-bottom:16px; border-color:var(--border-accent);"></div>
+        <div class="stat-card" id="admin-active-session-box" style="margin-bottom:14px; border-left:3px solid var(--volt);"></div>
 
         <div class="panel-grid">
           <div class="stat-card">
-            <h4>NVIDIA RTX 4060 &amp; NVENC Telemetry</h4>
+            <h4>GPU &amp; NVENC</h4>
             <div id="admin-gpu-stats"></div>
             <div id="admin-gpu-sparkline" style="margin-top:10px;"></div>
           </div>
 
           <div class="stat-card">
-            <h4>Host System &amp; Safety Limits</h4>
+            <h4>HOST &amp; TIMERS</h4>
             <div id="admin-host-stats"></div>
-            <form id="form-admin-settings" style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(148,163,184,0.12); display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
-              <div style="flex:1; min-width:105px;">
-                <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">IDLE TIMEOUT (SEC)</label>
-                <input type="number" id="setting-idle-sec" min="5" max="7200" step="1" required style="width:100%; padding:6px 8px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+            <form id="form-admin-settings" style="margin-top:12px; padding-top:10px; border-top:1px solid var(--line); display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+              <div style="flex:1; min-width:95px;">
+                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">IDLE (S)</label>
+                <input type="number" id="setting-idle-sec" min="5" max="7200" step="1" required style="width:100%; padding:6px 8px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
               </div>
-              <div style="flex:1; min-width:105px;">
-                <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">RECONNECT GRACE (SEC)</label>
-                <input type="number" id="setting-grace-sec" min="5" max="3600" step="1" required style="width:100%; padding:6px 8px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+              <div style="flex:1; min-width:95px;">
+                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">GRACE (S)</label>
+                <input type="number" id="setting-grace-sec" min="5" max="3600" step="1" required style="width:100%; padding:6px 8px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
               </div>
-              <button type="submit" class="btn btn-primary" style="padding:7px 12px; font-size:12px;">Save Limits</button>
+              <button type="submit" class="btn btn-primary" style="padding:7px 12px;">SET</button>
             </form>
           </div>
 
           <div class="stat-card">
-            <h4>Single-Use Invite Codes</h4>
+            <h4>ACCESS KEYS</h4>
             <div id="admin-invites-list"></div>
           </div>
 
           <div class="stat-card">
-            <h4>Registered Users</h4>
+            <h4>OPERATORS</h4>
             <div id="admin-users-list"></div>
             <form id="form-add-user" style="margin-top:12px; display:flex; gap:6px; flex-wrap:wrap;">
-              <input type="text" id="new-user-name" required placeholder="Username" style="flex:1; min-width:85px; padding:7px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
-              <input type="password" id="new-user-pass" required placeholder="Password" style="flex:1; min-width:85px; padding:7px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
-              <button type="submit" class="btn btn-primary" style="padding:7px 11px; font-size:12px;">+ Add</button>
+              <input type="text" id="new-user-name" required placeholder="ID" style="flex:1; min-width:80px; padding:7px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:11px;" />
+              <input type="password" id="new-user-pass" required placeholder="PASS" style="flex:1; min-width:80px; padding:7px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:11px;" />
+              <button type="submit" class="btn btn-primary" style="padding:7px 11px;">+ ADD</button>
             </form>
           </div>
 
           <div class="stat-card" style="grid-column: 1 / -1;">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
               <div>
-                <h4 style="margin-bottom:2px;">External HTTPS Domain, Cloudflare Tunnel &amp; STUN/TURN Traversal</h4>
-                <div style="font-size:11px; color:var(--text-muted);" id="admin-net-summary">
-                  Configure external domain, HMAC-SHA1 TURN relay credentials for mobile/WAN play, and Always-On PC-Offline status.
-                </div>
+                <h4 style="margin-bottom:2px;">EXTERNAL GATEWAY &amp; TURN</h4>
+                <div style="font-family:var(--font-mono); font-size:11px; color:var(--fg-1);" id="admin-net-summary"></div>
               </div>
               <div style="display:flex; gap:8px; align-items:center;">
-                <a href="/offline" target="_blank" class="btn" style="padding:5px 10px; font-size:11px; text-decoration:none;">Preview Offline Page ↗</a>
-                <button type="button" class="btn" id="btn-toggle-offline-mode" style="padding:5px 10px; font-size:11px;">Simulate PC Offline: OFF</button>
+                <a href="/offline" target="_blank" class="btn" style="padding:5px 10px; font-size:11px; text-decoration:none;">OFFLINE VIEW ↗</a>
+                <button type="button" class="btn" id="btn-toggle-offline-mode" style="padding:5px 10px; font-size:11px;">MAINTENANCE: OFF</button>
               </div>
             </div>
-            <form id="form-admin-network" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; align-items:flex-end;">
+            <form id="form-admin-network" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:10px; align-items:flex-end;">
               <div>
-                <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">PUBLIC HTTPS DOMAIN</label>
-                <input type="text" id="net-public-domain" placeholder="play.yourdomain.com" style="width:100%; padding:7px 9px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">DOMAIN</label>
+                <input type="text" id="net-public-domain" placeholder="vanshdev.online/cloudgaming" style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
               </div>
               <div>
-                <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">STUN SERVER URL</label>
-                <input type="text" id="net-stun-url" placeholder="stun:stun.l.google.com:19302" style="width:100%; padding:7px 9px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">STUN</label>
+                <input type="text" id="net-stun-url" placeholder="stun:stun.l.google.com:19302" style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
               </div>
               <div>
-                <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">TURN SERVER URL (WAN/5G)</label>
-                <input type="text" id="net-turn-url" placeholder="turn:turn.yourdomain.com:3478" style="width:100%; padding:7px 9px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">TURN</label>
+                <input type="text" id="net-turn-url" placeholder="turn:turn.domain.com:3478" style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
               </div>
               <div>
-                <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">COTURN HMAC AUTH SECRET</label>
-                <input type="password" id="net-turn-secret" placeholder="Shared HMAC-SHA1 secret" style="width:100%; padding:7px 9px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">SECRET</label>
+                <input type="password" id="net-turn-secret" placeholder="HMAC SECRET" style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
               </div>
-              <div style="display:flex; gap:8px;">
-                <button type="submit" class="btn btn-primary" style="padding:7px 14px; font-size:12px; width:100%;">Save Network &amp; TURN</button>
+              <div>
+                <button type="submit" class="btn btn-primary" style="padding:7px 14px; width:100%;">SAVE</button>
               </div>
             </form>
           </div>
 
           <div class="stat-card" style="grid-column: 1 / -1;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <h4 style="margin-bottom:0;">Session History &amp; Audit Log</h4>
-              <button class="btn" id="btn-clear-history" style="padding:4px 10px; font-size:11px;">Clear Ended History</button>
+              <h4 style="margin-bottom:0;">SESSION LOG</h4>
+              <button class="btn" id="btn-clear-history" style="padding:4px 10px; font-size:11px;">CLEAR</button>
             </div>
             <div id="admin-history-list"></div>
           </div>
@@ -255,88 +247,78 @@
     </div>
   </main>
 
-  <!-- Full-Viewport In-Stream WebRTC Player & Collapsible Floating HUD -->
+  <!-- In-Stream Viewport & Tactical HUD -->
   <div class="stream-viewport" id="stream-viewport">
-    <!-- Floating Collapsible Top HUD -->
     <div class="floating-hud">
-      <div class="hud-pill-handle" id="hud-pill-handle" title="Click to collapse or expand HUD bar">
-        <span id="hud-pill-summary">RYOKU HUD ▴ • 60 FPS • -- ms</span>
+      <div class="hud-pill-handle" id="hud-pill-handle">
+        <span id="hud-pill-summary">HUD ▴ // 60 FPS // -- MS</span>
       </div>
       <div class="hud-bar" id="hud-bar">
-        <button class="btn" id="btn-hud-lock-mouse">Lock Mouse (3D)</button>
-        <button class="btn active" id="btn-hud-mute">Audio On</button>
-        <select class="btn" id="select-hud-quality" aria-label="In-Stream Quality">
-          <option value="low">Low (4 Mbps)</option>
-          <option value="medium">Medium (8 Mbps)</option>
-          <option value="high" selected>High (15 Mbps)</option>
-          <option value="ultra">Ultra (25 Mbps)</option>
+        <button class="btn" id="btn-hud-lock-mouse">LOCK AIM</button>
+        <button class="btn active" id="btn-hud-mute">AUDIO ON</button>
+        <select class="btn" id="select-hud-quality" aria-label="Bitrate">
+          <option value="low">4 MBPS</option>
+          <option value="medium">8 MBPS</option>
+          <option value="high" selected>15 MBPS</option>
+          <option value="ultra">25 MBPS</option>
         </select>
-        <button class="btn" id="btn-hud-stats">Stats (Tab)</button>
-        <button class="btn" id="btn-hud-touch">Touch Pad</button>
-        <button class="btn" id="btn-hud-fullscreen">Fullscreen</button>
-        <button class="btn" id="btn-hud-minimize">Minimize</button>
-        <button class="btn btn-danger" id="btn-hud-quit">Quit Game</button>
+        <button class="btn" id="btn-hud-stats">TELEMETRY</button>
+        <button class="btn" id="btn-hud-touch">TOUCH</button>
+        <button class="btn" id="btn-hud-fullscreen">FULLSCREEN</button>
+        <button class="btn" id="btn-hud-minimize">MINIMIZE</button>
+        <button class="btn btn-danger" id="btn-hud-quit">QUIT</button>
       </div>
     </div>
 
     <div class="stream-video-stage">
-      <!-- Floating Telemetry Stats Overlay -->
       <aside class="stream-stats-overlay" id="stream-stats-overlay">
-        <div class="stats-heading">Stream Diagnostics (NVENC H.264)</div>
-        <div class="stats-row"><span>Session State</span><span class="stats-val" id="st-state">READY</span></div>
-        <div class="stats-row"><span>Ping / RTT</span><span class="stats-val" id="st-rtt">-- ms</span></div>
-        <div class="stats-row"><span>Framerate</span><span class="stats-val" id="st-fps">60 FPS</span></div>
-        <div class="stats-row"><span>Bitrate</span><span class="stats-val" id="st-bitrate">-- Mbps</span></div>
-        <div class="stats-row"><span>Resolution</span><span class="stats-val" id="st-res">1280x720</span></div>
-        <div class="stats-row"><span>Packets Lost</span><span class="stats-val" id="st-loss">0</span></div>
-        <div class="stats-row"><span>Input Mode</span><span class="stats-val" id="st-input-mode">Normal UI Cursor</span></div>
-        <div class="stats-row"><span>User Profile</span><span class="stats-val" id="st-user">—</span></div>
-        <div class="stats-row"><span>Saved Score</span><span class="stats-val" id="st-save">0 pts</span></div>
-        <div class="stats-row"><span>Steam Token</span><span class="stats-val" id="st-steam">In-Stream Only</span></div>
-        <div class="isolation-verified-box" id="st-iso-box">
-          <strong>ISOLATION VERIFIED ✓</strong><br/>
-          Host Home, Host Desktop, Physical Inputs &amp; Host Audio Blocked
-        </div>
+        <div class="stats-heading">TELEMETRY</div>
+        <div class="stats-row"><span>STATE</span><span class="stats-val" id="st-state">READY</span></div>
+        <div class="stats-row"><span>PING</span><span class="stats-val" id="st-rtt">-- ms</span></div>
+        <div class="stats-row"><span>FPS</span><span class="stats-val" id="st-fps">60</span></div>
+        <div class="stats-row"><span>RATE</span><span class="stats-val" id="st-bitrate">-- Mbps</span></div>
+        <div class="stats-row"><span>RES</span><span class="stats-val" id="st-res">1280x720</span></div>
+        <div class="stats-row"><span>LOSS</span><span class="stats-val" id="st-loss">0</span></div>
+        <div class="stats-row"><span>INPUT</span><span class="stats-val" id="st-input-mode">CURSOR</span></div>
+        <div class="stats-row"><span>USER</span><span class="stats-val" id="st-user">—</span></div>
+        <div class="stats-row"><span>BEST</span><span class="stats-val" id="st-save">0</span></div>
+        <div class="stats-row"><span>STEAM</span><span class="stats-val" id="st-steam">STREAM</span></div>
+        <div class="isolation-verified-box" id="st-iso-box">SANDBOX ISOLATED ✓</div>
       </aside>
 
-      <!-- Session Progress Stepper & Error Recovery Modal -->
       <div class="session-stage-modal hidden" id="session-stage-modal">
         <div class="stage-card">
-          <h3 id="stage-title">Starting Isolated Gaming Session...</h3>
-          <p id="stage-desc" style="color:var(--text-muted); font-size:13px; margin-top:6px;">
-            Allocating ephemeral Bubblewrap container...
-          </p>
+          <h3 id="stage-title">INITIALIZING SESSION</h3>
+          <p id="stage-desc" style="color:var(--fg-1); font-family:var(--font-mono); font-size:11px; margin-top:4px;">ALLOCATING CONTAINER...</p>
           <div class="stage-steps">
-            <div class="stage-step done" id="step-1">✓ 1. Ephemeral Bubblewrap Sandbox &amp; User Mounts</div>
-            <div class="stage-step active" id="step-2">● 2. RTX 4060 Headless Weston Kiosk &amp; Virtual Audio</div>
-            <div class="stage-step" id="step-3">○ 3. Isolated Game Process &amp; Persistent Saves</div>
-            <div class="stage-step" id="step-4">○ 4. Hardware NVENC H.264 + Opus WebRTC Stream</div>
+            <div class="stage-step done" id="step-1">[01] SANDBOX &amp; USER MOUNTS</div>
+            <div class="stage-step active" id="step-2">[02] HEADLESS DISPLAY &amp; AUDIO</div>
+            <div class="stage-step" id="step-3">[03] GAME PROCESS</div>
+            <div class="stage-step" id="step-4">[04] NVENC WEBRTC STREAM</div>
           </div>
-          <div id="stage-actions" style="display:none; gap:10px; justify-content:flex-end; margin-top:16px;">
-            <button class="btn" id="btn-stage-retry">Launch Again</button>
-            <button class="btn btn-primary" id="btn-stage-library">Return to Library</button>
+          <div id="stage-actions" style="display:none; gap:8px; justify-content:flex-end; margin-top:16px;">
+            <button class="btn" id="btn-stage-retry">RETRY</button>
+            <button class="btn btn-primary" id="btn-stage-library">BACK</button>
           </div>
         </div>
       </div>
 
-      <!-- Native WebRTC Video Element -->
       <video id="stream-video" playsinline autoplay></video>
 
-      <!-- Mobile Touch Controller Overlay -->
       <div class="touch-overlay" id="stream-touch-overlay">
         <div class="virtual-stick-zone" id="stick-zone">
           <div class="virtual-stick-nub" id="stick-nub"></div>
         </div>
         <div class="touch-buttons-zone">
           <div class="t-btn" data-code="Space" style="bottom: 10px; left: 5px;">JUMP</div>
-          <div class="t-btn" data-code="KeyF" style="bottom: 85px; right: 10px; background: rgba(244, 63, 94, 0.78); border-color: #fb7185;">FIRE</div>
-          <div class="t-btn" data-code="KeyQ" style="bottom: 90px; left: 5px;">TURN L</div>
-          <div class="t-btn" data-code="KeyE" style="bottom: 10px; right: 10px;">TURN R</div>
+          <div class="t-btn" data-code="KeyF" style="bottom: 85px; right: 10px; border-color: var(--crimson); color: var(--crimson);">FIRE</div>
+          <div class="t-btn" data-code="KeyQ" style="bottom: 90px; left: 5px;">LEFT</div>
+          <div class="t-btn" data-code="KeyE" style="bottom: 10px; right: 10px;">RIGHT</div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="/assets/app.js"></script>
+  <script src="/assets/app.js?v=3"></script>
 </body>
 </html>

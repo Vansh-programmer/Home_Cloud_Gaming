@@ -249,17 +249,14 @@
     if (!game) return;
     heroTitle.textContent = game.title;
     if (game.app_id === '0') {
-      heroTag.textContent = 'FEATURED 60 FPS OPENGL ARENA';
-      heroDesc.textContent =
-        'Hardware-accelerated 3D arena running on your NVIDIA RTX 4060 inside an unprivileged Bubblewrap container. Includes real-time synth stereo audio and per-user persistent high score saves.';
+      heroTag.textContent = 'NATIVE // 60 FPS OPENGL';
+      heroDesc.textContent = 'Direct NVENC stream • Low-latency input • Persistent saves.';
     } else if (game.app_id === '7') {
-      heroTag.textContent = 'ZERO-KNOWLEDGE STEAM LOGIN';
-      heroDesc.textContent =
-        'Launch Steam Big Picture UI inside your isolated container. Type your Steam password directly into Valve’s official UI—never seen by this website—and your login token is remembered for future sessions.';
+      heroTag.textContent = 'VALVE // STEAM CLIENT';
+      heroDesc.textContent = 'Direct in-stream Steam login • Persistent session token.';
     } else {
-      heroTag.textContent = `STEAM LIBRARY • APPID ${game.app_id}`;
-      heroDesc.textContent =
-        `Stream ${game.title} from the read-only shared library (/steam_shared) with your personal Proton prefix and cloud saves mounted at /home/gamer.`;
+      heroTag.textContent = `STEAM // APPID ${game.app_id}`;
+      heroDesc.textContent = `${formatBytes(game.size_bytes)} • Shared library mount • Private save profile.`;
     }
     heroBtnPlay.onclick = () => startOrResumeGame(game.app_id, game.title);
   }
@@ -276,8 +273,8 @@
     });
 
     if (filtered.length === 0) {
-      gamesGrid.innerHTML = `<div style="grid-column:1/-1; color:var(--text-muted); padding:28px; text-align:center; background:var(--bg-surface); border-radius:14px;">
-        No games matched your filter. Try clearing the search box.
+      gamesGrid.innerHTML = `<div style="grid-column:1/-1; color:var(--text-muted); padding:24px; text-align:center; background:var(--bg-panel); border:1px solid var(--border-dim); font-family:var(--font-mono); font-size:12px;">
+        NO MATCHING TITLES
       </div>`;
       return;
     }
@@ -286,8 +283,8 @@
       const card = document.createElement('div');
       card.className = 'game-card';
       const catLabel = g.app_id === '0'
-        ? 'Native 3D Arena'
-        : (g.app_id === '7' ? 'Steam Account Login' : 'Steam Game');
+        ? 'NATIVE 3D'
+        : (g.app_id === '7' ? 'STEAM CLIENT' : 'STEAM');
 
       const coverSrc = (g.cover_url && g.cover_url.startsWith('/assets/'))
         ? (BASE_PREFIX + g.cover_url)
@@ -300,10 +297,10 @@
             <div class="game-card-cat">${catLabel}</div>
             <div class="game-card-title">${g.title}</div>
             <div class="game-card-meta">
-              <span>AppID ${g.app_id}</span>
+              <span>#${g.app_id}</span>
               <span>${formatBytes(g.size_bytes)}</span>
             </div>
-            <button class="btn btn-primary" style="width:100%;">▶ Play</button>
+            <button class="btn btn-primary" style="width:100%;">▶ PLAY</button>
           </div>
         </div>
       `;
@@ -980,21 +977,21 @@
 
   function renderSparklineSvg(history) {
     if (!history || history.length < 2) {
-      return '<div style="font-size:11px; color:var(--text-muted);">Collecting live telemetry samples...</div>';
+      return '<div style="font-family:var(--font-mono); font-size:10px; color:var(--text-muted);">SAMPLING...</div>';
     }
     const w = 260;
-    const h = 48;
+    const h = 44;
     const pts = history.slice(-30);
     const step = w / Math.max(1, pts.length - 1);
     const gpuCoords = pts.map((p, idx) => `${(idx * step).toFixed(1)},${(h - (Math.min(100, p.gpu_util || 0) / 100) * (h - 8) - 4).toFixed(1)}`).join(' ');
     const encCoords = pts.map((p, idx) => `${(idx * step).toFixed(1)},${(h - (Math.min(100, p.enc_util || 0) / 100) * (h - 8) - 4).toFixed(1)}`).join(' ');
     return `
-      <div style="font-size:10px; color:var(--text-muted); display:flex; justify-content:space-between; margin-bottom:3px;">
-        <span>60s History (<span style="color:#38bdf8;">■ GPU Core</span> • <span style="color:#34d399;">■ NVENC</span>)</span>
+      <div style="font-family:var(--font-mono); font-size:10px; color:var(--text-muted); display:flex; justify-content:space-between; margin-bottom:3px;">
+        <span>60S LOAD (<span style="color:#c8ff00;">■ 3D</span> // <span style="color:#00e676;">■ NVENC</span>)</span>
       </div>
-      <svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" style="background:rgba(2,6,23,0.65); border-radius:6px; border:1px solid rgba(148,163,184,0.12);">
-        <polyline fill="none" stroke="#38bdf8" stroke-width="2" points="${gpuCoords}" />
-        <polyline fill="none" stroke="#34d399" stroke-width="1.8" stroke-dasharray="3,2" points="${encCoords}" />
+      <svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" style="background:#060709; border:1px solid var(--border-dim);">
+        <polyline fill="none" stroke="#c8ff00" stroke-width="1.8" points="${gpuCoords}" />
+        <polyline fill="none" stroke="#00e676" stroke-width="1.5" stroke-dasharray="3,2" points="${encCoords}" />
       </svg>
     `;
   }
@@ -1013,26 +1010,26 @@
         adminActiveSessionBox.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div>
-              <span class="badge-pill ok">GPU IDLE &amp; AVAILABLE</span>
-              <strong style="margin-left:8px; font-size:14px;">No active gaming session on the server</strong>
+              <span class="badge-pill ok">STANDBY</span>
+              <strong style="margin-left:8px; font-size:13px;">NO ACTIVE STREAM</strong>
             </div>
-            <span style="font-size:12px; color:var(--text-muted);">Concurrency Lock: 0 / 1 Sessions Active</span>
+            <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">SLOT: 0 / 1</span>
           </div>
         `;
       } else {
         const connBadge = act.client_connected
-          ? '<span class="badge-pill ok">LIVE WEBRTC STREAM</span>'
-          : `<span class="badge-pill warn">DISCONNECTED (Grace: ${Math.round(act.disconnect_remaining_sec || 0)}s left)</span>`;
+          ? '<span class="badge-pill ok">LIVE</span>'
+          : `<span class="badge-pill warn">PAUSED (${Math.round(act.disconnect_remaining_sec || 0)}S)</span>`;
         adminActiveSessionBox.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
             <div>
               ${connBadge}
-              <strong style="margin-left:8px; font-size:15px;">${act.username}</strong> is playing <strong>${act.game_title}</strong>
-              <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
-                Session <code>${act.session_id}</code> • ${act.width}x${act.height} @ ${act.fps}fps (${act.quality.toUpperCase()}) • Uptime: ${act.uptime_sec}s • Idle timeout in: ${Math.round(act.idle_remaining_sec)}s
+              <strong style="margin-left:8px; font-size:14px;">${act.username.toUpperCase()}</strong> // <strong>${act.game_title}</strong>
+              <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-sub); margin-top:4px;">
+                ${act.width}x${act.height} ${act.fps}FPS (${act.quality.toUpperCase()}) • UP ${act.uptime_sec}S • IDLE ${Math.round(act.idle_remaining_sec)}S
               </div>
             </div>
-            <button class="btn btn-danger" id="btn-inline-force-stop">⚡ Force-End Session Now</button>
+            <button class="btn btn-danger" id="btn-inline-force-stop">KILL SESSION</button>
           </div>
         `;
         const inlineBtn = document.getElementById('btn-inline-force-stop');
@@ -1049,19 +1046,19 @@
 
     adminGpuStats.innerHTML = `
       <div class="list-item" style="margin-bottom:8px;">
-        <span><strong>${g.name || 'NVIDIA RTX 4060'}</strong> (Driver ${g.driver_version || '—'})</span>
-        <span class="badge-pill ${tempC >= 82 ? 'danger' : (tempC >= 70 ? 'warn' : 'ok')}">${tempC}°C • ${g.power_watts ? g.power_watts + 'W' : 'Optimal'}</span>
+        <span><strong>${g.name || 'RTX 4060'}</strong> (${g.driver_version || '—'})</span>
+        <span class="badge-pill ${tempC >= 82 ? 'danger' : (tempC >= 70 ? 'warn' : 'ok')}">${tempC}°C // ${g.power_watts ? g.power_watts + 'W' : 'OK'}</span>
       </div>
       <div class="metric-bar-row">
-        <div class="metric-bar-label"><span>3D Core Load</span><strong>${gpuUtil}%</strong></div>
+        <div class="metric-bar-label"><span>3D ENGINE</span><strong>${gpuUtil}%</strong></div>
         <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${Math.min(100, gpuUtil)}%;"></div></div>
       </div>
       <div class="metric-bar-row">
-        <div class="metric-bar-label"><span>NVENC Hardware Encoder</span><strong>${encUtil}%</strong></div>
+        <div class="metric-bar-label"><span>NVENC</span><strong>${encUtil}%</strong></div>
         <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${Math.min(100, encUtil)}%;"></div></div>
       </div>
       <div class="metric-bar-row">
-        <div class="metric-bar-label"><span>VRAM (${g.vram_used_mb ?? 0} / ${g.vram_total_mb ?? 8188} MB)</span><strong>${vramPct}%</strong></div>
+        <div class="metric-bar-label"><span>VRAM (${g.vram_used_mb ?? 0}/${g.vram_total_mb ?? 8188} MB)</span><strong>${vramPct}%</strong></div>
         <div class="metric-bar-track"><div class="metric-bar-fill ${tempClass}" style="width:${Math.min(100, vramPct)}%;"></div></div>
       </div>
     `;
@@ -1074,15 +1071,15 @@
     if (adminHostStats) {
       adminHostStats.innerHTML = `
         <div class="metric-bar-row">
-          <div class="metric-bar-label"><span>CPU Load (${h.cpu_cores || 12} Threads)</span><strong>${h.load_1m ?? 0} (1m) / ${h.load_5m ?? 0} (5m)</strong></div>
+          <div class="metric-bar-label"><span>CPU (${h.cpu_cores || 12}T)</span><strong>${h.load_1m ?? 0} / ${h.load_5m ?? 0}</strong></div>
           <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${Math.min(100, ((h.load_1m || 0) / (h.cpu_cores || 12)) * 100)}%;"></div></div>
         </div>
         <div class="metric-bar-row">
-          <div class="metric-bar-label"><span>System RAM (${h.ram_used_gb ?? 0} / ${h.ram_total_gb ?? 16} GB)</span><strong>${h.ram_percent ?? 0}%</strong></div>
+          <div class="metric-bar-label"><span>RAM (${h.ram_used_gb ?? 0}/${h.ram_total_gb ?? 16} GB)</span><strong>${h.ram_percent ?? 0}%</strong></div>
           <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${Math.min(100, h.ram_percent || 0)}%;"></div></div>
         </div>
         <div class="metric-bar-row">
-          <div class="metric-bar-label"><span>Storage Free (${h.disk_free_gb ?? 176} GB Free of ${h.disk_total_gb ?? 220} GB)</span><strong>${h.disk_percent ?? 20}% Used</strong></div>
+          <div class="metric-bar-label"><span>DISK (${h.disk_free_gb ?? 176} GB FREE)</span><strong>${h.disk_percent ?? 20}%</strong></div>
           <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${Math.min(100, h.disk_percent || 0)}%;"></div></div>
         </div>
       `;
@@ -1098,19 +1095,15 @@
       currentOfflineSimMode = Boolean(net.maintenance_offline_mode);
       if (btnToggleOfflineMode) {
         btnToggleOfflineMode.textContent = currentOfflineSimMode
-          ? 'Simulate PC Offline: ON (503)'
-          : 'Simulate PC Offline: OFF';
+          ? 'MAINTENANCE: ON (503)'
+          : 'MAINTENANCE: OFF';
         btnToggleOfflineMode.className = currentOfflineSimMode ? 'btn btn-danger' : 'btn';
       }
       if (adminNetSummary) {
-        const cfText = net.cloudflared_running
-          ? 'Cloudflare Tunnel: RUNNING'
-          : (net.cloudflared_installed ? 'Cloudflare Tunnel: Installed' : 'Cloudflare Tunnel: Ready for deploy/cloudflared-config.yml');
-        const turnText = net.turn_configured
-          ? 'TURN Relay: Configured (HMAC-SHA1)'
-          : 'TURN Relay: STUN Direct';
-        const domainText = net.public_domain ? `https://${net.public_domain}` : 'Local / LAN';
-        adminNetSummary.textContent = `Domain: ${domainText} • ${cfText} • ${turnText}`;
+        const cfText = net.cloudflared_running ? 'TUNNEL: UP' : 'TUNNEL: STANDBY';
+        const turnText = net.turn_configured ? 'TURN: HMAC' : 'ICE: STUN';
+        const domainText = net.public_domain || 'LOCAL';
+        adminNetSummary.textContent = `${domainText} // ${cfText} // ${turnText}`;
       }
       if (netPublicDomain && document.activeElement !== netPublicDomain) {
         netPublicDomain.value = net.public_domain || '';
@@ -1238,30 +1231,30 @@
     currentUser = data.user;
 
     const save = currentUser.cyberarena_save || {};
-    heroBadgeUser.textContent = `User: ${currentUser.username}`;
-    heroBadgeSteam.textContent = `Steam: ${currentUser.steam_login_remembered ? 'Remembered ✓' : 'In-Stream Login'}`;
-    heroBadgeSave.textContent = `CyberArena High Score: ${save.high_score || 0} (Runs: ${save.sessions_played || 0})`;
+    heroBadgeUser.textContent = `USER: ${currentUser.username.toUpperCase()}`;
+    heroBadgeSteam.textContent = `STEAM: ${currentUser.steam_login_remembered ? 'SAVED' : 'STREAM'}`;
+    heroBadgeSave.textContent = `BEST: ${save.high_score || 0}`;
 
     profileDetails.innerHTML = `
-      <div class="list-item"><span>Account Username</span><strong>${currentUser.username}</strong></div>
-      <div class="list-item"><span>Account Role</span><strong>${currentUser.role.toUpperCase()}</strong></div>
-      <div class="list-item"><span>Isolated Storage Path</span><code>data/users/${currentUser.username}/home/</code></div>
-      <div class="list-item"><span>Steam Session Token</span><strong>${currentUser.steam_login_remembered ? 'Remembered ✓ (' + (currentUser.steam_account_hint || 'Saved') + ')' : 'Not signed in yet (Launch Steam Big Picture)'}</strong></div>
-      <div class="list-item"><span>CyberArena 3D High Score</span><strong>${save.high_score || 0} pts (${save.sessions_played || 0} sessions played)</strong></div>
+      <div class="list-item"><span>USER</span><strong>${currentUser.username}</strong></div>
+      <div class="list-item"><span>ROLE</span><strong>${currentUser.role.toUpperCase()}</strong></div>
+      <div class="list-item"><span>MOUNT</span><code>data/users/${currentUser.username}/home/</code></div>
+      <div class="list-item"><span>STEAM TOKEN</span><strong>${currentUser.steam_login_remembered ? 'SAVED (' + (currentUser.steam_account_hint || 'OK') + ')' : 'NOT LINKED'}</strong></div>
+      <div class="list-item"><span>CYBERARENA BEST</span><strong>${save.high_score || 0} PTS (${save.sessions_played || 0} RUNS)</strong></div>
     `;
 
     const active = data.active_session;
     if (!healthOnline) {
       serverDot.className = 'status-dot busy';
-      serverPillText.textContent = 'Host PC Offline';
+      serverPillText.textContent = 'OFFLINE';
       btnResumeNav.style.display = 'none';
     } else if (!active) {
       serverDot.className = 'status-dot';
-      serverPillText.textContent = 'GPU Ready • 0/1 Active';
+      serverPillText.textContent = 'READY';
       btnResumeNav.style.display = 'none';
     } else if (active.username === currentUser.username) {
       serverDot.className = 'status-dot';
-      serverPillText.textContent = `Playing: ${active.game_title}`;
+      serverPillText.textContent = `ACTIVE // ${active.game_title.toUpperCase()}`;
       btnResumeNav.style.display = 'inline-flex';
       btnResumeNav.onclick = () => {
         streamOpen = true;
@@ -1270,7 +1263,7 @@
       };
     } else {
       serverDot.className = 'status-dot busy';
-      serverPillText.textContent = `In use by ${active.username} (${active.game_title})`;
+      serverPillText.textContent = `BUSY // ${active.username.toUpperCase()}`;
       btnResumeNav.style.display = 'none';
     }
 

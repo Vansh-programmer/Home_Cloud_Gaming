@@ -167,11 +167,15 @@ The backend ([`backend/server.py`](file:///home/vansh/Projects/Home_Cloud_Gaming
    ```bash
    cloudflared tunnel login
    ```
-3. Create the tunnel:
+3. Create the tunnel (or fetch the credentials JSON file if the tunnel already exists in your Cloudflare account):
    ```bash
-   cloudflared tunnel create ryoku-cloud-gaming
+   # If creating a brand-new tunnel:
+   cloudflared tunnel create vansh-cloud-gaming
+
+   # OR if reusing your existing vansh-cloud-gaming tunnel (UUID: 43a598d8-3099-49ff-8e65-a28b63cafa05):
+   mkdir -p ~/.cloudflared
+   cloudflared tunnel token --cred-file ~/.cloudflared/43a598d8-3099-49ff-8e65-a28b63cafa05.json vansh-cloud-gaming
    ```
-   *(Copy the **Tunnel UUID** and JSON file path printed in the terminal, e.g. `/home/vansh/.cloudflared/<TUNNEL_UUID>.json`.)*
 
 ### Step 2: Configure the `/cloudgaming` Subpath Route
 You can configure the `/cloudgaming` path either via the **Cloudflare Zero Trust Dashboard** (easiest if `vanshdev.online` already hosts another site) or via [`deploy/cloudflared-config.yml`](file:///home/vansh/Projects/Home_Cloud_Gaming/deploy/cloudflared-config.yml):
@@ -222,15 +226,16 @@ You and your invited friends can now open **`https://vanshdev.online/cloudgaming
    ```
 3. In the Ryoku Cloud Gaming **Admin Console** → **External HTTPS Domain, Cloudflare Tunnel & STUN/TURN Traversal**, enter your `TURN SERVER URL` (`turn:turn.yourdomain.com:3478`) and `COTURN HMAC AUTH SECRET`, then click **Save Network & TURN**.
 
-### Step 4: Auto-Start on Boot with `systemd` (Optional)
-To have Ryoku Cloud Gaming start automatically in the background whenever your PC boots:
+### Step 5: Auto-Start Both Server & Cloudflare Tunnel on Boot with `systemd` (Optional)
+To have both Ryoku Cloud Gaming and your Cloudflare Tunnel start automatically in the background whenever your PC boots:
 ```bash
-sudo cp deploy/ryoku-cloud-gaming.service /etc/systemd/system/
+sudo cp /home/vansh/Projects/Home_Cloud_Gaming/deploy/ryoku-cloud-gaming.service /etc/systemd/system/
+sudo cp /home/vansh/Projects/Home_Cloud_Gaming/deploy/ryoku-cloudflare-tunnel.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now ryoku-cloud-gaming.service
+sudo systemctl enable --now ryoku-cloud-gaming.service ryoku-cloudflare-tunnel.service
 ```
-Check server logs anytime with:
+Check live logs anytime with:
 ```bash
-journalctl -u ryoku-cloud-gaming.service -f
+journalctl -u ryoku-cloud-gaming.service -u ryoku-cloudflare-tunnel.service -f
 ```
 
