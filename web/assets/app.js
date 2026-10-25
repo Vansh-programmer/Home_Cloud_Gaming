@@ -491,6 +491,20 @@
     };
   }
 
+  async function fetchIceServers() {
+    try {
+      const res = await fetch('/api/webrtc/ice-config', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.iceServers)) {
+          window.CLOUD_ICE_SERVERS = data.iceServers;
+          return data.iceServers;
+        }
+      }
+    } catch (_) {}
+    return window.CLOUD_ICE_SERVERS || [];
+  }
+
   function connectStreamWebSocket(sessionId) {
     teardownWebRTC();
     wsConnectingForSession = sessionId;
@@ -514,7 +528,8 @@
         }
       } else if (msg.type === 'offer') {
         if (pc) pc.close();
-        pc = new RTCPeerConnection({ iceServers: window.CLOUD_ICE_SERVERS || [] });
+        const iceServers = await fetchIceServers();
+        pc = new RTCPeerConnection({ iceServers });
 
         pc.ondatachannel = (event) => bindDataChannel(event.channel);
 
@@ -842,6 +857,52 @@
   const settingGraceSec = document.getElementById('setting-grace-sec');
   const inviteNoteInput = document.getElementById('invite-note-input');
   const btnClearHistory = document.getElementById('btn-clear-history');
+  const pcOfflineBanner = document.getElementById('pc-offline-banner');
+  const formAdminNetwork = document.getElementById('form-admin-network');
+  const netPublicDomain = document.getElementById('net-public-domain');
+  const netStunUrl = document.getElementById('net-stun-url');
+  const netTurnUrl = document.getElementById('net-turn-url');
+  const netTurnSecret = document.getElementById('net-turn-secret');
+  const btnToggleOfflineMode = document.getElementById('btn-toggle-offline-mode');
+  const adminNetSummary = document.getElementById('admin-net-summary');
+  let currentOfflineSimMode = false;
+
+  if (formAdminNetwork) {
+    formAdminNetwork.onsubmit = async (e) => {
+      e.preventDefault();
+      const payload = {
+        public_domain: netPublicDomain ? netPublicDomain.value.trim() : '',
+        stun_url: netStunUrl ? netStunUrl.value.trim() : '',
+        turn_url: netTurnUrl ? netTurnUrl.value.trim() : '',
+      };
+      if (netTurnSecret && netTurnSecret.value.trim()) {
+        payload.turn_secret = netTurnSecret.value.trim();
+      }
+      const res = await fetch('/api/admin/network', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        if (netTurnSecret) netTurnSecret.value = '';
+        await refreshAdminData();
+      }
+    };
+  }
+
+  if (btnToggleOfflineMode) {
+    btnToggleOfflineMode.onclick = async () => {
+      const res = await fetch('/api/admin/network', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ maintenance_offline_mode: !currentOfflineSimMode }),
+      });
+      if (res.ok) {
+        await refreshAdminData();
+        await pollServerState();
+      }
+    };
+  }
 
   btnGenInvite.onclick = async () => {
     const note = inviteNoteInput ? inviteNoteInput.value.trim() : 'Friend Invite';
@@ -1019,6 +1080,36 @@
       if (settingGraceSec) settingGraceSec.value = Math.round(data.settings.disconnect_grace_sec || 300);
     }
 
+    if (data.network) {
+      const net = data.network;
+      currentOfflineSimMode = Boolean(net.maintenance_offline_mode);
+      if (btnToggleOfflineMode) {
+        btnToggleOfflineMode.textContent = currentOfflineSimMode
+          ? 'Simulate PC Offline: ON (503)'
+          : 'Simulate PC Offline: OFF';
+        btnToggleOfflineMode.className = currentOfflineSimMode ? 'btn btn-danger' : 'btn';
+      }
+      if (adminNetSummary) {
+        const cfText = net.cloudflared_running
+          ? 'Cloudflare Tunnel: RUNNING'
+          : (net.cloudflared_installed ? 'Cloudflare Tunnel: Installed' : 'Cloudflare Tunnel: Ready for deploy/cloudflared-config.yml');
+        const turnText = net.turn_configured
+          ? 'TURN Relay: Configured (HMAC-SHA1)'
+          : 'TURN Relay: STUN Direct';
+        const domainText = net.public_domain ? `https://${net.public_domain}` : 'Local / LAN';
+        adminNetSummary.textContent = `Domain: ${domainText} • ${cfText} • ${turnText}`;
+      }
+      if (netPublicDomain && document.activeElement !== netPublicDomain) {
+        netPublicDomain.value = net.public_domain || '';
+      }
+      if (netStunUrl && document.activeElement !== netStunUrl) {
+        netStunUrl.value = net.stun_url || '';
+      }
+      if (netTurnUrl && document.activeElement !== netTurnUrl) {
+        netTurnUrl.value = net.turn_url || '';
+      }
+    }
+
     adminInvitesList.innerHTML = (data.invites || []).slice(0, 8).map((inv) => {
       const canRevoke = !inv.used_by && !inv.revoked;
       return `
@@ -1108,7 +1199,27 @@
 
   async function pollServerState() {
     if (!currentUser) return;
-    const res = await fetch('/api/auth/me');
+    let healthOnline = true;
+    try {
+      const hRes = await fetch('/api/health', { cache: 'no-store' });
+      const hData = await hRes.json();
+      healthOnline = Boolean(hRes.ok && hData && hData.online !== false);
+    } catch (_) {
+      healthOnline = false;
+    }
+
+    if (pcOfflineBanner) {
+      pcOfflineBanner.style.display = healthOnline ? 'none' : 'block';
+    }
+
+    let res;
+    try {
+      res = await fetch('/api/auth/me');
+    } catch (_) {
+      serverDot.className = 'status-dot busy';
+      serverPillText.textContent = 'Host PC Offline';
+      return;
+    }
     if (!res.ok) return;
     const data = await res.json();
     currentUser = data.user;
@@ -1127,7 +1238,11 @@
     `;
 
     const active = data.active_session;
-    if (!active) {
+    if (!healthOnline) {
+      serverDot.className = 'status-dot busy';
+      serverPillText.textContent = 'Host PC Offline';
+      btnResumeNav.style.display = 'none';
+    } else if (!active) {
       serverDot.className = 'status-dot';
       serverPillText.textContent = 'GPU Ready • 0/1 Active';
       btnResumeNav.style.display = 'none';

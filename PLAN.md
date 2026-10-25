@@ -161,14 +161,14 @@ To avoid duplicating large 50+ GB game installs across users:
 ---
 
 ### Phase 6: External HTTPS Access, STUN/TURN & PC-Offline Status
-**Status: UP NEXT**
-- [ ] Cloudflare Tunnel (`cloudflared`) configuration for secure external access without port forwarding.
-- [ ] STUN/TURN server configuration (`coturn`) to guarantee WebRTC connection traversal across strict cellular/NAT networks.
-- [ ] Always-on PC-offline status page:
-  - Lightweight Cloudflare Worker / Cloudflare Pages frontend hosted on your domain.
-  - Health check ping to the home gaming PC.
-  - When the gaming PC is on, traffic proxies seamlessly to the home server.
-  - When the gaming PC is off, displays a clean "Gaming PC is Offline" status with estimated availability.
+**Status: COMPLETED (Verified with Automated Tests)**
+- [x] Cloudflare Tunnel (`deploy/cloudflared-config.yml`) configuration for secure external HTTPS/WSS access without exposing home router ports.
+- [x] STUN/TURN server configuration (`deploy/turnserver.conf` & `backend/network_manager.py`) with time-limited HMAC-SHA1 TURN REST credentials (`GET /api/webrtc/ice-config`) and GStreamer `turn://` URI formatting for cellular/NAT networks.
+- [x] Always-on PC-offline status page (`web/offline.html` & `deploy/cloudflare_worker.js`):
+  - Lightweight Cloudflare Edge Worker (`deploy/cloudflare_worker.js`) for your custom domain.
+  - Health check ping to `/api/health` on the home gaming PC.
+  - When the gaming PC is on, HTTP and WebSocket traffic proxies seamlessly to the home server.
+  - When the gaming PC is off (or in maintenance mode), displays the branded "Gaming PC is Currently Powered Off" status page (`web/offline.html`) that automatically reconnects when the PC boots.
 
 ---
 
@@ -181,5 +181,5 @@ To avoid duplicating large 50+ GB game installs across users:
 | **3** | Backend, Limits & Auth | Invite-only login works; 1-session GPU lock enforced; idle timeout ends container; tab reconnect resumes game. | **Done** |
 | **4** | Polished Web App & HUD | Steam library UI with artwork; in-stream mobile controls; telemetry HUD; responsive mobile experience. | **Done** |
 | **5** | Admin Portal & Telemetry | Live GPU stats displayed; admin can force-kill session; user list & session history functional. | **Done** |
-| **6** | Domain HTTPS & Offline Page | External access over custom domain; cellular playback via TURN; offline fallback page when PC is off. | Next |
+| **6** | Domain HTTPS & Offline Page | External access over custom domain; cellular playback via TURN; offline fallback page when PC is off. | **Done** |
 

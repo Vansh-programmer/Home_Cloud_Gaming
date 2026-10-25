@@ -139,6 +139,8 @@ def main() -> int:
             f"CLOUD_USER_ID={user_id}",
             f"CLOUD_APP_ID={args.app_id}",
             "SANDBOX_MODE=pre-sandboxed-env",
+            f"STUN_SERVER={os.environ.get('STUN_SERVER', '')}",
+            f"TURN_SERVER={os.environ.get('TURN_SERVER', '')}",
             sys.executable,
             runner_script,
             "--session-id",

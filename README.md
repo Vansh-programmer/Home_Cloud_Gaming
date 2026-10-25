@@ -11,7 +11,7 @@ A personal browser-based cloud gaming system that turns your Linux gaming PC int
 
 ---
 
-## Current Status: Phases 1, 2, 3, 4 & 5 Completed
+## Current Status: All 6 Phases (Phases 1–6) Completed
 
 ### Phase 1: Isolated Single-Game WebRTC Prototype (Completed)
 - **Sandbox**: Unprivileged Bubblewrap (`bwrap`) container with isolated PID, IPC, UTS, and user namespaces; ephemeral `tmpfs` mounts for `/tmp`, `/run`, `/var`, `/home`, `/dev/shm`.
@@ -43,6 +43,11 @@ A personal browser-based cloud gaming system that turns your Linux gaming PC int
 - **Deep RTX 4060 + Host Telemetry**: Visual progress bars and a rolling 60-sample SVG sparkline for GPU 3D Core %, NVENC Hardware Encoder %, VRAM MB / 8188 MB, GPU Temperature (°C), Power Draw (W), plus Host CPU load, RAM usage, and Disk free space.
 - **Live Safety Limit Tuning & Full User Lifecycle**: Adjust `idle_timeout_sec` and `disconnect_grace_sec` live, generate/copy/revoke single-use invite codes, and add, suspend/reactivate (with automatic mid-session termination), or remove user accounts.
 
+### Phase 6: External HTTPS Access, STUN/TURN & PC-Offline Status (Completed)
+- **Dynamic STUN & Ephemeral HMAC-SHA1 TURN REST Credentials (`backend/network_manager.py`)**: Generates time-limited HMAC-SHA1 TURN credentials (`coturn` `--use-auth-secret` standard) per user via `GET /api/webrtc/ice-config` and formats GStreamer `stun://` and `turn://user:pass@host:port` URIs for WAN/5G mobile play.
+- **Always-On PC-Offline Status Page (`web/offline.html` & `deploy/cloudflare_worker.js`)**: Branded "Gaming PC is Currently Powered Off" status page that automatically polls `/api/health` every 5 seconds and redirects into the Game Library as soon as the home PC powers on.
+- **Production Deployment Bundle (`deploy/`)**: Ready-to-use `deploy/cloudflare_worker.js`, `deploy/cloudflared-config.yml`, `deploy/turnserver.conf`, and `deploy/ryoku-cloud-gaming.service`.
+
 ---
 
 ## Project Structure
@@ -73,9 +78,10 @@ Home_Cloud_Gaming/
 │   ├── test_phase1.py      # Phase 1 security invariant & WebRTC streaming test suite
 │   ├── test_phase2.py      # Phase 2 multi-user save persistence & Steam library test suite
 │   └── test_phase3.py      # Phase 3 invite-only auth, GPU lock, reconnect & idle timeout test suite
-├── data/                   # Runtime storage (ignored by Git: cloud_gaming.db, shared_steam_library, users/)
-├── README.md               # Quickstart & operational guide (this file)
-└── PLAN.md                 # Complete architectural blueprint and 6-phase roadmap
+├── data/                        # Runtime storage (ignored by Git: cloud_gaming.db, shared_steam_library, users/)
+├── SETUP_AND_REQUIREMENTS.md    # Complete guide for running on this PC & any other Linux PC
+├── README.md                    # Quickstart & operational guide (this file)
+└── PLAN.md                      # Complete architectural blueprint and 6-phase roadmap
 ```
 
 ---
@@ -104,12 +110,13 @@ python3 tests/test_phase2.py
 python3 tests/test_phase3.py
 python3 tests/test_phase4.py
 python3 tests/test_phase5.py
+python3 tests/test_phase6.py
 ```
 
-### 2. Start the Phase 3 Cloud Gaming Orchestrator Server (Recommended)
-Start the full multi-user server with invite-only authentication, game library, session state machine, and admin dashboard:
+### 2. Start the Full Production Cloud Gaming Server (Phase 6)
+Start the full multi-user server with invite-only authentication, game library, session state machine, admin dashboard, and STUN/TURN + offline status support:
 ```bash
-python3 engine/launch_phase3.py --port 8080 --admin-user vansh --admin-password ryoku-admin-2026
+python3 engine/launch_phase6.py --port 8080 --admin-user vansh --admin-password ryoku-admin-2026
 ```
 Open **`http://localhost:8080`** in your browser:
 1. **Log in as Admin**: Sign in with username `vansh` and password `ryoku-admin-2026`.

@@ -1,0 +1,26 @@
+# Ryoku Cloud Gaming — Cloudflare Tunnel Configuration (Phase 6)
+#
+# Usage:
+# 1. Authenticate cloudflared:
+#      cloudflared tunnel login
+# 2. Create tunnel:
+#      cloudflared tunnel create ryoku-cloud-gaming
+# 3. Copy the generated Tunnel UUID and credentials file path below, and replace
+#    `play.yourdomain.com` with your actual domain.
+# 4. Route DNS to your tunnel:
+#      cloudflared tunnel route dns ryoku-cloud-gaming play.yourdomain.com
+# 5. Run the tunnel:
+#      cloudflared tunnel --config deploy/cloudflared-config.yml run
+
+tunnel: ryoku-cloud-gaming
+credentials-file: /home/vansh/.cloudflared/TUNNEL_UUID.json
+
+ingress:
+  - hostname: play.yourdomain.com
+    service: http://127.0.0.1:8080
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 5s
+      httpHostHeader: play.yourdomain.com
+  - service: http_status:404
+

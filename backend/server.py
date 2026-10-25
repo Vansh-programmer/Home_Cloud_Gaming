@@ -91,13 +91,34 @@ def create_orchestrator_app(
     # Public Health & Static UI Routes
     # -------------------------------------------------------------------------
 
+    def is_https_request(request: web.Request) -> bool:
+        if request.scheme == "https":
+            return True
+        xfp = request.headers.get("X-Forwarded-Proto", "").lower()
+        return xfp == "https"
+
     async def handle_health(_request: web.Request) -> web.Response:
+        if orchestrator.network_mgr.maintenance_offline_mode:
+            return web.json_response(
+                {
+                    "ok": False,
+                    "online": False,
+                    "status": "pc_offline",
+                    "server_name": "Ryoku Cloud Gaming PC",
+                    "in_use": False,
+                    "active_session": None,
+                    "message": "Gaming PC is currently powered off or in offline maintenance mode.",
+                },
+                status=503,
+            )
         active = orchestrator.get_active_session_public_summary()
         return web.json_response(
             {
                 "ok": True,
                 "online": True,
+                "status": "online",
                 "server_name": "Ryoku Cloud Gaming PC",
+                "public_domain": orchestrator.network_mgr.public_domain,
                 "in_use": active is not None,
                 "active_session": active,
             }
@@ -108,6 +129,12 @@ def create_orchestrator_app(
         if app_html.exists():
             return web.FileResponse(app_html)
         return web.FileResponse(web_dir / "prototype.html")
+
+    async def handle_offline_page(_request: web.Request) -> web.StreamResponse:
+        offline_html = web_dir / "offline.html"
+        if offline_html.exists():
+            return web.FileResponse(offline_html)
+        return web.Response(text="Gaming PC is currently offline.", status=503)
 
     async def handle_prototype(_request: web.Request) -> web.StreamResponse:
         return web.FileResponse(web_dir / "prototype.html")
@@ -158,6 +185,7 @@ def create_orchestrator_app(
             str(auth["token"]),
             max_age=7 * 24 * 3600,
             httponly=True,
+            secure=is_https_request(request),
             samesite="Lax",
             path="/",
         )
@@ -210,6 +238,7 @@ def create_orchestrator_app(
             str(token_info["token"]),
             max_age=7 * 24 * 3600,
             httponly=True,
+            secure=is_https_request(request),
             samesite="Lax",
             path="/",
         )
@@ -266,16 +295,22 @@ def create_orchestrator_app(
         uname = str(user["username"])
         active = orchestrator.get_active_session_public_summary()
         my_session = orchestrator.get_session_for_user(uname)
+        is_online = not orchestrator.network_mgr.maintenance_offline_mode
         return web.json_response(
             {
                 "ok": True,
-                "online": True,
+                "online": is_online,
                 "in_use": active is not None,
                 "busy_by_other": active is not None and active["username"] != uname,
                 "active_session": active,
                 "my_session": my_session,
             }
         )
+
+    async def handle_webrtc_ice_config(request: web.Request) -> web.Response:
+        user = require_user(request)
+        uname = str(user["username"])
+        return web.json_response(orchestrator.network_mgr.get_client_ice_config(uname))
 
     async def handle_session_start(request: web.Request) -> web.Response:
         user = require_user(request)
@@ -497,11 +532,21 @@ def create_orchestrator_app(
                     "idle_timeout_sec": orchestrator.idle_timeout_sec,
                     "disconnect_grace_sec": orchestrator.disconnect_grace_sec,
                 },
+                "network": orchestrator.network_mgr.get_network_status(),
                 "users": users,
                 "invites": db.list_invites(),
                 "session_history": db.list_session_history(limit=100),
             }
         )
+
+    async def handle_admin_network(request: web.Request) -> web.Response:
+        require_admin(request)
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        updated = orchestrator.network_mgr.update_config(body if isinstance(body, dict) else {})
+        return web.json_response({"ok": True, "network": updated})
 
     async def handle_admin_force_stop(request: web.Request) -> web.Response:
         require_admin(request)
@@ -618,6 +663,7 @@ def create_orchestrator_app(
 
     # Register Routes
     app.router.add_get("/", handle_index)
+    app.router.add_get("/offline", handle_offline_page)
     app.router.add_get("/prototype", handle_prototype)
     if (web_dir / "assets").exists():
         app.router.add_static("/assets", path=web_dir / "assets", show_index=False)
@@ -631,6 +677,7 @@ def create_orchestrator_app(
 
     app.router.add_get("/api/games", handle_list_games)
     app.router.add_get("/api/server/status", handle_server_status)
+    app.router.add_get("/api/webrtc/ice-config", handle_webrtc_ice_config)
     app.router.add_post("/api/sessions/start", handle_session_start)
     app.router.add_get("/api/sessions/current", handle_session_current)
     app.router.add_get("/api/session/status", handle_session_current)
@@ -644,6 +691,7 @@ def create_orchestrator_app(
     app.router.add_get("/api/admin/overview", handle_admin_overview)
     app.router.add_post("/api/admin/sessions/force-stop", handle_admin_force_stop)
     app.router.add_post("/api/admin/settings", handle_admin_settings)
+    app.router.add_post("/api/admin/network", handle_admin_network)
     app.router.add_post("/api/admin/users", handle_admin_create_user)
     app.router.add_patch("/api/admin/users/{username}", handle_admin_update_user)
     app.router.add_delete("/api/admin/users/{username}", handle_admin_delete_user)

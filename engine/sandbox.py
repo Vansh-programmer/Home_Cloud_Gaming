@@ -259,6 +259,8 @@ class EphemeralSandbox:
             "CLOUD_USER_ID": self.config.user_id,
             "CLOUD_APP_ID": self.config.app_id,
             "SANDBOX_MODE": "bwrap-strict",
+            "STUN_SERVER": os.environ.get("STUN_SERVER", ""),
+            "TURN_SERVER": os.environ.get("TURN_SERVER", ""),
         }
         if env_vars:
             default_env.update(env_vars)

@@ -51,7 +51,7 @@ class WebRTCPeerStream:
         quality: str,
         on_signaling_message: Callable[[dict], None],
         on_input_event: Callable[[dict], None],
-        stun_server: str = os.environ.get("STUN_SERVER", ""),
+        stun_server: Optional[str] = None,
         turn_server: Optional[str] = None,
         audio_enabled: bool = True,
     ) -> None:
@@ -63,8 +63,12 @@ class WebRTCPeerStream:
         self.quality = quality if quality in QUALITY_PRESETS else "high"
         self.on_signaling_message = on_signaling_message
         self.on_input_event = on_input_event
-        self.stun_server = stun_server
-        self.turn_server = turn_server
+        self.stun_server = (
+            stun_server if stun_server is not None else os.environ.get("STUN_SERVER", "")
+        )
+        self.turn_server = (
+            turn_server if turn_server is not None else (os.environ.get("TURN_SERVER", "") or None)
+        )
         self.audio_enabled = audio_enabled
 
         self.pipe: Optional[Gst.Pipeline] = None

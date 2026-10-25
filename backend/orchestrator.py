@@ -32,6 +32,7 @@ from typing import Dict, List, Optional
 from aiohttp import ClientSession, ClientTimeout
 
 from backend.database import CloudGamingDatabase
+from backend.network_manager import NetworkConfigManager
 from engine.steam_manager import SteamLibraryManager
 from engine.storage_manager import UserStorageManager, validate_user_id
 
@@ -171,10 +172,12 @@ class SessionOrchestrator:
         idle_timeout_sec: float = 600.0,       # Default: 10 minutes
         disconnect_grace_sec: float = 300.0,   # Default: 5 minutes
         allow_pre_sandboxed: bool = False,
+        network_mgr: Optional[NetworkConfigManager] = None,
     ) -> None:
         self.db = db
         self.storage_mgr = storage_mgr
         self.steam_mgr = steam_mgr
+        self.network_mgr = network_mgr or NetworkConfigManager(data_root=storage_mgr.data_root)
         self.idle_timeout_sec = float(idle_timeout_sec)
         self.disconnect_grace_sec = float(disconnect_grace_sec)
         self.allow_pre_sandboxed = allow_pre_sandboxed or (
@@ -320,6 +323,7 @@ class SessionOrchestrator:
             env = os.environ.copy()
             if self.allow_pre_sandboxed:
                 env["ALLOW_PRE_SANDBOXED_FALLBACK"] = "1"
+            env.update(self.network_mgr.get_gstreamer_ice_env(clean_user))
 
             log_path = self.storage_mgr.data_root / f"session-{session_id}.log"
             log_fh = open(log_path, "w", encoding="utf-8")

@@ -77,6 +77,19 @@
 
   <!-- Main Authenticated Product Shell -->
   <main class="app-shell" id="app-view">
+    <div id="pc-offline-banner" class="stat-card" style="display:none; margin-bottom:18px; border-color:rgba(245,158,11,0.5); background:rgba(120,53,15,0.28);">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <span class="badge-pill warn">HOST PC OFFLINE / SLEEPING</span>
+          <strong style="margin-left:8px; font-size:14px;">Gaming PC is currently powered off or in maintenance mode.</strong>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
+            The web portal remains online. Game launches will automatically re-enable as soon as the RTX 4060 host reports ready.
+          </div>
+        </div>
+        <a href="/offline" class="btn" style="text-decoration:none; font-size:12px;">Open Offline Status Page</a>
+      </div>
+    </div>
+
     <!-- TAB 1: GAME LIBRARY -->
     <div id="section-library">
       <!-- Featured Hero Spotlight Banner -->
@@ -191,6 +204,42 @@
               <input type="text" id="new-user-name" required placeholder="Username" style="flex:1; min-width:85px; padding:7px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
               <input type="password" id="new-user-pass" required placeholder="Password" style="flex:1; min-width:85px; padding:7px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
               <button type="submit" class="btn btn-primary" style="padding:7px 11px; font-size:12px;">+ Add</button>
+            </form>
+          </div>
+
+          <div class="stat-card" style="grid-column: 1 / -1;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+              <div>
+                <h4 style="margin-bottom:2px;">External HTTPS Domain, Cloudflare Tunnel &amp; STUN/TURN Traversal</h4>
+                <div style="font-size:11px; color:var(--text-muted);" id="admin-net-summary">
+                  Configure external domain, HMAC-SHA1 TURN relay credentials for mobile/WAN play, and Always-On PC-Offline status.
+                </div>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <a href="/offline" target="_blank" class="btn" style="padding:5px 10px; font-size:11px; text-decoration:none;">Preview Offline Page ↗</a>
+                <button type="button" class="btn" id="btn-toggle-offline-mode" style="padding:5px 10px; font-size:11px;">Simulate PC Offline: OFF</button>
+              </div>
+            </div>
+            <form id="form-admin-network" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; align-items:flex-end;">
+              <div>
+                <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">PUBLIC HTTPS DOMAIN</label>
+                <input type="text" id="net-public-domain" placeholder="play.yourdomain.com" style="width:100%; padding:7px 9px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+              </div>
+              <div>
+                <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">STUN SERVER URL</label>
+                <input type="text" id="net-stun-url" placeholder="stun:stun.l.google.com:19302" style="width:100%; padding:7px 9px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+              </div>
+              <div>
+                <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">TURN SERVER URL (WAN/5G)</label>
+                <input type="text" id="net-turn-url" placeholder="turn:turn.yourdomain.com:3478" style="width:100%; padding:7px 9px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+              </div>
+              <div>
+                <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">COTURN HMAC AUTH SECRET</label>
+                <input type="password" id="net-turn-secret" placeholder="Shared HMAC-SHA1 secret" style="width:100%; padding:7px 9px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button type="submit" class="btn btn-primary" style="padding:7px 14px; font-size:12px; width:100%;">Save Network &amp; TURN</button>
+              </div>
             </form>
           </div>
 
