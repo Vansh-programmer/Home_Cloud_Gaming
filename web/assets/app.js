@@ -833,42 +833,105 @@
     sendInputPacket({ type: 'wheel', dy: e.deltaY < 0 ? 1 : -1 });
   }, { passive: false });
 
-  // Virtual Analog Stick, Touch-Look Pad & Touch Buttons (Unified Pointer Events for Touch + Mouse)
+  // --------------------------------------------------------------------------
+  // Native-Grade Mobile & Pointer Control Engine
+  // - Floating Left Thumbstick with Auto-Sprint at >=78% forward deflection
+  // - Sub-pixel Velocity-Accelerated Right Aim Trackpad with Tap-to-Fire
+  // - Simultaneous Hold-to-Fire + Drag-to-Aim on Combat Buttons
+  // --------------------------------------------------------------------------
+  const touchLeftPad = document.getElementById('touch-left-pad') || stickZone;
+  const stickSprintBadge = document.getElementById('stick-sprint-badge');
+  const touchLookZone = document.getElementById('touch-look-zone');
+
+  function pulseHaptic(ms = 10) {
+    try {
+      if (navigator.vibrate) navigator.vibrate(ms);
+    } catch (_) {}
+  }
+
+  // Sub-pixel accumulator + velocity acceleration curve for 3D camera look
+  let aimRemX = 0;
+  let aimRemY = 0;
+  function applyTouchAimDelta(rawDx, rawDy) {
+    const speed = Math.hypot(rawDx, rawDy);
+    if (speed === 0) return;
+    // Precision curve: 1.25x for fine micro-aim, ramping up to 2.9x for fast flicks
+    const accel = 1.25 + Math.min(1.65, speed * 0.045);
+    aimRemX += rawDx * accel;
+    aimRemY += rawDy * accel;
+    const sendDx = Math.trunc(aimRemX);
+    const sendDy = Math.trunc(aimRemY);
+    if (sendDx !== 0 || sendDy !== 0) {
+      aimRemX -= sendDx;
+      aimRemY -= sendDy;
+      sendInputPacket({ type: 'touch_look', dx: sendDx, dy: sendDy });
+    }
+  }
+
+  // 1. Dynamic Floating Left Analog Thumbstick
   let stickPointerId = null;
   let stickOrigin = null;
+  let wasAutoSprinting = false;
 
   const updateStickPosition = (clientX, clientY) => {
     if (!stickOrigin) return;
-    const maxR = 46;
+    const maxR = 48;
     let dx = clientX - stickOrigin.x;
     let dy = clientY - stickOrigin.y;
     const dist = Math.hypot(dx, dy);
+    const normMag = Math.min(1.0, dist / maxR);
     if (dist > maxR) {
       dx = (dx / dist) * maxR;
       dy = (dy / dist) * maxR;
     }
-    stickNub.style.transform = `translate(${dx}px, ${dy}px)`;
-    stInputMode.textContent = 'VIRTUAL STICK';
+    stickNub.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+
+    const normX = Number((dx / maxR).toFixed(2));
+    const normY = Number((dy / maxR).toFixed(2));
+    const isSprinting = normMag >= 0.78 && normY < -0.30;
+
+    if (isSprinting !== wasAutoSprinting) {
+      wasAutoSprinting = isSprinting;
+      stickZone.classList.toggle('sprinting', isSprinting);
+      if (stickSprintBadge) {
+        stickSprintBadge.textContent = isSprinting ? 'SPRINTING ▲' : 'SPRINT ▲';
+      }
+      if (isSprinting) pulseHaptic(12);
+    }
+
+    stInputMode.textContent = isSprinting ? 'STICK (SPRINT)' : 'VIRTUAL STICK';
     sendInputPacket({
       type: 'touch_move',
-      x: Number((dx / maxR).toFixed(2)),
-      y: Number((dy / maxR).toFixed(2)),
+      x: normX,
+      y: normY,
+      sprint: isSprinting,
     });
   };
 
-  stickZone.addEventListener('pointerdown', (e) => {
+  touchLeftPad.addEventListener('pointerdown', (e) => {
+    if (stickPointerId !== null) return;
     e.preventDefault();
     e.stopPropagation();
     videoEl.muted = false;
     stickPointerId = e.pointerId;
-    try { stickZone.setPointerCapture(e.pointerId); } catch (_) {}
-    const r = stickZone.getBoundingClientRect();
-    stickOrigin = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    try { touchLeftPad.setPointerCapture(e.pointerId); } catch (_) {}
+
+    const padRect = touchLeftPad.getBoundingClientRect();
+    const stickRadius = 68;
+    // Dynamically float the stick base to the thumb position (clamped inside left pad)
+    const relX = Math.max(stickRadius + 12, Math.min(padRect.width - stickRadius - 12, e.clientX - padRect.left));
+    const relY = Math.max(stickRadius + 28, Math.min(padRect.height - stickRadius - 12, e.clientY - padRect.top));
+    stickZone.style.left = `${relX - stickRadius}px`;
+    stickZone.style.top = `${relY - stickRadius}px`;
+    stickZone.style.bottom = 'auto';
+
+    stickOrigin = { x: padRect.left + relX, y: padRect.top + relY };
     stickZone.classList.add('active');
+    pulseHaptic(8);
     updateStickPosition(e.clientX, e.clientY);
   });
 
-  stickZone.addEventListener('pointermove', (e) => {
+  touchLeftPad.addEventListener('pointermove', (e) => {
     if (e.pointerId !== stickPointerId || !stickOrigin) return;
     e.preventDefault();
     updateStickPosition(e.clientX, e.clientY);
@@ -879,23 +942,36 @@
     if (e) e.preventDefault();
     stickPointerId = null;
     stickOrigin = null;
-    stickZone.classList.remove('active');
+    wasAutoSprinting = false;
+    stickZone.classList.remove('active', 'sprinting');
+    if (stickSprintBadge) stickSprintBadge.textContent = 'SPRINT ▲';
+    // Return stick to default resting corner
+    stickZone.style.left = '28px';
+    stickZone.style.top = 'auto';
+    stickZone.style.bottom = '28px';
     stickNub.style.transform = 'translate(0px, 0px)';
-    sendInputPacket({ type: 'touch_move', x: 0, y: 0 });
+    sendInputPacket({ type: 'touch_move', x: 0, y: 0, sprint: false });
   };
-  stickZone.addEventListener('pointerup', resetStick);
-  stickZone.addEventListener('pointercancel', resetStick);
+  touchLeftPad.addEventListener('pointerup', resetStick);
+  touchLeftPad.addEventListener('pointercancel', resetStick);
+  touchLeftPad.addEventListener('lostpointercapture', resetStick);
 
-  // Touch-Look Pad (Right side of touch overlay for 360° camera rotation)
-  const touchLookZone = document.getElementById('touch-look-zone');
+  // 2. Right-Half Velocity-Accelerated 3D Aim Trackpad + Tap-to-Fire
   let lookPointerId = null;
   let lookLastPos = null;
+  let lookDownTs = 0;
+  let lookTotalDist = 0;
+
   if (touchLookZone) {
     touchLookZone.addEventListener('pointerdown', (e) => {
+      if (lookPointerId !== null) return;
       e.preventDefault();
       e.stopPropagation();
+      videoEl.muted = false;
       lookPointerId = e.pointerId;
       lookLastPos = { x: e.clientX, y: e.clientY };
+      lookDownTs = performance.now();
+      lookTotalDist = 0;
       touchLookZone.classList.add('active');
       try { touchLookZone.setPointerCapture(e.pointerId); } catch (_) {}
     });
@@ -903,46 +979,80 @@
     touchLookZone.addEventListener('pointermove', (e) => {
       if (e.pointerId !== lookPointerId || !lookLastPos) return;
       e.preventDefault();
-      const dx = Math.round((e.clientX - lookLastPos.x) * 1.8);
-      const dy = Math.round((e.clientY - lookLastPos.y) * 1.8);
+      const rawDx = e.clientX - lookLastPos.x;
+      const rawDy = e.clientY - lookLastPos.y;
       lookLastPos = { x: e.clientX, y: e.clientY };
-      if (dx !== 0 || dy !== 0) {
-        stInputMode.textContent = 'TOUCH LOOK';
-        sendInputPacket({ type: 'touch_look', dx, dy });
+      lookTotalDist += Math.hypot(rawDx, rawDy);
+      if (rawDx !== 0 || rawDy !== 0) {
+        stInputMode.textContent = 'TOUCH AIM';
+        applyTouchAimDelta(rawDx, rawDy);
       }
     });
 
     const resetLook = (e) => {
       if (lookPointerId !== null && e && e.pointerId !== undefined && e.pointerId !== lookPointerId) return;
+      const tapElapsed = performance.now() - lookDownTs;
+      if (e && e.type === 'pointerup' && tapElapsed < 175 && lookTotalDist < 10) {
+        // Quick tap on right aim pad -> Instant Fire
+        pulseHaptic(10);
+        sendInputPacket({ type: 'keydown', code: 'KeyF', key: 'f' });
+        setTimeout(() => sendInputPacket({ type: 'keyup', code: 'KeyF', key: 'f' }), 60);
+      }
       lookPointerId = null;
       lookLastPos = null;
       touchLookZone.classList.remove('active');
     };
     touchLookZone.addEventListener('pointerup', resetLook);
     touchLookZone.addEventListener('pointercancel', resetLook);
+    touchLookZone.addEventListener('lostpointercapture', resetLook);
   }
 
+  // 3. Ergonomic Action Buttons with Simultaneous Hold + Drag-to-Aim
   document.querySelectorAll('.t-btn').forEach((btn) => {
     const code = btn.dataset.code;
+    const allowAimDrag = btn.dataset.aimDrag === 'true';
+    let btnPointerId = null;
+    let btnLastPos = null;
+
     const pressBtn = (e) => {
       e.preventDefault();
       e.stopPropagation();
       videoEl.muted = false;
+      btnPointerId = e.pointerId;
+      btnLastPos = { x: e.clientX, y: e.clientY };
       try { btn.setPointerCapture(e.pointerId); } catch (_) {}
       btn.classList.add('pressed');
-      stInputMode.textContent = `TOUCH (${code})`;
+      pulseHaptic(12);
+      stInputMode.textContent = allowAimDrag ? `FIRE + AIM` : `TOUCH (${code})`;
       sendInputPacket({ type: 'keydown', code, key: code });
     };
+
+    const moveBtn = (e) => {
+      if (!allowAimDrag || e.pointerId !== btnPointerId || !btnLastPos) return;
+      e.preventDefault();
+      const rawDx = e.clientX - btnLastPos.x;
+      const rawDy = e.clientY - btnLastPos.y;
+      btnLastPos = { x: e.clientX, y: e.clientY };
+      if (rawDx !== 0 || rawDy !== 0) {
+        applyTouchAimDelta(rawDx, rawDy);
+      }
+    };
+
     const releaseBtn = (e) => {
+      if (btnPointerId !== null && e && e.pointerId !== undefined && e.pointerId !== btnPointerId) return;
       if (e) {
         e.preventDefault();
         e.stopPropagation();
       }
+      btnPointerId = null;
+      btnLastPos = null;
       if (!btn.classList.contains('pressed')) return;
       btn.classList.remove('pressed');
       sendInputPacket({ type: 'keyup', code, key: code });
     };
+
     btn.addEventListener('pointerdown', pressBtn);
+    btn.addEventListener('pointermove', moveBtn);
     btn.addEventListener('pointerup', releaseBtn);
     btn.addEventListener('pointercancel', releaseBtn);
     btn.addEventListener('lostpointercapture', releaseBtn);

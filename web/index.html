@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>RYOKU // CLIENT</title>
-  <link rel="stylesheet" href="/assets/styles.css?v=4" />
+  <link rel="stylesheet" href="/assets/styles.css?v=5" />
 </head>
 <body>
   <!-- Left Vertical Command Rail -->
@@ -315,24 +315,34 @@
       </div>
 
       <div class="touch-overlay" id="stream-touch-overlay">
-        <div class="virtual-stick-zone" id="stick-zone">
-          <div class="virtual-stick-crosshair"></div>
-          <div class="virtual-stick-nub" id="stick-nub"></div>
+        <!-- Left Half: Dynamic Floating Thumbstick Surface -->
+        <div class="touch-left-pad" id="touch-left-pad">
+          <div class="virtual-stick-zone" id="stick-zone">
+            <div class="stick-sprint-badge" id="stick-sprint-badge">SPRINT ▲</div>
+            <div class="virtual-stick-crosshair"></div>
+            <div class="virtual-stick-nub" id="stick-nub"></div>
+          </div>
         </div>
-        <div class="touch-look-zone" id="touch-look-zone" title="Drag to Aim / Look">
-          <span>DRAG TO AIM</span>
+
+        <!-- Left Index Claw Fire Trigger -->
+        <div class="t-btn t-btn-lfire" data-code="KeyF" data-aim-drag="true">L-FIRE</div>
+
+        <!-- Right Half: Full-Screen Velocity-Accelerated 3D Aim Trackpad -->
+        <div class="touch-look-zone" id="touch-look-zone">
+          <span class="touch-look-hint" id="touch-look-hint">AIM PAD // DRAG TO LOOK • TAP TO FIRE</span>
         </div>
+
+        <!-- Ergonomic Right-Thumb Combat Arc (Hold + Drag on FIRE/JUMP also aims!) -->
         <div class="touch-buttons-zone">
-          <div class="t-btn" data-code="KeyQ" style="bottom: 108px; left: 0px;">TURN L</div>
-          <div class="t-btn" data-code="KeyE" style="bottom: 108px; right: 0px;">TURN R</div>
-          <div class="t-btn" data-code="ShiftLeft" style="bottom: 54px; left: 0px;">SPRINT</div>
-          <div class="t-btn" data-code="KeyF" style="bottom: 54px; right: 0px; border-color: var(--crimson); color: var(--crimson);">FIRE</div>
-          <div class="t-btn" data-code="Space" style="bottom: 0px; left: 0px; width: 144px;">JUMP</div>
+          <div class="t-btn t-btn-fire" data-code="KeyF" data-aim-drag="true">FIRE</div>
+          <div class="t-btn t-btn-jump" data-code="Space" data-aim-drag="true">JUMP</div>
+          <div class="t-btn t-btn-sprint" data-code="ShiftLeft">SPRINT</div>
+          <div class="t-btn t-btn-reset" data-code="KeyR">RESET</div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="/assets/app.js?v=4"></script>
+  <script src="/assets/app.js?v=5"></script>
 </body>
 </html>

@@ -372,8 +372,11 @@ int main(int argc, char *argv[]) {
 
     /* Player state & per-user persistent savegame */
     float px = 0.0f, py = 1.7f, pz = 12.0f;
-    float vy = 0.0f;
+    float vx_move = 0.0f, vz_move = 0.0f, vy = 0.0f;
     float yaw = 0.0f, pitch = -5.0f;
+    float target_yaw = 0.0f, target_pitch = -5.0f;
+    float cam_roll = 0.0f, bob_phase = 0.0f;
+    float recoil_kick = 0.0f, hit_flash = 0.0f;
     bool on_ground = true;
     int score = 0;
     int high_score = 0;
@@ -421,6 +424,8 @@ int main(int argc, char *argv[]) {
         last_ticks = now;
         time_sec += dt;
         if (fire_cooldown > 0.0f) fire_cooldown -= dt;
+        if (recoil_kick > 0.0f) recoil_kick = fmaxf(0.0f, recoil_kick - 6.0f * dt);
+        if (hit_flash > 0.0f) hit_flash = fmaxf(0.0f, hit_flash - 3.5f * dt);
 
         SDL_Event ev;
         while (SDL_PollEvent(&ev)) {
@@ -444,7 +449,8 @@ int main(int argc, char *argv[]) {
                     trigger_jump_sound();
                     snprintf(last_input, sizeof(last_input), "KEY: SPACE (JUMP)");
                 } else if (key == SDLK_r) {
-                    px = 0.0f; py = 1.7f; pz = 12.0f; vy = 0.0f; yaw = 0.0f; pitch = -5.0f;
+                    px = 0.0f; py = 1.7f; pz = 12.0f; vx_move = 0.0f; vz_move = 0.0f; vy = 0.0f;
+                    yaw = 0.0f; pitch = -5.0f; target_yaw = 0.0f; target_pitch = -5.0f;
                     snprintf(last_input, sizeof(last_input), "KEY: R (RESET POS)");
                 } else if (key == SDLK_f || key == SDLK_RETURN) {
                     for (int i = 0; i < MAX_LASERS; i++) {
@@ -454,12 +460,13 @@ int main(int argc, char *argv[]) {
                             lasers[i].x = px;
                             lasers[i].y = py - 0.18f;
                             lasers[i].z = pz;
-                            lasers[i].vx = sinf(rad_yaw) * cosf(rad_pitch) * 42.0f;
-                            lasers[i].vy = sinf(rad_pitch) * 42.0f;
-                            lasers[i].vz = -cosf(rad_yaw) * cosf(rad_pitch) * 42.0f;
+                            lasers[i].vx = sinf(rad_yaw) * cosf(rad_pitch) * 44.0f;
+                            lasers[i].vy = sinf(rad_pitch) * 44.0f;
+                            lasers[i].vz = -cosf(rad_yaw) * cosf(rad_pitch) * 44.0f;
                             lasers[i].life = 1.8f;
                             lasers[i].active = true;
-                            fire_cooldown = 0.16f;
+                            fire_cooldown = 0.15f;
+                            recoil_kick = 1.0f;
                             trigger_laser_sound();
                             snprintf(last_input, sizeof(last_input), "KEY: FIRE LASER");
                             break;
@@ -469,15 +476,15 @@ int main(int argc, char *argv[]) {
                     snprintf(last_input, sizeof(last_input), "KEY: %s", SDL_GetKeyName(key));
                 }
             } else if (ev.type == SDL_MOUSEMOTION) {
-                if (abs(ev.motion.x - win_w / 2) <= 2 && abs(ev.motion.y - win_h / 2) <= 2 &&
-                    (abs(ev.motion.xrel) > 90 || abs(ev.motion.yrel) > 90)) {
+                if (abs(ev.motion.x - win_w / 2) <= 4 && abs(ev.motion.y - win_h / 2) <= 4 &&
+                    (abs(ev.motion.xrel) > 100 || abs(ev.motion.yrel) > 80)) {
                     /* Ignore synthetic center-warp motion */
                 } else {
-                    yaw += (float)ev.motion.xrel * 0.22f;
-                    pitch -= (float)ev.motion.yrel * 0.18f;
-                    if (pitch > 75.0f) pitch = 75.0f;
-                    if (pitch < -75.0f) pitch = -75.0f;
-                    snprintf(last_input, sizeof(last_input), "MOUSE LOOK (%+d, %+d)", ev.motion.xrel, ev.motion.yrel);
+                    target_yaw += (float)ev.motion.xrel * 0.20f;
+                    target_pitch -= (float)ev.motion.yrel * 0.16f;
+                    if (target_pitch > 75.0f) target_pitch = 75.0f;
+                    if (target_pitch < -75.0f) target_pitch = -75.0f;
+                    snprintf(last_input, sizeof(last_input), "AIM (%+d, %+d)", ev.motion.xrel, ev.motion.yrel);
                 }
             } else if (ev.type == SDL_MOUSEBUTTONDOWN) {
                 if (ev.button.button == SDL_BUTTON_LEFT) {
@@ -489,14 +496,15 @@ int main(int argc, char *argv[]) {
                             lasers[i].x = px;
                             lasers[i].y = py - 0.18f;
                             lasers[i].z = pz;
-                            lasers[i].vx = sinf(rad_yaw) * cosf(rad_pitch) * 42.0f;
-                            lasers[i].vy = sinf(rad_pitch) * 42.0f;
-                            lasers[i].vz = -cosf(rad_yaw) * cosf(rad_pitch) * 42.0f;
+                            lasers[i].vx = sinf(rad_yaw) * cosf(rad_pitch) * 44.0f;
+                            lasers[i].vy = sinf(rad_pitch) * 44.0f;
+                            lasers[i].vz = -cosf(rad_yaw) * cosf(rad_pitch) * 44.0f;
                             lasers[i].life = 1.8f;
                             lasers[i].active = true;
-                            fire_cooldown = 0.16f;
+                            fire_cooldown = 0.15f;
+                            recoil_kick = 1.0f;
                             trigger_laser_sound();
-                            snprintf(last_input, sizeof(last_input), "MOUSE: LEFT CLICK (FIRE)");
+                            snprintf(last_input, sizeof(last_input), "FIRE LASER");
                             break;
                         }
                     }
@@ -504,7 +512,7 @@ int main(int argc, char *argv[]) {
                     vy = 7.8f;
                     on_ground = false;
                     trigger_jump_sound();
-                    snprintf(last_input, sizeof(last_input), "MOUSE: RIGHT CLICK (JUMP)");
+                    snprintf(last_input, sizeof(last_input), "JUMP");
                 }
             } else if (ev.type == SDL_MOUSEBUTTONUP) {
                 if (ev.button.button == SDL_BUTTON_LEFT) {
@@ -546,10 +554,10 @@ int main(int argc, char *argv[]) {
         if (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN]) move_fwd -= 1.0f;
         if (keys[SDL_SCANCODE_D]) move_str += 1.0f;
         if (keys[SDL_SCANCODE_A]) move_str -= 1.0f;
-        if (keys[SDL_SCANCODE_LEFT]) yaw -= 105.0f * dt;
-        if (keys[SDL_SCANCODE_RIGHT]) yaw += 105.0f * dt;
-        if (keys[SDL_SCANCODE_Q]) yaw -= 105.0f * dt;
-        if (keys[SDL_SCANCODE_E]) yaw += 105.0f * dt;
+        if (keys[SDL_SCANCODE_LEFT]) target_yaw -= 115.0f * dt;
+        if (keys[SDL_SCANCODE_RIGHT]) target_yaw += 115.0f * dt;
+        if (keys[SDL_SCANCODE_Q]) target_yaw -= 115.0f * dt;
+        if (keys[SDL_SCANCODE_E]) target_yaw += 115.0f * dt;
 
         /* Continuous jump when holding Space */
         if (keys[SDL_SCANCODE_SPACE] && on_ground) {
@@ -567,12 +575,13 @@ int main(int argc, char *argv[]) {
                     lasers[i].x = px;
                     lasers[i].y = py - 0.18f;
                     lasers[i].z = pz;
-                    lasers[i].vx = sinf(rad_yaw) * cosf(rad_pitch) * 42.0f;
-                    lasers[i].vy = sinf(rad_pitch) * 42.0f;
-                    lasers[i].vz = -cosf(rad_yaw) * cosf(rad_pitch) * 42.0f;
+                    lasers[i].vx = sinf(rad_yaw) * cosf(rad_pitch) * 44.0f;
+                    lasers[i].vy = sinf(rad_pitch) * 44.0f;
+                    lasers[i].vz = -cosf(rad_yaw) * cosf(rad_pitch) * 44.0f;
                     lasers[i].life = 1.8f;
                     lasers[i].active = true;
-                    fire_cooldown = 0.16f;
+                    fire_cooldown = 0.15f;
+                    recoil_kick = 1.0f;
                     trigger_laser_sound();
                     break;
                 }
@@ -586,8 +595,8 @@ int main(int argc, char *argv[]) {
             Sint16 ry = SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_RIGHTY);
             if (abs(lx) > 4000) move_str += (float)lx / 32767.0f;
             if (abs(ly) > 4000) move_fwd -= (float)ly / 32767.0f;
-            if (abs(rx) > 4000) yaw += ((float)rx / 32767.0f) * 120.0f * dt;
-            if (abs(ry) > 4000) pitch -= ((float)ry / 32767.0f) * 85.0f * dt;
+            if (abs(rx) > 4000) target_yaw += ((float)rx / 32767.0f) * 130.0f * dt;
+            if (abs(ry) > 4000) target_pitch -= ((float)ry / 32767.0f) * 90.0f * dt;
         } else if (joystick) {
             Sint16 lx = SDL_JoystickGetAxis(joystick, 0);
             Sint16 ly = SDL_JoystickGetAxis(joystick, 1);
@@ -595,19 +604,49 @@ int main(int argc, char *argv[]) {
             Sint16 ry = SDL_JoystickGetAxis(joystick, 4);
             if (abs(lx) > 4000) move_str += (float)lx / 32767.0f;
             if (abs(ly) > 4000) move_fwd -= (float)ly / 32767.0f;
-            if (abs(rx) > 4000) yaw += ((float)rx / 32767.0f) * 120.0f * dt;
-            if (abs(ry) > 4000) pitch -= ((float)ry / 32767.0f) * 85.0f * dt;
+            if (abs(rx) > 4000) target_yaw += ((float)rx / 32767.0f) * 130.0f * dt;
+            if (abs(ry) > 4000) target_pitch -= ((float)ry / 32767.0f) * 90.0f * dt;
         }
 
         /* Subtle auto-orbit when idle so user immediately sees 60fps 3D motion on connect */
         if (move_fwd == 0.0f && move_str == 0.0f && strcmp(last_input, "READY - USE WASD / MOUSE / GAMEPAD") == 0) {
-            yaw += 12.0f * dt;
+            target_yaw += 12.0f * dt;
         }
 
+        /* High-frequency exponential camera smoothing for native 60fps feel */
+        float cam_lerp = 1.0f - expf(-38.0f * dt);
+        yaw += (target_yaw - yaw) * cam_lerp;
+        pitch += (target_pitch - pitch) * cam_lerp;
+        if (pitch > 75.0f) pitch = 75.0f;
+        if (pitch < -75.0f) pitch = -75.0f;
+
+        /* Normalize diagonal movement & apply smooth acceleration/friction */
+        float move_len = sqrtf(move_fwd * move_fwd + move_str * move_str);
+        if (move_len > 1.0f) {
+            move_fwd /= move_len;
+            move_str /= move_len;
+        }
+
+        bool sprinting = (keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT]) && (move_len > 0.1f);
+        float max_speed = sprinting ? 15.0f : 9.8f;
         float rad = yaw * (float)M_PI / 180.0f;
-        float speed = (keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT]) ? 14.5f : 9.5f;
-        px += (sinf(rad) * move_fwd + cosf(rad) * move_str) * speed * dt;
-        pz += (-cosf(rad) * move_fwd + sinf(rad) * move_str) * speed * dt;
+        float wish_vx = (sinf(rad) * move_fwd + cosf(rad) * move_str) * max_speed;
+        float wish_vz = (-cosf(rad) * move_fwd + sinf(rad) * move_str) * max_speed;
+
+        float accel_lerp = 1.0f - expf((move_len > 0.05f ? -18.0f : -14.0f) * dt);
+        vx_move += (wish_vx - vx_move) * accel_lerp;
+        vz_move += (wish_vz - vz_move) * accel_lerp;
+
+        px += vx_move * dt;
+        pz += vz_move * dt;
+
+        /* Subtle strafe roll & view bob */
+        float target_roll = -move_str * 1.6f;
+        cam_roll += (target_roll - cam_roll) * (1.0f - expf(-14.0f * dt));
+        float horiz_speed = sqrtf(vx_move * vx_move + vz_move * vz_move);
+        if (on_ground && horiz_speed > 0.5f) {
+            bob_phase += dt * horiz_speed * 1.1f;
+        }
 
         /* Keep inside arena bounds */
         if (px > 26.0f) px = 26.0f;
@@ -643,6 +682,7 @@ int main(int argc, char *argv[]) {
                 score += 100;
                 if (score > high_score) high_score = score;
                 write_savegame(save_path, cloud_user, high_score, score, sessions_played);
+                hit_flash = 1.0f;
                 trigger_hit_sound();
                 snprintf(last_input, sizeof(last_input), "CRYSTAL CAPTURED! +100 (SAVED)");
             }
@@ -671,6 +711,7 @@ int main(int argc, char *argv[]) {
                     score += 250;
                     if (score > high_score) high_score = score;
                     write_savegame(save_path, cloud_user, high_score, score, sessions_played);
+                    hit_flash = 1.0f;
                     trigger_hit_sound();
                     snprintf(last_input, sizeof(last_input), "TARGET DESTROYED! +250 (SAVED)");
                     break;
@@ -688,13 +729,16 @@ int main(int argc, char *argv[]) {
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        set_perspective(70.0f, (float)win_w / (float)win_h, 0.1f, 120.0f);
+        float dynamic_fov = 70.0f + (horiz_speed > 11.0f ? 4.5f : 0.0f);
+        set_perspective(dynamic_fov, (float)win_w / (float)win_h, 0.1f, 120.0f);
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glRotatef(-pitch, 1.0f, 0.0f, 0.0f);
+        glRotatef(cam_roll, 0.0f, 0.0f, 1.0f);
+        glRotatef(-(pitch + recoil_kick * 1.4f), 1.0f, 0.0f, 0.0f);
         glRotatef(yaw, 0.0f, 1.0f, 0.0f);
-        glTranslatef(-px, -py, -pz);
+        float bob_y = (on_ground && horiz_speed > 0.5f) ? sinf(bob_phase) * 0.045f : 0.0f;
+        glTranslatef(-px, -(py + bob_y), -pz);
 
         /* Draw Cyber Neon Floor Grid */
         glLineWidth(1.5f);
@@ -787,17 +831,31 @@ int main(int argc, char *argv[]) {
         snprintf(buf, sizeof(buf), "INPUT: %s", last_input);
         draw_text(buf, 28.0f, 68.0f, 1.8f);
 
-        /* Center Crosshair */
+        /* Dynamic Tactical Crosshair + Hitmarker */
         float cx = win_w * 0.5f;
         float cy = win_h * 0.5f;
-        glColor3f(0.2f, 1.0f, 0.8f);
+        float gap = 4.5f + recoil_kick * 5.0f + (horiz_speed * 0.25f);
+        float len = 9.0f;
+        glColor3f(0.78f, 1.0f, 0.0f);
         glLineWidth(2.0f);
         glBegin(GL_LINES);
-        glVertex2f(cx - 12.0f, cy); glVertex2f(cx - 4.0f, cy);
-        glVertex2f(cx + 4.0f, cy);  glVertex2f(cx + 12.0f, cy);
-        glVertex2f(cx, cy - 12.0f); glVertex2f(cx, cy - 4.0f);
-        glVertex2f(cx, cy + 4.0f);  glVertex2f(cx, cy + 12.0f);
+        glVertex2f(cx - gap - len, cy); glVertex2f(cx - gap, cy);
+        glVertex2f(cx + gap, cy);       glVertex2f(cx + gap + len, cy);
+        glVertex2f(cx, cy - gap - len); glVertex2f(cx, cy - gap);
+        glVertex2f(cx, cy + gap);       glVertex2f(cx, cy + gap + len);
         glEnd();
+
+        if (hit_flash > 0.0f) {
+            glColor3f(1.0f, 0.2f, 0.3f);
+            glLineWidth(2.5f);
+            float hm = 11.0f;
+            glBegin(GL_LINES);
+            glVertex2f(cx - hm, cy - hm); glVertex2f(cx - 4.0f, cy - 4.0f);
+            glVertex2f(cx + hm, cy - hm); glVertex2f(cx + 4.0f, cy - 4.0f);
+            glVertex2f(cx - hm, cy + hm); glVertex2f(cx - 4.0f, cy + 4.0f);
+            glVertex2f(cx + hm, cy + hm); glVertex2f(cx + 4.0f, cy + 4.0f);
+            glEnd();
+        }
 
         SDL_GL_SwapWindow(window);
 

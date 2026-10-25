@@ -246,6 +246,25 @@ Home_Cloud_Gaming/
 
 ## 7. QUICKSTART & PRODUCTION DEPLOYMENT
 
+### One-Command Launcher (`./start.sh`)
+The repository includes [start.sh](file:///home/vansh/Projects/Home_Cloud_Gaming/start.sh), which automatically compiles `CyberArena 3D` if needed, clears any stale processes, starts the Ryoku Cloud Gaming Server, and starts the Cloudflare Tunnel:
+```bash
+# Start full stack in the foreground (Ctrl+C stops both server and tunnel):
+./start.sh
+
+# Start full stack in the background (logs saved to data/logs/):
+./start.sh --background
+
+# Check live server, tunnel, and /api/health status:
+./start.sh --status
+
+# Stop all running background processes:
+./start.sh --stop
+
+# Install & enable systemd services so it starts automatically on every PC boot:
+./start.sh --install-service
+```
+
 ### Prerequisites (Arch Linux / CachyOS)
 ```bash
 sudo pacman -S --needed bubblewrap weston xorg-server-xwayland gamescope \

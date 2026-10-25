@@ -363,14 +363,22 @@ class IsolatedInputManager:
             if not self._dpy:
                 return
             if dx != 0 or dy != 0:
-                margin = 64
-                next_x = self._ptr_x + int(dx)
-                next_y = self._ptr_y + int(dy)
+                step_x = max(-100, min(100, int(dx)))
+                step_y = max(-100, min(100, int(dy)))
+                self._libXtst.XTestFakeRelativeMotionEvent(
+                    self._dpy, step_x, step_y, CurrentTime
+                )
+                self._libX11.XFlush(self._dpy)
+                self._ptr_x = max(0, min(self.width - 1, self._ptr_x + step_x))
+                self._ptr_y = max(0, min(self.height - 1, self._ptr_y + step_y))
+
+                margin_x = 140
+                margin_y = 110
                 if (
-                    next_x < margin
-                    or next_x > self.width - margin
-                    or next_y < margin
-                    or next_y > self.height - margin
+                    self._ptr_x < margin_x
+                    or self._ptr_x > self.width - margin_x
+                    or self._ptr_y < margin_y
+                    or self._ptr_y > self.height - margin_y
                 ):
                     cx = self.width // 2
                     cy = self.height // 2
@@ -378,11 +386,6 @@ class IsolatedInputManager:
                     self._libX11.XFlush(self._dpy)
                     self._ptr_x = cx
                     self._ptr_y = cy
-                self._libXtst.XTestFakeRelativeMotionEvent(
-                    self._dpy, int(dx), int(dy), CurrentTime
-                )
-                self._ptr_x = max(0, min(self.width - 1, self._ptr_x + int(dx)))
-                self._ptr_y = max(0, min(self.height - 1, self._ptr_y + int(dy)))
             elif abs_x is not None and abs_y is not None:
                 px = max(0, min(self.width - 1, int(abs_x * self.width)))
                 py = max(0, min(self.height - 1, int(abs_y * self.height)))
@@ -441,15 +444,21 @@ class IsolatedInputManager:
         rx = float(axes[2]) if len(axes) > 2 else 0.0
         ry = float(axes[3]) if len(axes) > 3 else 0.0
 
-        deadzone = 0.22
-        if ly < -deadzone:
-            desired_keys.add("KeyW")
-        elif ly > deadzone:
-            desired_keys.add("KeyS")
-        if lx < -deadzone:
-            desired_keys.add("KeyA")
-        elif lx > deadzone:
-            desired_keys.add("KeyD")
+        deadzone = 0.18
+        mag = (lx * lx + ly * ly) ** 0.5
+        if mag > deadzone:
+            nx = lx / mag
+            ny = ly / mag
+            if ny < -0.38:
+                desired_keys.add("KeyW")
+            elif ny > 0.38:
+                desired_keys.add("KeyS")
+            if nx < -0.38:
+                desired_keys.add("KeyA")
+            elif nx > 0.38:
+                desired_keys.add("KeyD")
+            if mag > 0.85 and ny < -0.38:
+                desired_keys.add("ShiftLeft")
 
         def btn_pressed(idx: int) -> bool:
             if idx >= len(buttons):
@@ -469,6 +478,8 @@ class IsolatedInputManager:
             desired_keys.add("KeyD")
         if btn_pressed(0):  # A -> Jump
             desired_keys.add("Space")
+        if btn_pressed(1) or btn_pressed(10):  # B / L3 -> Sprint
+            desired_keys.add("ShiftLeft")
         if btn_pressed(2) or btn_pressed(5) or btn_pressed(7):  # X / RB / RT -> Fire
             desired_keys.add("KeyF")
         if btn_pressed(9):  # Start -> Enter
@@ -481,25 +492,37 @@ class IsolatedInputManager:
             self.send_key(old_k, False)
         self._virtual_pad_keys = desired_keys
 
-        # Right stick camera look
+        # Right stick camera look with quadratic precision response curve
         if abs(rx) > deadzone or abs(ry) > deadzone:
-            look_dx = int(rx * 18.0) if abs(rx) > deadzone else 0
-            look_dy = int(ry * 14.0) if abs(ry) > deadzone else 0
+            curved_x = rx * (0.45 + 0.55 * abs(rx))
+            curved_y = ry * (0.45 + 0.55 * abs(ry))
+            look_dx = int(curved_x * 22.0) if abs(rx) > deadzone else 0
+            look_dy = int(curved_y * 16.0) if abs(ry) > deadzone else 0
             if look_dx != 0 or look_dy != 0:
                 self.send_mouse_move(dx=look_dx, dy=look_dy)
 
-    def handle_touch_move(self, x: float, y: float) -> None:
-        """Translate virtual analog stick (x, y in -1..1) into WASD movement keys."""
+    def handle_touch_move(self, x: float, y: float, sprint: bool = False) -> None:
+        """
+        Translate virtual analog thumbstick (x, y in -1..1) into 8-way WASD movement
+        with circular deadzone and automatic forward sprint at >=78% deflection.
+        """
         desired_keys: Set[str] = set()
-        deadzone = 0.20
-        if y < -deadzone:
-            desired_keys.add("KeyW")
-        elif y > deadzone:
-            desired_keys.add("KeyS")
-        if x < -deadzone:
-            desired_keys.add("KeyA")
-        elif x > deadzone:
-            desired_keys.add("KeyD")
+        mag = (x * x + y * y) ** 0.5
+        deadzone = 0.15
+        if mag > deadzone:
+            nx = x / mag
+            ny = y / mag
+            # 8-way sector threshold (sin(22.5 deg) ~= 0.382) for natural diagonal movement
+            if ny < -0.38:
+                desired_keys.add("KeyW")
+            elif ny > 0.38:
+                desired_keys.add("KeyS")
+            if nx < -0.38:
+                desired_keys.add("KeyA")
+            elif nx > 0.38:
+                desired_keys.add("KeyD")
+            if sprint or (mag >= 0.78 and ny < -0.30):
+                desired_keys.add("ShiftLeft")
 
         for new_k in desired_keys - self._virtual_touch_keys:
             self.send_key(new_k, True)
@@ -544,6 +567,7 @@ class IsolatedInputManager:
             self.handle_touch_move(
                 float(payload.get("x", 0.0)),
                 float(payload.get("y", 0.0)),
+                bool(payload.get("sprint", False)),
             )
         elif ev_type == "mousedown":
             self.send_mouse_button(int(payload.get("button", 0)), True)
