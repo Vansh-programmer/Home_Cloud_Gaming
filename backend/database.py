@@ -206,6 +206,17 @@ class CloudGamingDatabase:
             )
             return cur.rowcount > 0
 
+    def update_user_password(self, username: str, new_password: str) -> bool:
+        clean_user = validate_user_id(username)
+        pw_hash = hash_password(new_password)
+        with self._connect() as conn:
+            conn.execute("DELETE FROM auth_tokens WHERE username = ?", (clean_user,))
+            cur = conn.execute(
+                "UPDATE users SET password_hash = ? WHERE username = ?",
+                (pw_hash, clean_user),
+            )
+            return cur.rowcount > 0
+
     def get_user(self, username: str) -> Optional[Dict[str, object]]:
         try:
             clean_user = validate_user_id(username)
@@ -554,3 +565,8 @@ class CloudGamingDatabase:
                 }
                 for r in rows
             ]
+
+    def clear_ended_session_history(self) -> int:
+        with self._connect() as conn:
+            cur = conn.execute("DELETE FROM session_history WHERE state = 'ended'")
+            return cur.rowcount

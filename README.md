@@ -11,7 +11,7 @@ A personal browser-based cloud gaming system that turns your Linux gaming PC int
 
 ---
 
-## Current Status: Phases 1, 2, 3 & 4 Completed
+## Current Status: Phases 1, 2, 3, 4 & 5 Completed
 
 ### Phase 1: Isolated Single-Game WebRTC Prototype (Completed)
 - **Sandbox**: Unprivileged Bubblewrap (`bwrap`) container with isolated PID, IPC, UTS, and user namespaces; ephemeral `tmpfs` mounts for `/tmp`, `/run`, `/var`, `/home`, `/dev/shm`.
@@ -37,6 +37,11 @@ A personal browser-based cloud gaming system that turns your Linux gaming PC int
 - **Storefront & Game Library (`web/index.html`, `web/assets/styles.css`, `web/assets/app.js`)**: Dark glassmorphic UI with a featured Hero Spotlight banner, 600x900 vertical box art cards (`/assets/cyberarena-cover.svg`, `/assets/steam-cover.svg`, and Steam CDN covers with offline SVG fallback), instant search bar, and category filter pills.
 - **4-Stage Session Progress Stepper**: Clear visual progression (`1. Bubblewrap Sandbox` → `2. RTX 4060 Weston Kiosk & Virtual Audio` → `3. Isolated Game Process & Saves` → `4. Hardware NVENC WebRTC Stream`).
 - **Direct Integrated In-Stream WebRTC Player & Collapsible Floating HUD**: Native full-viewport `<video>` stream with a collapsible floating top HUD pill (`RYOKU HUD ▴ • 60 FPS • Ping ms`), `Lock Mouse (3D)` vs normal UI cursor toggle, live bitrate quality switcher, `Tab` diagnostics overlay, W3C Gamepad polling, and mobile virtual analog thumbstick + touch action buttons.
+
+### Phase 5: Admin Dashboard, GPU/NVENC Telemetry & Account Controls (Completed)
+- **Live Active Session Control Banner**: Real-time monitor in the **Admin Console** showing who is playing, game title, resolution/FPS/bitrate, connection state, idle countdown, and a one-click **⚡ Force-End Session Now** button.
+- **Deep RTX 4060 + Host Telemetry**: Visual progress bars and a rolling 60-sample SVG sparkline for GPU 3D Core %, NVENC Hardware Encoder %, VRAM MB / 8188 MB, GPU Temperature (°C), Power Draw (W), plus Host CPU load, RAM usage, and Disk free space.
+- **Live Safety Limit Tuning & Full User Lifecycle**: Adjust `idle_timeout_sec` and `disconnect_grace_sec` live, generate/copy/revoke single-use invite codes, and add, suspend/reactivate (with automatic mid-session termination), or remove user accounts.
 
 ---
 
@@ -98,6 +103,7 @@ python3 tests/test_phase1.py
 python3 tests/test_phase2.py
 python3 tests/test_phase3.py
 python3 tests/test_phase4.py
+python3 tests/test_phase5.py
 ```
 
 ### 2. Start the Phase 3 Cloud Gaming Orchestrator Server (Recommended)

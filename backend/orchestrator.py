@@ -19,6 +19,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import shutil
 import socket
 import subprocess
 import sys
@@ -183,9 +184,25 @@ class SessionOrchestrator:
         self._lock = asyncio.Lock()
         self.active_session: Optional[ManagedSession] = None
         self.last_ended_by_user: Dict[str, ManagedSession] = {}
+        self.gpu_history: List[Dict[str, object]] = []
+        self._last_telemetry_ts: float = 0.0
         self._watchdog_task: Optional[asyncio.Task] = None
         self._http_client: Optional[ClientSession] = None
         self._stopping = False
+
+    def update_safety_settings(
+        self,
+        idle_timeout_sec: Optional[float] = None,
+        disconnect_grace_sec: Optional[float] = None,
+    ) -> Dict[str, float]:
+        if idle_timeout_sec is not None:
+            self.idle_timeout_sec = max(2.0, float(idle_timeout_sec))
+        if disconnect_grace_sec is not None:
+            self.disconnect_grace_sec = max(2.0, float(disconnect_grace_sec))
+        return {
+            "idle_timeout_sec": self.idle_timeout_sec,
+            "disconnect_grace_sec": self.disconnect_grace_sec,
+        }
 
     async def start(self) -> None:
         self._stopping = False
@@ -508,13 +525,20 @@ class SessionOrchestrator:
                 return
 
     @staticmethod
-    def get_gpu_telemetry() -> Dict[str, object]:
-        """Query live NVIDIA GPU load, VRAM usage, and temperature via nvidia-smi."""
+    def _parse_float(val: str, default: float = 0.0) -> float:
+        try:
+            return float(val.strip())
+        except Exception:
+            return default
+
+    @classmethod
+    def get_gpu_telemetry(cls) -> Dict[str, object]:
+        """Query live NVIDIA GPU load, NVENC encoder load, VRAM usage, power, and temperature via nvidia-smi."""
         try:
             res = subprocess.run(
                 [
                     "nvidia-smi",
-                    "--query-gpu=name,driver_version,utilization.gpu,utilization.memory,memory.used,memory.total,temperature.gpu,power.draw",
+                    "--query-gpu=name,driver_version,utilization.gpu,utilization.memory,memory.used,memory.total,temperature.gpu,power.draw,power.limit,utilization.encoder,utilization.decoder,fan.speed",
                     "--format=csv,noheader,nounits",
                 ],
                 stdout=subprocess.PIPE,
@@ -525,16 +549,27 @@ class SessionOrchestrator:
             if res.returncode == 0 and res.stdout.strip():
                 parts = [p.strip() for p in res.stdout.strip().splitlines()[0].split(",")]
                 if len(parts) >= 7:
+                    vram_used = cls._parse_float(parts[4], 0.0)
+                    vram_total = cls._parse_float(parts[5], 8188.0)
+                    vram_pct = round((vram_used / vram_total) * 100.0, 1) if vram_total > 0 else 0.0
+                    temp_c = cls._parse_float(parts[6], 0.0)
+                    thermal_state = "optimal" if temp_c < 70 else ("warm" if temp_c < 82 else "hot")
                     return {
                         "available": True,
                         "name": parts[0],
                         "driver_version": parts[1],
-                        "gpu_util_percent": float(parts[2]) if parts[2].replace(".", "").isdigit() else 0.0,
-                        "mem_util_percent": float(parts[3]) if parts[3].replace(".", "").isdigit() else 0.0,
-                        "vram_used_mb": float(parts[4]) if parts[4].replace(".", "").isdigit() else 0.0,
-                        "vram_total_mb": float(parts[5]) if parts[5].replace(".", "").isdigit() else 0.0,
-                        "temperature_c": float(parts[6]) if parts[6].replace(".", "").isdigit() else 0.0,
-                        "power_watts": float(parts[7]) if len(parts) > 7 and parts[7].replace(".", "").isdigit() else None,
+                        "gpu_util_percent": cls._parse_float(parts[2], 0.0),
+                        "mem_util_percent": cls._parse_float(parts[3], 0.0),
+                        "vram_used_mb": vram_used,
+                        "vram_total_mb": vram_total,
+                        "vram_percent": vram_pct,
+                        "temperature_c": temp_c,
+                        "thermal_state": thermal_state,
+                        "power_watts": cls._parse_float(parts[7], 0.0) if len(parts) > 7 else None,
+                        "power_limit_watts": cls._parse_float(parts[8], 115.0) if len(parts) > 8 else None,
+                        "encoder_util_percent": cls._parse_float(parts[9], 0.0) if len(parts) > 9 else 0.0,
+                        "decoder_util_percent": cls._parse_float(parts[10], 0.0) if len(parts) > 10 else 0.0,
+                        "fan_speed_percent": cls._parse_float(parts[11], 0.0) if len(parts) > 11 else 0.0,
                     }
         except Exception:
             pass
@@ -546,7 +581,76 @@ class SessionOrchestrator:
             "mem_util_percent": 0.0,
             "vram_used_mb": 0.0,
             "vram_total_mb": 8188.0,
+            "vram_percent": 0.0,
             "temperature_c": 0.0,
+            "thermal_state": "optimal",
             "power_watts": None,
+            "power_limit_watts": None,
+            "encoder_util_percent": 0.0,
+            "decoder_util_percent": 0.0,
+            "fan_speed_percent": 0.0,
+        }
+
+    def sample_gpu_telemetry(self) -> Dict[str, object]:
+        """Collect current GPU telemetry and append to the rolling 60-sample history buffer."""
+        now = time.time()
+        gpu = self.get_gpu_telemetry()
+        if now - self._last_telemetry_ts >= 1.5 or not self.gpu_history:
+            self._last_telemetry_ts = now
+            self.gpu_history.append(
+                {
+                    "ts": round(now, 1),
+                    "gpu_util": gpu["gpu_util_percent"],
+                    "enc_util": gpu["encoder_util_percent"],
+                    "temp_c": gpu["temperature_c"],
+                    "vram_pct": gpu["vram_percent"],
+                }
+            )
+            if len(self.gpu_history) > 60:
+                self.gpu_history = self.gpu_history[-60:]
+        return gpu
+
+    def get_host_telemetry(self) -> Dict[str, object]:
+        """Collect host CPU load, RAM usage, and disk space on the storage partition."""
+        cpu_count = os.cpu_count() or 12
+        try:
+            load1, load5, _load15 = os.getloadavg()
+        except OSError:
+            load1, load5 = 0.0, 0.0
+
+        ram_total_gb = 16.0
+        ram_avail_gb = 8.0
+        try:
+            meminfo = Path("/proc/meminfo").read_text(encoding="utf-8")
+            for line in meminfo.splitlines():
+                if line.startswith("MemTotal:"):
+                    ram_total_gb = round(int(line.split()[1]) / (1024 * 1024), 2)
+                elif line.startswith("MemAvailable:"):
+                    ram_avail_gb = round(int(line.split()[1]) / (1024 * 1024), 2)
+        except Exception:
+            pass
+        ram_used_gb = round(max(0.0, ram_total_gb - ram_avail_gb), 2)
+        ram_percent = round((ram_used_gb / ram_total_gb) * 100.0, 1) if ram_total_gb > 0 else 0.0
+
+        try:
+            du = shutil.disk_usage(self.storage_mgr.data_root)
+            disk_total_gb = round(du.total / (1024 ** 3), 1)
+            disk_used_gb = round(du.used / (1024 ** 3), 1)
+            disk_free_gb = round(du.free / (1024 ** 3), 1)
+            disk_percent = round((du.used / du.total) * 100.0, 1) if du.total > 0 else 0.0
+        except Exception:
+            disk_total_gb, disk_used_gb, disk_free_gb, disk_percent = 220.0, 44.0, 176.0, 20.0
+
+        return {
+            "cpu_cores": cpu_count,
+            "load_1m": round(load1, 2),
+            "load_5m": round(load5, 2),
+            "ram_used_gb": ram_used_gb,
+            "ram_total_gb": ram_total_gb,
+            "ram_percent": ram_percent,
+            "disk_used_gb": disk_used_gb,
+            "disk_free_gb": disk_free_gb,
+            "disk_total_gb": disk_total_gb,
+            "disk_percent": disk_percent,
         }
 

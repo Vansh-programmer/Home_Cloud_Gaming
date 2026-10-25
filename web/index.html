@@ -140,17 +140,43 @@
     <div id="section-admin" style="display:none;">
       <section class="panel-section">
         <div class="panel-header">
-          <h3>Server Administration &amp; Live GPU Telemetry</h3>
+          <div>
+            <h3>Server Administration &amp; Live GPU Telemetry</h3>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:3px;">
+              Monitor active sessions, RTX 4060 NVENC utilization, invite-only users, and safety limits.
+            </p>
+          </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <input type="text" id="invite-note-input" placeholder="Invite note (e.g. Friend name)" style="padding:7px 11px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:8px; font-size:12px;" />
             <button class="btn btn-primary" id="btn-gen-invite">+ Generate Single-Use Invite</button>
-            <button class="btn btn-danger" id="btn-force-stop" style="display:none;">Force-End Active Session</button>
+            <button class="btn btn-danger" id="btn-force-stop" style="display:none;">⚡ Force-End Active Session</button>
           </div>
         </div>
 
+        <!-- Live Active Session Monitor Banner -->
+        <div class="stat-card" id="admin-active-session-box" style="margin-bottom:16px; border-color:var(--border-accent);"></div>
+
         <div class="panel-grid">
           <div class="stat-card">
-            <h4>NVIDIA RTX 4060 Telemetry</h4>
+            <h4>NVIDIA RTX 4060 &amp; NVENC Telemetry</h4>
             <div id="admin-gpu-stats"></div>
+            <div id="admin-gpu-sparkline" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="stat-card">
+            <h4>Host System &amp; Safety Limits</h4>
+            <div id="admin-host-stats"></div>
+            <form id="form-admin-settings" style="margin-top:12px; padding-top:10px; border-top:1px solid rgba(148,163,184,0.12); display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+              <div style="flex:1; min-width:105px;">
+                <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">IDLE TIMEOUT (SEC)</label>
+                <input type="number" id="setting-idle-sec" min="5" max="7200" step="1" required style="width:100%; padding:6px 8px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+              </div>
+              <div style="flex:1; min-width:105px;">
+                <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:4px;">RECONNECT GRACE (SEC)</label>
+                <input type="number" id="setting-grace-sec" min="5" max="3600" step="1" required style="width:100%; padding:6px 8px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+              </div>
+              <button type="submit" class="btn btn-primary" style="padding:7px 12px; font-size:12px;">Save Limits</button>
+            </form>
           </div>
 
           <div class="stat-card">
@@ -162,14 +188,17 @@
             <h4>Registered Users</h4>
             <div id="admin-users-list"></div>
             <form id="form-add-user" style="margin-top:12px; display:flex; gap:6px; flex-wrap:wrap;">
-              <input type="text" id="new-user-name" required placeholder="Username" style="flex:1; min-width:90px; padding:7px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
-              <input type="password" id="new-user-pass" required placeholder="Password" style="flex:1; min-width:90px; padding:7px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+              <input type="text" id="new-user-name" required placeholder="Username" style="flex:1; min-width:85px; padding:7px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
+              <input type="password" id="new-user-pass" required placeholder="Password" style="flex:1; min-width:85px; padding:7px; background:#020617; border:1px solid var(--border-subtle); color:#fff; border-radius:6px; font-size:12px;" />
               <button type="submit" class="btn btn-primary" style="padding:7px 11px; font-size:12px;">+ Add</button>
             </form>
           </div>
 
-          <div class="stat-card">
-            <h4>Recent Session Audit Log</h4>
+          <div class="stat-card" style="grid-column: 1 / -1;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <h4 style="margin-bottom:0;">Session History &amp; Audit Log</h4>
+              <button class="btn" id="btn-clear-history" style="padding:4px 10px; font-size:11px;">Clear Ended History</button>
+            </div>
             <div id="admin-history-list"></div>
           </div>
         </div>

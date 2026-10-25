@@ -150,17 +150,18 @@ To avoid duplicating large 50+ GB game installs across users:
 ---
 
 ### Phase 5: Admin Dashboard & GPU Telemetry
-**Status: UP NEXT**
-- [ ] Admin portal accessible only by the server owner:
-  - **Live Session View**: Who is currently playing, which game, connection duration, and a "Force End Session" emergency button.
-  - **GPU Telemetry**: Real-time GPU load %, VRAM usage, temperature (°C), and encoder utilization via `nvidia-smi` / `NVML`.
-  - **User Management**: Create invite codes, list users, reset passwords, deactivate or delete accounts.
-  - **Session History**: Historical log of sessions (user, game, duration, start/end timestamps).
+**Status: COMPLETED (Verified with Automated Tests)**
+- [x] Admin portal accessible only by the server owner (`role == "admin"`):
+  - **Live Session View (`#admin-active-session-box`)**: Shows who is currently playing, game title, resolution/FPS/quality, connection state (`LIVE WEBRTC STREAM` vs `DISCONNECTED` grace window), uptime, idle countdown, and a **"⚡ Force-End Session Now"** emergency button.
+  - **GPU & NVENC Telemetry**: Real-time RTX 4060 3D core load %, hardware NVENC encoder utilization %, VRAM usage (MB & %), temperature (°C), power draw (W), rolling 60-sample SVG sparkline chart, plus Host CPU load, RAM usage, and Disk free space.
+  - **Runtime Safety Limits (`POST /api/admin/settings`)**: Live adjustment of `idle_timeout_sec` and `disconnect_grace_sec` without restarting the server.
+  - **User & Invite Management**: Generate single-use invite codes with notes, copy/revoke codes, add users, suspend/reactivate accounts (immediately force-ending active sessions on suspend), reset passwords, or delete accounts.
+  - **Session History Audit Log**: Full historical log of sessions (user, game, quality, duration, end reason) with one-click history clearing (`DELETE /api/admin/history`).
 
 ---
 
 ### Phase 6: External HTTPS Access, STUN/TURN & PC-Offline Status
-**Status: PLANNED**
+**Status: UP NEXT**
 - [ ] Cloudflare Tunnel (`cloudflared`) configuration for secure external access without port forwarding.
 - [ ] STUN/TURN server configuration (`coturn`) to guarantee WebRTC connection traversal across strict cellular/NAT networks.
 - [ ] Always-on PC-offline status page:
@@ -179,6 +180,6 @@ To avoid duplicating large 50+ GB game installs across users:
 | **2** | Steam & Persistent Storage | Launch Steam AppID; Steam login preserved across runs; save games persist; user A cannot see user B's saves. | **Done** |
 | **3** | Backend, Limits & Auth | Invite-only login works; 1-session GPU lock enforced; idle timeout ends container; tab reconnect resumes game. | **Done** |
 | **4** | Polished Web App & HUD | Steam library UI with artwork; in-stream mobile controls; telemetry HUD; responsive mobile experience. | **Done** |
-| **5** | Admin Portal & Telemetry | Live GPU stats displayed; admin can force-kill session; user list & session history functional. | Next |
-| **6** | Domain HTTPS & Offline Page | External access over custom domain; cellular playback via TURN; offline fallback page when PC is off. | Queued |
+| **5** | Admin Portal & Telemetry | Live GPU stats displayed; admin can force-kill session; user list & session history functional. | **Done** |
+| **6** | Domain HTTPS & Offline Page | External access over custom domain; cellular playback via TURN; offline fallback page when PC is off. | Next |
 

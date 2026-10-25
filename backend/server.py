@@ -490,10 +490,16 @@ def create_orchestrator_app(
             {
                 "ok": True,
                 "active_session": active_dict,
-                "gpu": orchestrator.get_gpu_telemetry(),
+                "gpu": orchestrator.sample_gpu_telemetry(),
+                "gpu_history": orchestrator.gpu_history,
+                "host": orchestrator.get_host_telemetry(),
+                "settings": {
+                    "idle_timeout_sec": orchestrator.idle_timeout_sec,
+                    "disconnect_grace_sec": orchestrator.disconnect_grace_sec,
+                },
                 "users": users,
                 "invites": db.list_invites(),
-                "session_history": db.list_session_history(limit=50),
+                "session_history": db.list_session_history(limit=100),
             }
         )
 
@@ -501,6 +507,20 @@ def create_orchestrator_app(
         require_admin(request)
         ended = await orchestrator.terminate_session(reason="admin_force_ended")
         return web.json_response({"ok": True, "ended_session": ended})
+
+    async def handle_admin_settings(request: web.Request) -> web.Response:
+        require_admin(request)
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        idle_val = body.get("idle_timeout_sec")
+        disc_val = body.get("disconnect_grace_sec")
+        updated = orchestrator.update_safety_settings(
+            idle_timeout_sec=float(idle_val) if idle_val is not None else None,
+            disconnect_grace_sec=float(disc_val) if disc_val is not None else None,
+        )
+        return web.json_response({"ok": True, "settings": updated})
 
     async def handle_admin_create_user(request: web.Request) -> web.Response:
         require_admin(request)
@@ -514,6 +534,44 @@ def create_orchestrator_app(
             return web.json_response({"ok": True, "user": user})
         except ValueError as exc:
             return web.json_response({"ok": False, "error": str(exc)}, status=400)
+
+    async def handle_admin_update_user(request: web.Request) -> web.Response:
+        admin_user = require_admin(request)
+        target_username = request.match_info.get("username", "").strip().lower()
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+
+        if "active" in body:
+            active_flag = bool(body["active"])
+            if not active_flag and target_username == str(admin_user["username"]).lower():
+                return web.json_response(
+                    {"ok": False, "error": "You cannot suspend your own admin account."},
+                    status=400,
+                )
+            if not active_flag and (
+                orchestrator.active_session
+                and orchestrator.active_session.username == target_username
+            ):
+                await orchestrator.terminate_session(reason="admin_force_ended")
+            if not db.set_user_active(target_username, active_flag):
+                return web.json_response({"ok": False, "error": "User not found."}, status=404)
+
+        if "password" in body and body["password"]:
+            try:
+                if not db.update_user_password(target_username, str(body["password"])):
+                    return web.json_response({"ok": False, "error": "User not found."}, status=404)
+            except ValueError as exc:
+                return web.json_response({"ok": False, "error": str(exc)}, status=400)
+
+        updated_user = db.get_user(target_username)
+        return web.json_response({"ok": True, "user": updated_user})
+
+    async def handle_admin_clear_history(request: web.Request) -> web.Response:
+        require_admin(request)
+        cleared = db.clear_ended_session_history()
+        return web.json_response({"ok": True, "cleared_count": cleared})
 
     async def handle_admin_delete_user(request: web.Request) -> web.Response:
         admin_user = require_admin(request)
@@ -585,9 +643,12 @@ def create_orchestrator_app(
 
     app.router.add_get("/api/admin/overview", handle_admin_overview)
     app.router.add_post("/api/admin/sessions/force-stop", handle_admin_force_stop)
+    app.router.add_post("/api/admin/settings", handle_admin_settings)
     app.router.add_post("/api/admin/users", handle_admin_create_user)
+    app.router.add_patch("/api/admin/users/{username}", handle_admin_update_user)
     app.router.add_delete("/api/admin/users/{username}", handle_admin_delete_user)
     app.router.add_post("/api/admin/invites", handle_admin_create_invite)
     app.router.add_delete("/api/admin/invites/{code}", handle_admin_revoke_invite)
+    app.router.add_delete("/api/admin/history", handle_admin_clear_history)
 
     return app

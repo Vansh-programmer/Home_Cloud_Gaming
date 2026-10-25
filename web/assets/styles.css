@@ -591,6 +591,65 @@ body {
   font-weight: 700;
 }
 
+.metric-bar-row {
+  margin-bottom: 10px;
+}
+
+.metric-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+}
+
+.metric-bar-track {
+  width: 100%;
+  height: 7px;
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.metric-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.metric-bar-fill.warm {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.metric-bar-fill.hot {
+  background: linear-gradient(90deg, #e11d48, #f43f5e);
+}
+
+.badge-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-pill.ok {
+  background: rgba(52, 211, 153, 0.16);
+  color: var(--emerald);
+}
+
+.badge-pill.warn {
+  background: rgba(251, 191, 36, 0.16);
+  color: var(--amber);
+}
+
+.badge-pill.danger {
+  background: rgba(244, 63, 94, 0.16);
+  color: #fda4af;
+}
+
 /* --------------------------------------------------------------------------
    Full-Viewport In-Stream WebRTC Player & Floating Collapsible HUD
    -------------------------------------------------------------------------- */

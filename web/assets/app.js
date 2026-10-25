@@ -832,21 +832,56 @@
   }, 1000);
 
   // --------------------------------------------------------------------------
-  // Admin Actions & Periodic Server Polling
+  // Admin Actions & Periodic Server Polling (Phase 5 Enhanced Portal)
   // --------------------------------------------------------------------------
+  const adminActiveSessionBox = document.getElementById('admin-active-session-box');
+  const adminGpuSparkline = document.getElementById('admin-gpu-sparkline');
+  const adminHostStats = document.getElementById('admin-host-stats');
+  const formAdminSettings = document.getElementById('form-admin-settings');
+  const settingIdleSec = document.getElementById('setting-idle-sec');
+  const settingGraceSec = document.getElementById('setting-grace-sec');
+  const inviteNoteInput = document.getElementById('invite-note-input');
+  const btnClearHistory = document.getElementById('btn-clear-history');
+
   btnGenInvite.onclick = async () => {
+    const note = inviteNoteInput ? inviteNoteInput.value.trim() : 'Friend Invite';
     const res = await fetch('/api/admin/invites', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ note: 'Friend Invite' }),
+      body: JSON.stringify({ note: note || 'Friend Invite' }),
     });
-    if (res.ok) await refreshAdminData();
+    if (res.ok) {
+      if (inviteNoteInput) inviteNoteInput.value = '';
+      await refreshAdminData();
+    }
   };
 
   btnForceStop.onclick = async () => {
     await fetch('/api/admin/sessions/force-stop', { method: 'POST' });
     await pollServerState();
   };
+
+  if (btnClearHistory) {
+    btnClearHistory.onclick = async () => {
+      await fetch('/api/admin/history', { method: 'DELETE' });
+      await refreshAdminData();
+    };
+  }
+
+  if (formAdminSettings) {
+    formAdminSettings.onsubmit = async (e) => {
+      e.preventDefault();
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idle_timeout_sec: Number(settingIdleSec.value),
+          disconnect_grace_sec: Number(settingGraceSec.value),
+        }),
+      });
+      if (res.ok) await refreshAdminData();
+    };
+  }
 
   if (formAddUser) {
     formAddUser.onsubmit = async (e) => {
@@ -869,36 +904,183 @@
     };
   }
 
+  function renderSparklineSvg(history) {
+    if (!history || history.length < 2) {
+      return '<div style="font-size:11px; color:var(--text-muted);">Collecting live telemetry samples...</div>';
+    }
+    const w = 260;
+    const h = 48;
+    const pts = history.slice(-30);
+    const step = w / Math.max(1, pts.length - 1);
+    const gpuCoords = pts.map((p, idx) => `${(idx * step).toFixed(1)},${(h - (Math.min(100, p.gpu_util || 0) / 100) * (h - 8) - 4).toFixed(1)}`).join(' ');
+    const encCoords = pts.map((p, idx) => `${(idx * step).toFixed(1)},${(h - (Math.min(100, p.enc_util || 0) / 100) * (h - 8) - 4).toFixed(1)}`).join(' ');
+    return `
+      <div style="font-size:10px; color:var(--text-muted); display:flex; justify-content:space-between; margin-bottom:3px;">
+        <span>60s History (<span style="color:#38bdf8;">■ GPU Core</span> • <span style="color:#34d399;">■ NVENC</span>)</span>
+      </div>
+      <svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" style="background:rgba(2,6,23,0.65); border-radius:6px; border:1px solid rgba(148,163,184,0.12);">
+        <polyline fill="none" stroke="#38bdf8" stroke-width="2" points="${gpuCoords}" />
+        <polyline fill="none" stroke="#34d399" stroke-width="1.8" stroke-dasharray="3,2" points="${encCoords}" />
+      </svg>
+    `;
+  }
+
   async function refreshAdminData() {
     if (!currentUser || currentUser.role !== 'admin') return;
     const res = await fetch('/api/admin/overview');
     if (!res.ok) return;
     const data = await res.json();
 
-    btnForceStop.style.display = data.active_session ? 'inline-flex' : 'none';
+    const act = data.active_session;
+    btnForceStop.style.display = act ? 'inline-flex' : 'none';
+
+    if (adminActiveSessionBox) {
+      if (!act) {
+        adminActiveSessionBox.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <span class="badge-pill ok">GPU IDLE &amp; AVAILABLE</span>
+              <strong style="margin-left:8px; font-size:14px;">No active gaming session on the server</strong>
+            </div>
+            <span style="font-size:12px; color:var(--text-muted);">Concurrency Lock: 0 / 1 Sessions Active</span>
+          </div>
+        `;
+      } else {
+        const connBadge = act.client_connected
+          ? '<span class="badge-pill ok">LIVE WEBRTC STREAM</span>'
+          : `<span class="badge-pill warn">DISCONNECTED (Grace: ${Math.round(act.disconnect_remaining_sec || 0)}s left)</span>`;
+        adminActiveSessionBox.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div>
+              ${connBadge}
+              <strong style="margin-left:8px; font-size:15px;">${act.username}</strong> is playing <strong>${act.game_title}</strong>
+              <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
+                Session <code>${act.session_id}</code> • ${act.width}x${act.height} @ ${act.fps}fps (${act.quality.toUpperCase()}) • Uptime: ${act.uptime_sec}s • Idle timeout in: ${Math.round(act.idle_remaining_sec)}s
+              </div>
+            </div>
+            <button class="btn btn-danger" id="btn-inline-force-stop">⚡ Force-End Session Now</button>
+          </div>
+        `;
+        const inlineBtn = document.getElementById('btn-inline-force-stop');
+        if (inlineBtn) inlineBtn.onclick = () => btnForceStop.click();
+      }
+    }
+
     const g = data.gpu || {};
+    const gpuUtil = g.gpu_util_percent ?? 0;
+    const encUtil = g.encoder_util_percent ?? 0;
+    const vramPct = g.vram_percent ?? 0;
+    const tempC = g.temperature_c ?? 0;
+    const tempClass = tempC >= 82 ? 'hot' : (tempC >= 70 ? 'warm' : '');
+
     adminGpuStats.innerHTML = `
-      <div class="list-item"><span>GPU Model</span><strong>${g.name || 'NVIDIA RTX 4060'}</strong></div>
-      <div class="list-item"><span>Core Utilization</span><strong>${g.gpu_util_percent ?? 0}%</strong></div>
-      <div class="list-item"><span>VRAM Usage</span><strong>${g.vram_used_mb ?? 0} / ${g.vram_total_mb ?? 8188} MB</strong></div>
-      <div class="list-item"><span>Temperature</span><strong>${g.temperature_c ?? 0}°C</strong></div>
+      <div class="list-item" style="margin-bottom:8px;">
+        <span><strong>${g.name || 'NVIDIA RTX 4060'}</strong> (Driver ${g.driver_version || '—'})</span>
+        <span class="badge-pill ${tempC >= 82 ? 'danger' : (tempC >= 70 ? 'warn' : 'ok')}">${tempC}°C • ${g.power_watts ? g.power_watts + 'W' : 'Optimal'}</span>
+      </div>
+      <div class="metric-bar-row">
+        <div class="metric-bar-label"><span>3D Core Load</span><strong>${gpuUtil}%</strong></div>
+        <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${Math.min(100, gpuUtil)}%;"></div></div>
+      </div>
+      <div class="metric-bar-row">
+        <div class="metric-bar-label"><span>NVENC Hardware Encoder</span><strong>${encUtil}%</strong></div>
+        <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${Math.min(100, encUtil)}%;"></div></div>
+      </div>
+      <div class="metric-bar-row">
+        <div class="metric-bar-label"><span>VRAM (${g.vram_used_mb ?? 0} / ${g.vram_total_mb ?? 8188} MB)</span><strong>${vramPct}%</strong></div>
+        <div class="metric-bar-track"><div class="metric-bar-fill ${tempClass}" style="width:${Math.min(100, vramPct)}%;"></div></div>
+      </div>
     `;
 
-    adminInvitesList.innerHTML = (data.invites || []).slice(0, 8).map((inv) => `
-      <div class="list-item">
-        <span class="code-chip">${inv.code}</span>
-        <span style="color:var(--text-muted);">${inv.used_by ? 'Redeemed by ' + inv.used_by : (inv.revoked ? 'Revoked' : 'Available')}</span>
-      </div>
-    `).join('') || '<div style="color:var(--text-muted);font-size:12px;">No invite codes generated yet.</div>';
+    if (adminGpuSparkline) {
+      adminGpuSparkline.innerHTML = renderSparklineSvg(data.gpu_history || []);
+    }
+
+    const h = data.host || {};
+    if (adminHostStats) {
+      adminHostStats.innerHTML = `
+        <div class="metric-bar-row">
+          <div class="metric-bar-label"><span>CPU Load (${h.cpu_cores || 12} Threads)</span><strong>${h.load_1m ?? 0} (1m) / ${h.load_5m ?? 0} (5m)</strong></div>
+          <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${Math.min(100, ((h.load_1m || 0) / (h.cpu_cores || 12)) * 100)}%;"></div></div>
+        </div>
+        <div class="metric-bar-row">
+          <div class="metric-bar-label"><span>System RAM (${h.ram_used_gb ?? 0} / ${h.ram_total_gb ?? 16} GB)</span><strong>${h.ram_percent ?? 0}%</strong></div>
+          <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${Math.min(100, h.ram_percent || 0)}%;"></div></div>
+        </div>
+        <div class="metric-bar-row">
+          <div class="metric-bar-label"><span>Storage Free (${h.disk_free_gb ?? 176} GB Free of ${h.disk_total_gb ?? 220} GB)</span><strong>${h.disk_percent ?? 20}% Used</strong></div>
+          <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${Math.min(100, h.disk_percent || 0)}%;"></div></div>
+        </div>
+      `;
+    }
+
+    if (data.settings && document.activeElement !== settingIdleSec && document.activeElement !== settingGraceSec) {
+      if (settingIdleSec) settingIdleSec.value = Math.round(data.settings.idle_timeout_sec || 600);
+      if (settingGraceSec) settingGraceSec.value = Math.round(data.settings.disconnect_grace_sec || 300);
+    }
+
+    adminInvitesList.innerHTML = (data.invites || []).slice(0, 8).map((inv) => {
+      const canRevoke = !inv.used_by && !inv.revoked;
+      return `
+        <div class="list-item">
+          <div>
+            <span class="code-chip">${inv.code}</span>
+            ${inv.note ? `<span style="font-size:11px; color:var(--text-muted); margin-left:6px;">${inv.note}</span>` : ''}
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="color:var(--text-muted); font-size:12px;">
+              ${inv.used_by ? 'Used by ' + inv.used_by : (inv.revoked ? 'Revoked' : 'Available')}
+            </span>
+            ${canRevoke ? `<button class="btn" style="padding:2px 7px; font-size:11px;" data-copyinv="${inv.code}">Copy</button>` : ''}
+            ${canRevoke ? `<button class="btn btn-danger" style="padding:2px 7px; font-size:11px;" data-revokeinv="${inv.code}">Revoke</button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('') || '<div style="color:var(--text-muted);font-size:12px;">No invite codes generated yet.</div>';
+
+    adminInvitesList.querySelectorAll('[data-copyinv]').forEach((btn) => {
+      btn.onclick = () => {
+        navigator.clipboard.writeText(btn.dataset.copyinv).catch(() => {});
+        btn.textContent = 'Copied!';
+      };
+    });
+
+    adminInvitesList.querySelectorAll('[data-revokeinv]').forEach((btn) => {
+      btn.onclick = async () => {
+        await fetch(`/api/admin/invites/${btn.dataset.revokeinv}`, { method: 'DELETE' });
+        await refreshAdminData();
+      };
+    });
 
     adminUsersList.innerHTML = (data.users || []).map((u) => `
       <div class="list-item">
-        <span><strong>${u.username}</strong> (${u.role}) • High: ${(u.cyberarena_save && u.cyberarena_save.high_score) || 0}</span>
+        <div>
+          <strong>${u.username}</strong>
+          <span class="badge-pill ${u.active ? 'ok' : 'danger'}" style="margin-left:4px;">${u.active ? u.role : 'suspended'}</span>
+          <div style="font-size:11px; color:var(--text-muted);">
+            High Score: ${(u.cyberarena_save && u.cyberarena_save.high_score) || 0} • Steam: ${u.steam_login_remembered ? 'Remembered ✓' : '—'}
+          </div>
+        </div>
         ${u.username !== currentUser.username
-          ? `<button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" data-deluser="${u.username}">Remove</button>`
-          : '<span style="color:var(--emerald);font-size:11px;">Owner</span>'}
+          ? `<div style="display:flex; gap:5px;">
+               <button class="btn" style="padding:3px 8px;font-size:11px;" data-toggleuser="${u.username}" data-active="${u.active}">${u.active ? 'Suspend' : 'Activate'}</button>
+               <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" data-deluser="${u.username}">Remove</button>
+             </div>`
+          : '<span class="badge-pill ok">Owner</span>'}
       </div>
     `).join('');
+
+    adminUsersList.querySelectorAll('[data-toggleuser]').forEach((btn) => {
+      btn.onclick = async () => {
+        const currentlyActive = btn.dataset.active === 'true';
+        await fetch(`/api/admin/users/${btn.dataset.toggleuser}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ active: !currentlyActive }),
+        });
+        await refreshAdminData();
+      };
+    });
 
     adminUsersList.querySelectorAll('[data-deluser]').forEach((btn) => {
       btn.onclick = async () => {
@@ -907,12 +1089,21 @@
       };
     });
 
-    adminHistoryList.innerHTML = (data.session_history || []).slice(0, 8).map((h) => `
-      <div class="list-item">
-        <span><strong>${h.username}</strong> • ${h.game_title}</span>
-        <span style="color:var(--text-muted);">${h.state === 'ended' ? `${h.end_reason || 'ended'} (${h.duration_sec || 0}s)` : h.state}</span>
-      </div>
-    `).join('') || '<div style="color:var(--text-muted);font-size:12px;">No sessions recorded yet.</div>';
+    adminHistoryList.innerHTML = (data.session_history || []).slice(0, 12).map((h) => {
+      const badgeType = h.state === 'playing' ? 'ok' : (h.end_reason === 'admin_force_ended' || h.end_reason === 'idle_timeout' ? 'warn' : 'ok');
+      return `
+        <div class="list-item">
+          <div>
+            <strong>${h.username}</strong> played <strong>${h.game_title}</strong>
+            <span style="font-size:11px; color:var(--text-muted); margin-left:6px;">(${h.session_id} • ${h.quality.toUpperCase()})</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:12px; color:var(--text-muted);">${h.duration_sec !== null && h.duration_sec !== undefined ? h.duration_sec + 's' : 'active'}</span>
+            <span class="badge-pill ${badgeType}">${h.state === 'ended' ? (h.end_reason || 'ended') : h.state}</span>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div style="color:var(--text-muted);font-size:12px;">No sessions recorded yet.</div>';
   }
 
   async function pollServerState() {
