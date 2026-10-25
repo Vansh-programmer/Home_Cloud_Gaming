@@ -415,8 +415,11 @@
     handleSessionStateUpdate(session);
   }
 
+  let currentSessionAppId = '0';
+
   function handleSessionStateUpdate(s) {
     if (!s) return;
+    currentSessionAppId = String(s.app_id ?? '0');
     stState.textContent = (s.state || 'unknown').toUpperCase();
     stUser.textContent = `${s.username || 'player'} • App ${s.app_id}`;
     if (s.savegame) {
@@ -606,12 +609,14 @@
   // --------------------------------------------------------------------------
   // In-Stream HUD Controls (Collapse, Pointer Lock, Mute, Quality, Stats, Touch, Fullscreen)
   // --------------------------------------------------------------------------
-  hudPillHandle.onclick = () => {
+  hudPillHandle.onclick = (e) => {
+    e.currentTarget.blur();
     hudBar.classList.toggle('collapsed');
     updateHudPillSummary();
   };
 
-  btnHudLockMouse.onclick = () => {
+  btnHudLockMouse.onclick = (e) => {
+    e.currentTarget.blur();
     videoEl.muted = false;
     videoEl.play().catch(() => {});
     if (document.pointerLockElement === videoEl) {
@@ -623,18 +628,20 @@
 
   document.addEventListener('pointerlockchange', () => {
     const locked = document.pointerLockElement === videoEl;
-    btnHudLockMouse.textContent = locked ? 'Unlock Mouse (ESC)' : 'Lock Mouse (3D)';
+    btnHudLockMouse.textContent = locked ? 'UNLOCK (ESC)' : 'LOCK AIM';
     btnHudLockMouse.classList.toggle('active', locked);
-    stInputMode.textContent = locked ? '3D Pointer Lock' : 'Normal UI Cursor';
+    stInputMode.textContent = locked ? '3D POINTER LOCK' : 'FREE CURSOR';
   });
 
-  btnHudMute.onclick = () => {
+  btnHudMute.onclick = (e) => {
+    e.currentTarget.blur();
     videoEl.muted = !videoEl.muted;
-    btnHudMute.textContent = videoEl.muted ? 'Unmute Audio' : 'Audio On';
+    btnHudMute.textContent = videoEl.muted ? 'UNMUTE' : 'AUDIO ON';
     btnHudMute.classList.toggle('active', !videoEl.muted);
   };
 
-  selectHudQuality.onchange = async () => {
+  selectHudQuality.onchange = async (e) => {
+    e.currentTarget.blur();
     const q = selectHudQuality.value;
     sendInputPacket({ type: 'quality', quality: q });
     await fetch('/api/sessions/quality', {
@@ -644,12 +651,14 @@
     }).catch(() => {});
   };
 
-  btnHudStats.onclick = () => {
+  btnHudStats.onclick = (e) => {
+    if (e && e.currentTarget) e.currentTarget.blur();
     statsOverlay.classList.toggle('visible');
     btnHudStats.classList.toggle('active', statsOverlay.classList.contains('visible'));
   };
 
-  btnHudTouch.onclick = () => {
+  btnHudTouch.onclick = (e) => {
+    e.currentTarget.blur();
     touchOverlay.classList.toggle('visible');
     btnHudTouch.classList.toggle('active', touchOverlay.classList.contains('visible'));
   };
@@ -659,7 +668,8 @@
     btnHudTouch.classList.add('active');
   }
 
-  btnHudFullscreen.onclick = () => {
+  btnHudFullscreen.onclick = (e) => {
+    e.currentTarget.blur();
     if (!document.fullscreenElement) {
       streamViewport.requestFullscreen().catch(() => {});
     } else {
@@ -667,12 +677,14 @@
     }
   };
 
-  btnHudMinimize.onclick = () => {
+  btnHudMinimize.onclick = (e) => {
+    e.currentTarget.blur();
     closeStreamViewport();
     pollServerState();
   };
 
-  btnHudQuit.onclick = async () => {
+  btnHudQuit.onclick = async (e) => {
+    e.currentTarget.blur();
     await fetch('/api/sessions/stop', { method: 'POST' });
     closeStreamViewport();
     await pollServerState();
@@ -692,49 +704,117 @@
   // --------------------------------------------------------------------------
   // Keyboard, Mouse, Wheel, Gamepad & Mobile Touch Input Capture
   // --------------------------------------------------------------------------
+  const GAME_KEYS = new Set([
+    'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'KeyF', 'KeyR',
+    'Space', 'ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight',
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace'
+  ]);
+
   window.addEventListener('keydown', (e) => {
     if (!streamOpen) return;
+    const tag = document.activeElement ? document.activeElement.tagName : '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
     if (e.code === 'Tab') {
       e.preventDefault();
       btnHudStats.click();
       return;
     }
-    e.preventDefault();
+    if (e.code === 'Escape') {
+      // Allow browser to exit Pointer Lock / Fullscreen without terminating the game process
+      return;
+    }
+    if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
+      e.preventDefault();
+    }
+    if (e.repeat) return;
+    stInputMode.textContent = document.pointerLockElement === videoEl ? 'KB + 3D LOCK' : `KB (${e.code})`;
     sendInputPacket({ type: 'keydown', code: e.code, key: e.key });
   });
 
   window.addEventListener('keyup', (e) => {
     if (!streamOpen) return;
-    e.preventDefault();
+    if (e.code === 'Escape' || e.code === 'Tab') return;
+    if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
+      e.preventDefault();
+    }
     sendInputPacket({ type: 'keyup', code: e.code, key: e.key });
   });
+
+  window.addEventListener('blur', () => {
+    if (streamOpen) {
+      sendInputPacket({ type: 'release_all' });
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && streamOpen) {
+      sendInputPacket({ type: 'release_all' });
+    }
+  });
+
+  let lastClientX = null;
+  let lastClientY = null;
 
   videoEl.addEventListener('mousemove', (e) => {
     if (!streamOpen) return;
     if (document.pointerLockElement === videoEl) {
-      sendInputPacket({ type: 'mousemove', dx: e.movementX, dy: e.movementY });
-    } else {
-      const rect = videoEl.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        const nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        const ny = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-        sendInputPacket({ type: 'mousemove', x: nx, y: ny });
+      if (e.movementX !== 0 || e.movementY !== 0) {
+        sendInputPacket({ type: 'mousemove', dx: e.movementX, dy: e.movementY });
       }
+      return;
     }
+
+    const rect = videoEl.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+
+    const nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const ny = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+
+    // In 3D Arena (app_id '0') or when dragging, also send relative delta so 3D look works immediately
+    let dx = e.movementX || 0;
+    let dy = e.movementY || 0;
+    if (dx === 0 && dy === 0 && lastClientX !== null && lastClientY !== null) {
+      dx = Math.round(e.clientX - lastClientX);
+      dy = Math.round(e.clientY - lastClientY);
+    }
+    lastClientX = e.clientX;
+    lastClientY = e.clientY;
+
+    if (currentSessionAppId === '0' && (dx !== 0 || dy !== 0)) {
+      sendInputPacket({ type: 'mousemove', dx, dy });
+    } else {
+      sendInputPacket({ type: 'mousemove', x: nx, y: ny });
+    }
+  });
+
+  videoEl.addEventListener('mouseleave', () => {
+    lastClientX = null;
+    lastClientY = null;
   });
 
   videoEl.addEventListener('mousedown', (e) => {
     if (!streamOpen) return;
+    if (document.activeElement && document.activeElement !== document.body) {
+      document.activeElement.blur();
+    }
     videoEl.muted = false;
+    btnHudMute.textContent = 'AUDIO ON';
+    btnHudMute.classList.add('active');
     videoEl.play().catch(() => {});
+
     if (document.pointerLockElement !== videoEl) {
       const rect = videoEl.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
+      if (rect.width > 0 && rect.height > 0 && currentSessionAppId !== '0') {
         sendInputPacket({
           type: 'mousemove',
           x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
           y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
         });
+      }
+      // Automatically engage 3D Pointer Lock when clicking into CyberArena 3D
+      if (currentSessionAppId === '0' && !touchOverlay.classList.contains('visible') && videoEl.requestPointerLock) {
+        try { videoEl.requestPointerLock(); } catch (_) {}
       }
     }
     sendInputPacket({ type: 'mousedown', button: e.button });
@@ -753,51 +833,119 @@
     sendInputPacket({ type: 'wheel', dy: e.deltaY < 0 ? 1 : -1 });
   }, { passive: false });
 
-  // Virtual Analog Stick & Touch Buttons
+  // Virtual Analog Stick, Touch-Look Pad & Touch Buttons (Unified Pointer Events for Touch + Mouse)
+  let stickPointerId = null;
   let stickOrigin = null;
-  stickZone.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    const t = e.changedTouches[0];
-    const r = stickZone.getBoundingClientRect();
-    stickOrigin = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-  }, { passive: false });
 
-  stickZone.addEventListener('touchmove', (e) => {
-    e.preventDefault();
+  const updateStickPosition = (clientX, clientY) => {
     if (!stickOrigin) return;
-    const t = e.changedTouches[0];
-    const maxR = 45;
-    let dx = t.clientX - stickOrigin.x;
-    let dy = t.clientY - stickOrigin.y;
+    const maxR = 46;
+    let dx = clientX - stickOrigin.x;
+    let dy = clientY - stickOrigin.y;
     const dist = Math.hypot(dx, dy);
     if (dist > maxR) {
       dx = (dx / dist) * maxR;
       dy = (dy / dist) * maxR;
     }
     stickNub.style.transform = `translate(${dx}px, ${dy}px)`;
-    sendInputPacket({ type: 'touch_move', x: dx / maxR, y: dy / maxR });
-  }, { passive: false });
+    stInputMode.textContent = 'VIRTUAL STICK';
+    sendInputPacket({
+      type: 'touch_move',
+      x: Number((dx / maxR).toFixed(2)),
+      y: Number((dy / maxR).toFixed(2)),
+    });
+  };
+
+  stickZone.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    videoEl.muted = false;
+    stickPointerId = e.pointerId;
+    try { stickZone.setPointerCapture(e.pointerId); } catch (_) {}
+    const r = stickZone.getBoundingClientRect();
+    stickOrigin = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    stickZone.classList.add('active');
+    updateStickPosition(e.clientX, e.clientY);
+  });
+
+  stickZone.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== stickPointerId || !stickOrigin) return;
+    e.preventDefault();
+    updateStickPosition(e.clientX, e.clientY);
+  });
 
   const resetStick = (e) => {
-    e.preventDefault();
+    if (stickPointerId !== null && e && e.pointerId !== undefined && e.pointerId !== stickPointerId) return;
+    if (e) e.preventDefault();
+    stickPointerId = null;
     stickOrigin = null;
+    stickZone.classList.remove('active');
     stickNub.style.transform = 'translate(0px, 0px)';
     sendInputPacket({ type: 'touch_move', x: 0, y: 0 });
   };
-  stickZone.addEventListener('touchend', resetStick, { passive: false });
-  stickZone.addEventListener('touchcancel', resetStick, { passive: false });
+  stickZone.addEventListener('pointerup', resetStick);
+  stickZone.addEventListener('pointercancel', resetStick);
+
+  // Touch-Look Pad (Right side of touch overlay for 360° camera rotation)
+  const touchLookZone = document.getElementById('touch-look-zone');
+  let lookPointerId = null;
+  let lookLastPos = null;
+  if (touchLookZone) {
+    touchLookZone.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      lookPointerId = e.pointerId;
+      lookLastPos = { x: e.clientX, y: e.clientY };
+      touchLookZone.classList.add('active');
+      try { touchLookZone.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+
+    touchLookZone.addEventListener('pointermove', (e) => {
+      if (e.pointerId !== lookPointerId || !lookLastPos) return;
+      e.preventDefault();
+      const dx = Math.round((e.clientX - lookLastPos.x) * 1.8);
+      const dy = Math.round((e.clientY - lookLastPos.y) * 1.8);
+      lookLastPos = { x: e.clientX, y: e.clientY };
+      if (dx !== 0 || dy !== 0) {
+        stInputMode.textContent = 'TOUCH LOOK';
+        sendInputPacket({ type: 'touch_look', dx, dy });
+      }
+    });
+
+    const resetLook = (e) => {
+      if (lookPointerId !== null && e && e.pointerId !== undefined && e.pointerId !== lookPointerId) return;
+      lookPointerId = null;
+      lookLastPos = null;
+      touchLookZone.classList.remove('active');
+    };
+    touchLookZone.addEventListener('pointerup', resetLook);
+    touchLookZone.addEventListener('pointercancel', resetLook);
+  }
 
   document.querySelectorAll('.t-btn').forEach((btn) => {
     const code = btn.dataset.code;
-    btn.addEventListener('touchstart', (e) => {
+    const pressBtn = (e) => {
       e.preventDefault();
+      e.stopPropagation();
       videoEl.muted = false;
+      try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+      btn.classList.add('pressed');
+      stInputMode.textContent = `TOUCH (${code})`;
       sendInputPacket({ type: 'keydown', code, key: code });
-    }, { passive: false });
-    btn.addEventListener('touchend', (e) => {
-      e.preventDefault();
+    };
+    const releaseBtn = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      if (!btn.classList.contains('pressed')) return;
+      btn.classList.remove('pressed');
       sendInputPacket({ type: 'keyup', code, key: code });
-    }, { passive: false });
+    };
+    btn.addEventListener('pointerdown', pressBtn);
+    btn.addEventListener('pointerup', releaseBtn);
+    btn.addEventListener('pointercancel', releaseBtn);
+    btn.addEventListener('lostpointercapture', releaseBtn);
   });
 
   // W3C Gamepad API Polling (60Hz)

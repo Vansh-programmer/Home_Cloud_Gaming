@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>RYOKU // CLIENT</title>
-  <link rel="stylesheet" href="/assets/styles.css?v=3" />
+  <link rel="stylesheet" href="/assets/styles.css?v=4" />
 </head>
 <body>
   <!-- Left Vertical Command Rail -->
@@ -305,20 +305,34 @@
 
       <video id="stream-video" playsinline autoplay></video>
 
+      <div class="stream-controls-bar" id="stream-controls-bar">
+        <span><b>WASD</b> MOVE</span>
+        <span><b>SHIFT</b> SPRINT</span>
+        <span><b>SPACE</b> JUMP</span>
+        <span><b>CLICK / F</b> FIRE &amp; LOCK AIM</span>
+        <span><b>Q / E</b> TURN</span>
+        <span><b>TAB</b> TELEMETRY</span>
+      </div>
+
       <div class="touch-overlay" id="stream-touch-overlay">
         <div class="virtual-stick-zone" id="stick-zone">
+          <div class="virtual-stick-crosshair"></div>
           <div class="virtual-stick-nub" id="stick-nub"></div>
         </div>
+        <div class="touch-look-zone" id="touch-look-zone" title="Drag to Aim / Look">
+          <span>DRAG TO AIM</span>
+        </div>
         <div class="touch-buttons-zone">
-          <div class="t-btn" data-code="Space" style="bottom: 10px; left: 5px;">JUMP</div>
-          <div class="t-btn" data-code="KeyF" style="bottom: 85px; right: 10px; border-color: var(--crimson); color: var(--crimson);">FIRE</div>
-          <div class="t-btn" data-code="KeyQ" style="bottom: 90px; left: 5px;">LEFT</div>
-          <div class="t-btn" data-code="KeyE" style="bottom: 10px; right: 10px;">RIGHT</div>
+          <div class="t-btn" data-code="KeyQ" style="bottom: 108px; left: 0px;">TURN L</div>
+          <div class="t-btn" data-code="KeyE" style="bottom: 108px; right: 0px;">TURN R</div>
+          <div class="t-btn" data-code="ShiftLeft" style="bottom: 54px; left: 0px;">SPRINT</div>
+          <div class="t-btn" data-code="KeyF" style="bottom: 54px; right: 0px; border-color: var(--crimson); color: var(--crimson);">FIRE</div>
+          <div class="t-btn" data-code="Space" style="bottom: 0px; left: 0px; width: 144px;">JUMP</div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="/assets/app.js?v=3"></script>
+  <script src="/assets/app.js?v=4"></script>
 </body>
 </html>

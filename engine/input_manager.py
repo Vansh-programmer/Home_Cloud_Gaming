@@ -124,6 +124,9 @@ class IsolatedInputManager:
         self._pressed_keycodes: Set[int] = set()
         self._pressed_buttons: Set[int] = set()
         self._virtual_pad_keys: Set[str] = set()
+        self._virtual_touch_keys: Set[str] = set()
+        self._ptr_x: int = width // 2
+        self._ptr_y: int = height // 2
         self._top_win: int = 0
         self.has_focused_window = False
         self._running = False
@@ -332,14 +335,18 @@ class IsolatedInputManager:
         with self._lock:
             if not self._dpy:
                 return
-            if is_pressed:
+            if is_pressed and not self.has_focused_window:
                 self._ensure_focus_locked()
             keycode = self._resolve_keycode(code, key)
             if keycode == 0:
                 return
             if is_pressed:
+                if keycode in self._pressed_keycodes:
+                    return
                 self._pressed_keycodes.add(keycode)
             else:
+                if keycode not in self._pressed_keycodes:
+                    return
                 self._pressed_keycodes.discard(keycode)
             self._libXtst.XTestFakeKeyEvent(self._dpy, keycode, 1 if is_pressed else 0, CurrentTime)
             self._libX11.XFlush(self._dpy)
@@ -356,12 +363,31 @@ class IsolatedInputManager:
             if not self._dpy:
                 return
             if dx != 0 or dy != 0:
+                margin = 64
+                next_x = self._ptr_x + int(dx)
+                next_y = self._ptr_y + int(dy)
+                if (
+                    next_x < margin
+                    or next_x > self.width - margin
+                    or next_y < margin
+                    or next_y > self.height - margin
+                ):
+                    cx = self.width // 2
+                    cy = self.height // 2
+                    self._libXtst.XTestFakeMotionEvent(self._dpy, -1, cx, cy, CurrentTime)
+                    self._libX11.XFlush(self._dpy)
+                    self._ptr_x = cx
+                    self._ptr_y = cy
                 self._libXtst.XTestFakeRelativeMotionEvent(
                     self._dpy, int(dx), int(dy), CurrentTime
                 )
+                self._ptr_x = max(0, min(self.width - 1, self._ptr_x + int(dx)))
+                self._ptr_y = max(0, min(self.height - 1, self._ptr_y + int(dy)))
             elif abs_x is not None and abs_y is not None:
                 px = max(0, min(self.width - 1, int(abs_x * self.width)))
                 py = max(0, min(self.height - 1, int(abs_y * self.height)))
+                self._ptr_x = px
+                self._ptr_y = py
                 self._libXtst.XTestFakeMotionEvent(self._dpy, -1, px, py, CurrentTime)
             self._libX11.XFlush(self._dpy)
 
@@ -462,6 +488,25 @@ class IsolatedInputManager:
             if look_dx != 0 or look_dy != 0:
                 self.send_mouse_move(dx=look_dx, dy=look_dy)
 
+    def handle_touch_move(self, x: float, y: float) -> None:
+        """Translate virtual analog stick (x, y in -1..1) into WASD movement keys."""
+        desired_keys: Set[str] = set()
+        deadzone = 0.20
+        if y < -deadzone:
+            desired_keys.add("KeyW")
+        elif y > deadzone:
+            desired_keys.add("KeyS")
+        if x < -deadzone:
+            desired_keys.add("KeyA")
+        elif x > deadzone:
+            desired_keys.add("KeyD")
+
+        for new_k in desired_keys - self._virtual_touch_keys:
+            self.send_key(new_k, True)
+        for old_k in self._virtual_touch_keys - desired_keys:
+            self.send_key(old_k, False)
+        self._virtual_touch_keys = desired_keys
+
     def release_all_inputs(self) -> None:
         """Safety cleanup: release any held keys or mouse buttons on disconnect."""
         with self._lock:
@@ -474,6 +519,7 @@ class IsolatedInputManager:
                 self._libXtst.XTestFakeButtonEvent(self._dpy, btn, 0, CurrentTime)
             self._pressed_buttons.clear()
             self._virtual_pad_keys.clear()
+            self._virtual_touch_keys.clear()
             self._libX11.XFlush(self._dpy)
 
     def handle_event(self, payload: dict) -> None:
@@ -483,7 +529,7 @@ class IsolatedInputManager:
             self.send_key(str(payload.get("code", "")), True, str(payload.get("key", "")))
         elif ev_type == "keyup":
             self.send_key(str(payload.get("code", "")), False, str(payload.get("key", "")))
-        elif ev_type == "mousemove":
+        elif ev_type == "mousemove" or ev_type == "touch_look":
             dx = int(payload.get("dx", 0))
             dy = int(payload.get("dy", 0))
             abs_x = payload.get("x")
@@ -493,6 +539,11 @@ class IsolatedInputManager:
                 dy=dy,
                 abs_x=float(abs_x) if abs_x is not None else None,
                 abs_y=float(abs_y) if abs_y is not None else None,
+            )
+        elif ev_type == "touch_move":
+            self.handle_touch_move(
+                float(payload.get("x", 0.0)),
+                float(payload.get("y", 0.0)),
             )
         elif ev_type == "mousedown":
             self.send_mouse_button(int(payload.get("button", 0)), True)

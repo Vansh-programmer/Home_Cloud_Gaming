@@ -339,6 +339,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     SDL_GL_SetSwapInterval(1);
+    SDL_ShowCursor(SDL_DISABLE);
 
     /* Initialize SDL Audio */
     SDL_AudioSpec want = {0}, have = {0};
@@ -409,6 +410,8 @@ int main(int argc, char *argv[]) {
     Uint32 last_ticks = SDL_GetTicks();
     int frame_count = 0;
     float time_sec = 0.0f;
+    float fire_cooldown = 0.0f;
+    bool mouse_left_held = false;
     bool running = true;
 
     while (running) {
@@ -417,6 +420,7 @@ int main(int argc, char *argv[]) {
         if (dt > 0.1f) dt = 0.1f;
         last_ticks = now;
         time_sec += dt;
+        if (fire_cooldown > 0.0f) fire_cooldown -= dt;
 
         SDL_Event ev;
         while (SDL_PollEvent(&ev)) {
@@ -435,23 +439,27 @@ int main(int argc, char *argv[]) {
                 if (key == SDLK_ESCAPE) {
                     running = false;
                 } else if (key == SDLK_SPACE && on_ground) {
-                    vy = 7.5f;
+                    vy = 7.8f;
                     on_ground = false;
                     trigger_jump_sound();
                     snprintf(last_input, sizeof(last_input), "KEY: SPACE (JUMP)");
+                } else if (key == SDLK_r) {
+                    px = 0.0f; py = 1.7f; pz = 12.0f; vy = 0.0f; yaw = 0.0f; pitch = -5.0f;
+                    snprintf(last_input, sizeof(last_input), "KEY: R (RESET POS)");
                 } else if (key == SDLK_f || key == SDLK_RETURN) {
                     for (int i = 0; i < MAX_LASERS; i++) {
                         if (!lasers[i].active) {
                             float rad_yaw = yaw * (float)M_PI / 180.0f;
                             float rad_pitch = pitch * (float)M_PI / 180.0f;
                             lasers[i].x = px;
-                            lasers[i].y = py - 0.2f;
+                            lasers[i].y = py - 0.18f;
                             lasers[i].z = pz;
-                            lasers[i].vx = sinf(rad_yaw) * cosf(rad_pitch) * 38.0f;
-                            lasers[i].vy = sinf(rad_pitch) * 38.0f;
-                            lasers[i].vz = -cosf(rad_yaw) * cosf(rad_pitch) * 38.0f;
+                            lasers[i].vx = sinf(rad_yaw) * cosf(rad_pitch) * 42.0f;
+                            lasers[i].vy = sinf(rad_pitch) * 42.0f;
+                            lasers[i].vz = -cosf(rad_yaw) * cosf(rad_pitch) * 42.0f;
                             lasers[i].life = 1.8f;
                             lasers[i].active = true;
+                            fire_cooldown = 0.16f;
                             trigger_laser_sound();
                             snprintf(last_input, sizeof(last_input), "KEY: FIRE LASER");
                             break;
@@ -461,35 +469,46 @@ int main(int argc, char *argv[]) {
                     snprintf(last_input, sizeof(last_input), "KEY: %s", SDL_GetKeyName(key));
                 }
             } else if (ev.type == SDL_MOUSEMOTION) {
-                yaw += (float)ev.motion.xrel * 0.22f;
-                pitch -= (float)ev.motion.yrel * 0.18f;
-                if (pitch > 75.0f) pitch = 75.0f;
-                if (pitch < -75.0f) pitch = -75.0f;
-                snprintf(last_input, sizeof(last_input), "MOUSE LOOK (%+d, %+d)", ev.motion.xrel, ev.motion.yrel);
+                if (abs(ev.motion.x - win_w / 2) <= 2 && abs(ev.motion.y - win_h / 2) <= 2 &&
+                    (abs(ev.motion.xrel) > 90 || abs(ev.motion.yrel) > 90)) {
+                    /* Ignore synthetic center-warp motion */
+                } else {
+                    yaw += (float)ev.motion.xrel * 0.22f;
+                    pitch -= (float)ev.motion.yrel * 0.18f;
+                    if (pitch > 75.0f) pitch = 75.0f;
+                    if (pitch < -75.0f) pitch = -75.0f;
+                    snprintf(last_input, sizeof(last_input), "MOUSE LOOK (%+d, %+d)", ev.motion.xrel, ev.motion.yrel);
+                }
             } else if (ev.type == SDL_MOUSEBUTTONDOWN) {
                 if (ev.button.button == SDL_BUTTON_LEFT) {
+                    mouse_left_held = true;
                     for (int i = 0; i < MAX_LASERS; i++) {
                         if (!lasers[i].active) {
                             float rad_yaw = yaw * (float)M_PI / 180.0f;
                             float rad_pitch = pitch * (float)M_PI / 180.0f;
                             lasers[i].x = px;
-                            lasers[i].y = py - 0.2f;
+                            lasers[i].y = py - 0.18f;
                             lasers[i].z = pz;
-                            lasers[i].vx = sinf(rad_yaw) * cosf(rad_pitch) * 38.0f;
-                            lasers[i].vy = sinf(rad_pitch) * 38.0f;
-                            lasers[i].vz = -cosf(rad_yaw) * cosf(rad_pitch) * 38.0f;
+                            lasers[i].vx = sinf(rad_yaw) * cosf(rad_pitch) * 42.0f;
+                            lasers[i].vy = sinf(rad_pitch) * 42.0f;
+                            lasers[i].vz = -cosf(rad_yaw) * cosf(rad_pitch) * 42.0f;
                             lasers[i].life = 1.8f;
                             lasers[i].active = true;
+                            fire_cooldown = 0.16f;
                             trigger_laser_sound();
                             snprintf(last_input, sizeof(last_input), "MOUSE: LEFT CLICK (FIRE)");
                             break;
                         }
                     }
                 } else if (ev.button.button == SDL_BUTTON_RIGHT && on_ground) {
-                    vy = 7.5f;
+                    vy = 7.8f;
                     on_ground = false;
                     trigger_jump_sound();
                     snprintf(last_input, sizeof(last_input), "MOUSE: RIGHT CLICK (JUMP)");
+                }
+            } else if (ev.type == SDL_MOUSEBUTTONUP) {
+                if (ev.button.button == SDL_BUTTON_LEFT) {
+                    mouse_left_held = false;
                 }
             } else if (ev.type == SDL_CONTROLLERBUTTONDOWN) {
                 if (ev.cbutton.button == SDL_CONTROLLER_BUTTON_A && on_ground) {
@@ -527,10 +546,38 @@ int main(int argc, char *argv[]) {
         if (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN]) move_fwd -= 1.0f;
         if (keys[SDL_SCANCODE_D]) move_str += 1.0f;
         if (keys[SDL_SCANCODE_A]) move_str -= 1.0f;
-        if (keys[SDL_SCANCODE_LEFT]) yaw -= 95.0f * dt;
-        if (keys[SDL_SCANCODE_RIGHT]) yaw += 95.0f * dt;
-        if (keys[SDL_SCANCODE_Q]) yaw -= 95.0f * dt;
-        if (keys[SDL_SCANCODE_E]) yaw += 95.0f * dt;
+        if (keys[SDL_SCANCODE_LEFT]) yaw -= 105.0f * dt;
+        if (keys[SDL_SCANCODE_RIGHT]) yaw += 105.0f * dt;
+        if (keys[SDL_SCANCODE_Q]) yaw -= 105.0f * dt;
+        if (keys[SDL_SCANCODE_E]) yaw += 105.0f * dt;
+
+        /* Continuous jump when holding Space */
+        if (keys[SDL_SCANCODE_SPACE] && on_ground) {
+            vy = 7.8f;
+            on_ground = false;
+            trigger_jump_sound();
+        }
+
+        /* Rapid fire when holding F or Left Mouse Button */
+        if ((keys[SDL_SCANCODE_F] || mouse_left_held) && fire_cooldown <= 0.0f) {
+            for (int i = 0; i < MAX_LASERS; i++) {
+                if (!lasers[i].active) {
+                    float rad_yaw = yaw * (float)M_PI / 180.0f;
+                    float rad_pitch = pitch * (float)M_PI / 180.0f;
+                    lasers[i].x = px;
+                    lasers[i].y = py - 0.18f;
+                    lasers[i].z = pz;
+                    lasers[i].vx = sinf(rad_yaw) * cosf(rad_pitch) * 42.0f;
+                    lasers[i].vy = sinf(rad_pitch) * 42.0f;
+                    lasers[i].vz = -cosf(rad_yaw) * cosf(rad_pitch) * 42.0f;
+                    lasers[i].life = 1.8f;
+                    lasers[i].active = true;
+                    fire_cooldown = 0.16f;
+                    trigger_laser_sound();
+                    break;
+                }
+            }
+        }
 
         if (controller) {
             Sint16 lx = SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX);
@@ -558,7 +605,7 @@ int main(int argc, char *argv[]) {
         }
 
         float rad = yaw * (float)M_PI / 180.0f;
-        float speed = 9.0f;
+        float speed = (keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT]) ? 14.5f : 9.5f;
         px += (sinf(rad) * move_fwd + cosf(rad) * move_str) * speed * dt;
         pz += (-cosf(rad) * move_fwd + sinf(rad) * move_str) * speed * dt;
 

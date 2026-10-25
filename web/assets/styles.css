@@ -724,6 +724,34 @@ select.btn {
   height: 100%;
   object-fit: contain;
   background: #000;
+  cursor: crosshair;
+  user-select: none;
+}
+
+.stream-controls-bar {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 512;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 5px 14px;
+  background: rgba(7, 8, 10, 0.9);
+  border: 1px solid var(--line-hi);
+  border-bottom: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-1);
+  pointer-events: none;
+}
+
+.stream-controls-bar b {
+  color: var(--volt);
+  font-weight: 800;
+  margin-right: 3px;
 }
 
 .stream-stats-overlay {
@@ -847,38 +875,81 @@ select.btn {
   position: absolute;
   bottom: 24px;
   left: 24px;
-  width: 120px;
-  height: 120px;
+  width: 132px;
+  height: 132px;
   border: 1px solid var(--line-hi);
-  background: rgba(7, 8, 10, 0.7);
+  background: rgba(7, 8, 10, 0.82);
   pointer-events: auto;
   touch-action: none;
+  cursor: grab;
+}
+
+.virtual-stick-zone.active {
+  border-color: var(--volt);
+}
+
+.virtual-stick-crosshair {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to right, transparent 49%, rgba(200, 255, 0, 0.18) 50%, transparent 51%),
+    linear-gradient(to bottom, transparent 49%, rgba(200, 255, 0, 0.18) 50%, transparent 51%);
 }
 
 .virtual-stick-nub {
   position: absolute;
-  top: 40px;
-  left: 40px;
+  top: 46px;
+  left: 46px;
   width: 40px;
   height: 40px;
   background: var(--volt);
+  border: 2px solid #000;
   pointer-events: none;
+}
+
+.touch-look-zone {
+  position: absolute;
+  top: 70px;
+  right: 24px;
+  bottom: 190px;
+  width: 38%;
+  min-width: 160px;
+  border: 1px dashed rgba(200, 255, 0, 0.28);
+  background: rgba(7, 8, 10, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  color: rgba(200, 255, 0, 0.55);
+  letter-spacing: 0.12em;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  cursor: move;
+}
+
+.touch-look-zone.active {
+  border-color: var(--volt);
+  color: var(--volt);
 }
 
 .touch-buttons-zone {
   position: absolute;
   bottom: 24px;
   right: 24px;
-  width: 160px;
-  height: 140px;
+  width: 144px;
+  height: 152px;
   pointer-events: auto;
 }
 
 .t-btn {
   position: absolute;
-  width: 66px;
-  height: 42px;
-  background: rgba(14, 16, 20, 0.9);
+  width: 68px;
+  height: 44px;
+  background: rgba(14, 16, 20, 0.92);
   border: 1px solid var(--volt);
   color: var(--volt);
   font-family: var(--font-mono);
@@ -889,6 +960,12 @@ select.btn {
   justify-content: center;
   user-select: none;
   touch-action: none;
+  cursor: pointer;
+}
+
+.t-btn.pressed {
+  background: var(--volt);
+  color: #000;
 }
 
 /* Mobile Responsive Collapse */
