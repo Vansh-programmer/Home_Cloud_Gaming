@@ -1,0 +1,552 @@
+"""
+Cloud Gaming Session Orchestrator, Concurrency Lock & Safety Watchdog (Phase 3).
+
+Responsibilities:
+1. Enforces the 1-session-at-a-time GPU lock across the PC and 1 session per user.
+2. Spawns the isolated Bubblewrap container (engine/launch_phase2.py) bound strictly to
+   127.0.0.1:<internal_port> so external clients can only access it through the authenticated proxy.
+3. Manages the Session State Machine: starting -> ready -> playing -> ended with friendly progress & error messages.
+4. Enforces Safety Limits:
+   - Idle timeout: terminates sessions automatically after configurable inactivity.
+   - Disconnect grace period: keeps the game running if the browser tab closes or Wi-Fi drops,
+     allowing instant seamless reconnect within the grace window.
+   - Admin force-end: immediately terminates any running session and releases the GPU lock.
+5. Collects live NVIDIA RTX 4060 GPU telemetry (utilization %, VRAM usage, temperature °C).
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+import os
+import socket
+import subprocess
+import sys
+import time
+import uuid
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Dict, List, Optional
+
+from aiohttp import ClientSession, ClientTimeout
+
+from backend.database import CloudGamingDatabase
+from engine.steam_manager import SteamLibraryManager
+from engine.storage_manager import UserStorageManager, validate_user_id
+
+logger = logging.getLogger("orchestrator")
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+FRIENDLY_END_MESSAGES = {
+    "user_quit": "You ended the gaming session.",
+    "game_exited": "The game closed normally and your isolated session was cleaned up.",
+    "idle_timeout": "Session ended automatically due to inactivity (idle timeout).",
+    "disconnect_timeout": "Session ended because the browser stayed disconnected past the reconnect grace window.",
+    "admin_force_ended": "Session was ended by the server administrator.",
+    "replaced_by_new_game": "Previous session was closed to launch your new game.",
+    "startup_error": "The game container failed to initialize. Please try launching again.",
+}
+
+
+class SessionConflictError(Exception):
+    """Raised when another user is currently using the gaming PC."""
+
+    def __init__(self, active_username: str, active_game: str) -> None:
+        self.active_username = active_username
+        self.active_game = active_game
+        super().__init__(
+            f"Gaming PC is currently in use by {active_username} (playing {active_game}). "
+            "Only one session can run at a time."
+        )
+
+
+def _find_free_loopback_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return int(s.getsockname()[1])
+
+
+@dataclass
+class ManagedSession:
+    session_id: str
+    username: str
+    app_id: str
+    game_title: str
+    quality: str
+    width: int
+    height: int
+    fps: int
+    internal_port: int
+    process: subprocess.Popen
+    started_at: float = field(default_factory=time.time)
+    ready_at: Optional[float] = None
+    last_input_at: float = field(default_factory=time.time)
+    disconnected_at: Optional[float] = None
+    ended_at: Optional[float] = None
+    state: str = "starting"  # starting | ready | playing | ended
+    end_reason: Optional[str] = None
+    error_message: Optional[str] = None
+    client_connected: bool = False
+    ever_connected: bool = False
+    inner_status: Dict[str, object] = field(default_factory=dict)
+
+    @property
+    def internal_http_url(self) -> str:
+        return f"http://127.0.0.1:{self.internal_port}"
+
+    @property
+    def internal_ws_url(self) -> str:
+        return f"ws://127.0.0.1:{self.internal_port}/ws"
+
+    def stage_message(self, idle_timeout_sec: float, disconnect_grace_sec: float) -> str:
+        if self.state == "starting":
+            return f"Starting isolated sandbox & launching {self.game_title} on RTX 4060..."
+        if self.state == "ready":
+            if self.disconnected_at is not None:
+                rem = max(0, int(disconnect_grace_sec - (time.time() - self.disconnected_at)))
+                return f"Stream paused (disconnected). Reconnect within {rem}s to resume {self.game_title}."
+            return f"{self.game_title} is ready! Connecting low-latency WebRTC stream..."
+        if self.state == "playing":
+            return f"Playing {self.game_title}"
+        if self.state == "ended":
+            if self.error_message:
+                return self.error_message
+            return FRIENDLY_END_MESSAGES.get(
+                self.end_reason or "game_exited",
+                "Session has ended and temporary container files were wiped.",
+            )
+        return ""
+
+    def to_dict(self, idle_timeout_sec: float, disconnect_grace_sec: float) -> Dict[str, object]:
+        now = time.time()
+        idle_sec = round(max(0.0, now - self.last_input_at), 1) if self.state != "ended" else 0.0
+        idle_remaining = (
+            round(max(0.0, idle_timeout_sec - idle_sec), 1) if self.state != "ended" else 0.0
+        )
+        disconnect_remaining = (
+            round(max(0.0, disconnect_grace_sec - (now - self.disconnected_at)), 1)
+            if (self.disconnected_at is not None and self.state != "ended")
+            else None
+        )
+        return {
+            "session_id": self.session_id,
+            "username": self.username,
+            "app_id": self.app_id,
+            "game_title": self.game_title,
+            "quality": self.inner_status.get("quality", self.quality),
+            "bitrate_kbps": self.inner_status.get("bitrate_kbps", 15000),
+            "width": self.width,
+            "height": self.height,
+            "fps": self.fps,
+            "state": self.state,
+            "stage_message": self.stage_message(idle_timeout_sec, disconnect_grace_sec),
+            "end_reason": self.end_reason,
+            "error": self.error_message or self.inner_status.get("error"),
+            "started_at": self.started_at,
+            "ended_at": self.ended_at,
+            "uptime_sec": round((self.ended_at or now) - self.started_at, 1),
+            "idle_sec": idle_sec,
+            "idle_timeout_sec": idle_timeout_sec,
+            "idle_remaining_sec": idle_remaining,
+            "client_connected": self.client_connected,
+            "disconnected_at": self.disconnected_at,
+            "disconnect_grace_sec": disconnect_grace_sec,
+            "disconnect_remaining_sec": disconnect_remaining,
+            "savegame": self.inner_status.get("savegame"),
+            "steam_login_remembered": self.inner_status.get("steam_login_remembered", False),
+            "isolation": self.inner_status.get("isolation"),
+        }
+
+
+class SessionOrchestrator:
+    """Central manager for isolated gaming sessions, concurrency locking, and safety timers."""
+
+    def __init__(
+        self,
+        db: CloudGamingDatabase,
+        storage_mgr: UserStorageManager,
+        steam_mgr: SteamLibraryManager,
+        idle_timeout_sec: float = 600.0,       # Default: 10 minutes
+        disconnect_grace_sec: float = 300.0,   # Default: 5 minutes
+        allow_pre_sandboxed: bool = False,
+    ) -> None:
+        self.db = db
+        self.storage_mgr = storage_mgr
+        self.steam_mgr = steam_mgr
+        self.idle_timeout_sec = float(idle_timeout_sec)
+        self.disconnect_grace_sec = float(disconnect_grace_sec)
+        self.allow_pre_sandboxed = allow_pre_sandboxed or (
+            os.environ.get("ALLOW_PRE_SANDBOXED_FALLBACK") == "1"
+        )
+
+        self._lock = asyncio.Lock()
+        self.active_session: Optional[ManagedSession] = None
+        self.last_ended_by_user: Dict[str, ManagedSession] = {}
+        self._watchdog_task: Optional[asyncio.Task] = None
+        self._http_client: Optional[ClientSession] = None
+        self._stopping = False
+
+    async def start(self) -> None:
+        self._stopping = False
+        self._http_client = ClientSession(timeout=ClientTimeout(total=1.5))
+        self._watchdog_task = asyncio.create_task(self._watchdog_loop())
+
+    async def stop(self) -> None:
+        self._stopping = True
+        if self._watchdog_task:
+            self._watchdog_task.cancel()
+            try:
+                await self._watchdog_task
+            except asyncio.CancelledError:
+                pass
+        if self.active_session is not None:
+            await self.terminate_session(reason="server_shutdown")
+        if self._http_client:
+            await self._http_client.close()
+            self._http_client = None
+
+    def get_active_session_public_summary(self) -> Optional[Dict[str, object]]:
+        """Return safe summary of who is currently playing (for server status banner)."""
+        s = self.active_session
+        if s is None or s.state == "ended":
+            return None
+        return {
+            "session_id": s.session_id,
+            "username": s.username,
+            "app_id": s.app_id,
+            "game_title": s.game_title,
+            "state": s.state,
+            "started_at": s.started_at,
+            "uptime_sec": round(time.time() - s.started_at, 1),
+        }
+
+    def get_session_for_user(self, username: str) -> Optional[Dict[str, object]]:
+        """Return the active session (or most recently ended session) for a specific user."""
+        clean_user = validate_user_id(username)
+        if self.active_session and self.active_session.username == clean_user:
+            return self.active_session.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
+        ended = self.last_ended_by_user.get(clean_user)
+        if ended:
+            return ended.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
+        return None
+
+    async def start_or_reconnect_session(
+        self,
+        username: str,
+        app_id: str = "0",
+        quality: str = "high",
+        width: int = 1280,
+        height: int = 720,
+        fps: int = 60,
+    ) -> Dict[str, object]:
+        """
+        Start a new isolated session for `username` and `app_id`, or reconnect if `username`
+        already has a running session for the same game.
+        Raises SessionConflictError if another user holds the single-session GPU lock.
+        """
+        clean_user = validate_user_id(username)
+        clean_app_id = str(app_id).strip() or "0"
+
+        async with self._lock:
+            # Check if an active session already exists
+            if self.active_session is not None and self.active_session.state != "ended":
+                if self.active_session.username != clean_user:
+                    raise SessionConflictError(
+                        active_username=self.active_session.username,
+                        active_game=self.active_session.game_title,
+                    )
+                # Same user! If same app_id, reconnect seamlessly
+                if self.active_session.app_id == clean_app_id:
+                    self.active_session.last_input_at = time.time()
+                    self.active_session.disconnected_at = None
+                    data = self.active_session.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
+                    data["reconnected"] = True
+                    return data
+                # Same user switching to a different game: terminate previous session first
+                await self._terminate_locked(reason="replaced_by_new_game")
+
+            game_entry = self.steam_mgr.get_game(clean_app_id)
+            game_title = game_entry.title if game_entry else f"Steam App {clean_app_id}"
+
+            internal_port = _find_free_loopback_port()
+            session_id = f"cg-{clean_user}-{uuid.uuid4().hex[:6]}"
+
+            launcher = str(PROJECT_ROOT / "engine" / "launch_phase2.py")
+            cmd = [
+                sys.executable,
+                launcher,
+                "--host",
+                "127.0.0.1",
+                "--port",
+                str(internal_port),
+                "--session-id",
+                session_id,
+                "--user",
+                clean_user,
+                "--app-id",
+                clean_app_id,
+                "--data-root",
+                str(self.storage_mgr.data_root),
+                "--width",
+                str(width),
+                "--height",
+                str(height),
+                "--fps",
+                str(fps),
+                "--quality",
+                quality,
+            ]
+            if self.allow_pre_sandboxed:
+                cmd.append("--allow-pre-sandboxed")
+
+            env = os.environ.copy()
+            if self.allow_pre_sandboxed:
+                env["ALLOW_PRE_SANDBOXED_FALLBACK"] = "1"
+
+            log_path = self.storage_mgr.data_root / f"session-{session_id}.log"
+            log_fh = open(log_path, "w", encoding="utf-8")
+            proc = subprocess.Popen(
+                cmd,
+                env=env,
+                stdout=log_fh,
+                stderr=subprocess.STDOUT,
+            )
+            log_fh.close()
+
+            now = time.time()
+            managed = ManagedSession(
+                session_id=session_id,
+                username=clean_user,
+                app_id=clean_app_id,
+                game_title=game_title,
+                quality=quality,
+                width=width,
+                height=height,
+                fps=fps,
+                internal_port=internal_port,
+                process=proc,
+                started_at=now,
+                last_input_at=now,
+                state="starting",
+            )
+            self.active_session = managed
+            self.db.record_session_start(
+                session_id=session_id,
+                username=clean_user,
+                app_id=clean_app_id,
+                game_title=game_title,
+                quality=quality,
+            )
+            logger.info(
+                "Spawned isolated session %s for user '%s' (game: %s) on 127.0.0.1:%d",
+                session_id,
+                clean_user,
+                game_title,
+                internal_port,
+            )
+            data = managed.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
+            data["reconnected"] = False
+            return data
+
+    def notify_client_ws_connected(self, session_id: str) -> None:
+        s = self.active_session
+        if s and s.session_id == session_id and s.state != "ended":
+            now = time.time()
+            s.client_connected = True
+            s.ever_connected = True
+            s.disconnected_at = None
+            s.last_input_at = now
+            s.state = "playing"
+            self.db.update_session_state(session_id, "playing")
+
+    def notify_client_ws_disconnected(self, session_id: str) -> None:
+        s = self.active_session
+        if s and s.session_id == session_id and s.state != "ended":
+            s.client_connected = False
+            s.disconnected_at = time.time()
+            if s.state == "playing":
+                s.state = "ready"
+                self.db.update_session_state(session_id, "ready")
+
+    def notify_client_input(self, session_id: str) -> None:
+        s = self.active_session
+        if s and s.session_id == session_id and s.state != "ended":
+            s.last_input_at = time.time()
+
+    async def terminate_session(
+        self,
+        reason: str = "user_quit",
+        expected_username: Optional[str] = None,
+    ) -> Optional[Dict[str, object]]:
+        async with self._lock:
+            if self.active_session is None:
+                return None
+            if expected_username and self.active_session.username != validate_user_id(expected_username):
+                raise PermissionError("You can only stop your own gaming session.")
+            return await self._terminate_locked(reason=reason)
+
+    async def _terminate_locked(self, reason: str) -> Optional[Dict[str, object]]:
+        s = self.active_session
+        if s is None:
+            return None
+
+        # Ask internal session runner to stop gracefully first
+        if self._http_client and s.process.poll() is None:
+            try:
+                async with self._http_client.post(f"{s.internal_http_url}/api/session/stop") as _:
+                    pass
+                await asyncio.to_thread(s.process.wait, 2.5)
+            except Exception:
+                pass
+
+        if s.process.poll() is None:
+            try:
+                s.process.terminate()
+                await asyncio.to_thread(s.process.wait, 2.0)
+            except Exception:
+                try:
+                    s.process.kill()
+                    await asyncio.to_thread(s.process.wait, 1.0)
+                except Exception:
+                    pass
+
+        log_path = self.storage_mgr.data_root / f"session-{s.session_id}.log"
+        if log_path.exists():
+            try:
+                log_path.unlink()
+            except OSError:
+                pass
+
+        s.state = "ended"
+        s.client_connected = False
+        s.ended_at = time.time()
+        s.end_reason = reason
+        self.db.record_session_end(s.session_id, end_reason=reason, started_at=s.started_at)
+        self.last_ended_by_user[s.username] = s
+        self.active_session = None
+        logger.info("Session %s for user '%s' ended (reason: %s)", s.session_id, s.username, reason)
+        return s.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
+
+    async def _watchdog_loop(self) -> None:
+        """Continuously monitor the active session process, sync status, and enforce timeouts."""
+        while not self._stopping:
+            try:
+                await self._watchdog_tick()
+            except asyncio.CancelledError:
+                break
+            except Exception as exc:
+                logger.warning("Watchdog tick warning: %s", exc)
+            await asyncio.sleep(0.35)
+
+    async def _watchdog_tick(self) -> None:
+        s = self.active_session
+        if s is None or s.state == "ended":
+            return
+
+        now = time.time()
+
+        # 1. Check if container process exited on its own (e.g. player quit inside game)
+        ret = s.process.poll()
+        if ret is not None:
+            async with self._lock:
+                if self.active_session is s:
+                    reason = "game_exited" if ret == 0 else "startup_error"
+                    if ret != 0 and s.state == "starting":
+                        s.error_message = f"Game container exited with code {ret} during startup."
+                    await self._terminate_locked(reason=reason)
+            return
+
+        # 2. Poll internal container /api/session/status
+        if self._http_client:
+            try:
+                async with self._http_client.get(f"{s.internal_http_url}/api/session/status") as resp:
+                    if resp.status == 200:
+                        st = await resp.json()
+                        s.inner_status = st
+                        inner_last_input = float(st.get("last_input_at", 0.0))
+                        if inner_last_input > s.last_input_at:
+                            s.last_input_at = inner_last_input
+
+                        inner_state = str(st.get("state", "starting"))
+                        if s.state == "starting" and inner_state in ("ready", "playing"):
+                            s.state = "playing" if s.client_connected else "ready"
+                            s.ready_at = now
+                            s.last_input_at = max(s.last_input_at, now)
+                            self.db.update_session_state(s.session_id, s.state)
+            except Exception:
+                pass
+
+        # 3. Enforce Idle Timeout (only once session has finished starting)
+        if s.state in ("ready", "playing"):
+            idle_elapsed = now - s.last_input_at
+            if idle_elapsed >= self.idle_timeout_sec:
+                logger.info(
+                    "Session %s exceeded idle timeout (%.1fs >= %.1fs); terminating",
+                    s.session_id,
+                    idle_elapsed,
+                    self.idle_timeout_sec,
+                )
+                async with self._lock:
+                    if self.active_session is s:
+                        await self._terminate_locked(reason="idle_timeout")
+                return
+
+        # 4. Enforce Disconnect Grace Timeout (if browser disconnected after connecting, or never connected)
+        if s.disconnected_at is not None:
+            disc_elapsed = now - s.disconnected_at
+            if disc_elapsed >= self.disconnect_grace_sec:
+                logger.info(
+                    "Session %s exceeded disconnect grace window (%.1fs >= %.1fs); terminating",
+                    s.session_id,
+                    disc_elapsed,
+                    self.disconnect_grace_sec,
+                )
+                async with self._lock:
+                    if self.active_session is s:
+                        await self._terminate_locked(reason="disconnect_timeout")
+                return
+
+    @staticmethod
+    def get_gpu_telemetry() -> Dict[str, object]:
+        """Query live NVIDIA GPU load, VRAM usage, and temperature via nvidia-smi."""
+        try:
+            res = subprocess.run(
+                [
+                    "nvidia-smi",
+                    "--query-gpu=name,driver_version,utilization.gpu,utilization.memory,memory.used,memory.total,temperature.gpu,power.draw",
+                    "--format=csv,noheader,nounits",
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=2.0,
+            )
+            if res.returncode == 0 and res.stdout.strip():
+                parts = [p.strip() for p in res.stdout.strip().splitlines()[0].split(",")]
+                if len(parts) >= 7:
+                    return {
+                        "available": True,
+                        "name": parts[0],
+                        "driver_version": parts[1],
+                        "gpu_util_percent": float(parts[2]) if parts[2].replace(".", "").isdigit() else 0.0,
+                        "mem_util_percent": float(parts[3]) if parts[3].replace(".", "").isdigit() else 0.0,
+                        "vram_used_mb": float(parts[4]) if parts[4].replace(".", "").isdigit() else 0.0,
+                        "vram_total_mb": float(parts[5]) if parts[5].replace(".", "").isdigit() else 0.0,
+                        "temperature_c": float(parts[6]) if parts[6].replace(".", "").isdigit() else 0.0,
+                        "power_watts": float(parts[7]) if len(parts) > 7 and parts[7].replace(".", "").isdigit() else None,
+                    }
+        except Exception:
+            pass
+        return {
+            "available": False,
+            "name": "NVIDIA GeForce RTX 4060",
+            "driver_version": "unknown",
+            "gpu_util_percent": 0.0,
+            "mem_util_percent": 0.0,
+            "vram_used_mb": 0.0,
+            "vram_total_mb": 8188.0,
+            "temperature_c": 0.0,
+            "power_watts": None,
+        }
+

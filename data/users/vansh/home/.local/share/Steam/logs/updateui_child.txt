@@ -3956,3 +3956,16 @@
 [2026-10-26 00:29:07] Create window
 [2026-10-26 00:29:07] ProcessNextMessage: socket disconnected
 [2026-10-26 00:29:07] No more messages are expected - exiting
+
+
+[2026-10-26 00:55:03] Client version: 0
+[2026-10-26 00:55:03] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 00:55:03] Using update UI: xwin
+[2026-10-26 00:55:03] Create window
+[2026-10-26 00:55:03] Set percent complete: 0
+[2026-10-26 00:55:03] Set status message: Checking for available updates...
+[2026-10-26 00:55:03] Set percent complete: -1
+[2026-10-26 00:55:04] Set percent complete: -1
+[2026-10-26 00:55:04] Set status message: Verifying installation...
+[2026-10-26 00:55:04] Show window
+[2026-10-26 00:55:05] Destroy window

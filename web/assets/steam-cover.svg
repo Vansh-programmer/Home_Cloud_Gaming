@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" width="600" height="900">
+  <defs>
+    <linearGradient id="sbg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b172a"/>
+      <stop offset="55%" stop-color="#132c52"/>
+      <stop offset="100%" stop-color="#070d19"/>
+    </linearGradient>
+    <radialGradient id="sglow" cx="50%" cy="40%" r="45%">
+      <stop offset="0%" stop-color="#66c0f4" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#0b172a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="600" height="900" fill="url(#sbg)"/>
+  <circle cx="300" cy="360" r="260" fill="url(#sglow)"/>
+  <!-- Gamepad / Big Picture Icon -->
+  <g transform="translate(300, 350)" fill="none" stroke="#66c0f4" stroke-width="8">
+    <rect x="-140" y="-85" width="280" height="170" rx="75" fill="#0f2342" fill-opacity="0.8"/>
+    <circle cx="-65" cy="0" r="26" stroke="#38bdf8" stroke-width="6"/>
+    <line x1="-65" y1="-14" x2="-65" y2="14" stroke-width="5"/>
+    <line x1="-79" y1="0" x2="-51" y2="0" stroke-width="5"/>
+    <circle cx="55" cy="-18" r="10" fill="#38bdf8" stroke="none"/>
+    <circle cx="82" cy="8" r="10" fill="#34d399" stroke="none"/>
+    <circle cx="55" cy="34" r="10" fill="#fbbf24" stroke="none"/>
+    <circle cx="28" cy="8" r="10" fill="#f43f5e" stroke="none"/>
+  </g>
+  <rect x="175" y="64" width="250" height="32" rx="16" fill="#0f172a" stroke="#66c0f4" stroke-width="1.5"/>
+  <text x="300" y="85" fill="#66c0f4" font-family="sans-serif" font-size="13" font-weight="800" text-anchor="middle" letter-spacing="2">ISOLATED ACCOUNT LOGIN</text>
+  <text x="300" y="665" fill="#f8fafc" font-family="sans-serif" font-size="44" font-weight="900" text-anchor="middle" letter-spacing="2">STEAM CLIENT</text>
+  <text x="300" y="720" fill="#66c0f4" font-family="sans-serif" font-size="28" font-weight="800" text-anchor="middle" letter-spacing="5">BIG PICTURE UI</text>
+  <text x="300" y="775" fill="#94a3b8" font-family="sans-serif" font-size="15" font-weight="600" text-anchor="middle" letter-spacing="1">IN-STREAM LOGIN • PERSISTENT USER TOKENS</text>
+</svg>
+

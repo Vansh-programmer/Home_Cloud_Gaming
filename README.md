@@ -11,7 +11,7 @@ A personal browser-based cloud gaming system that turns your Linux gaming PC int
 
 ---
 
-## Current Status: Phases 1 & 2 Completed
+## Current Status: Phases 1, 2, 3 & 4 Completed
 
 ### Phase 1: Isolated Single-Game WebRTC Prototype (Completed)
 - **Sandbox**: Unprivileged Bubblewrap (`bwrap`) container with isolated PID, IPC, UTS, and user namespaces; ephemeral `tmpfs` mounts for `/tmp`, `/run`, `/var`, `/home`, `/dev/shm`.
@@ -27,12 +27,27 @@ A personal browser-based cloud gaming system that turns your Linux gaming PC int
 - **Steam `.acf` Manifest Scanner**: Automatically discovers installed Steam games (`appmanifest_*.acf`), filters out Proton/runtime redistributables, and launches games via `/usr/bin/steam -gamepadui -applaunch <AppID>`.
 - **Multi-User Save Persistence**: `CyberArena 3D` and native/Proton games persist save files in the user's isolated `$XDG_DATA_HOME` across container destruction and restarts.
 
+### Phase 3: Backend Orchestrator, Safety Limits & Invite-Only Auth (Completed)
+- **Invite-Only Authentication (`backend/database.py`)**: SQLite database (`data/cloud_gaming.db` in WAL mode) with PBKDF2-HMAC-SHA256 salted password hashes, `HttpOnly` session cookies, and single-use invite codes (`RYOKU-XXXX-XXXXXX`). Public sign-up without an invite code is strictly blocked (`403 Forbidden`).
+- **Single-Session GPU Lock (`backend/orchestrator.py`)**: Enforces 1 active gaming session on the PC at a time. If User A is playing, User B receives a friendly `"Gaming PC is currently in use by <user>"` status.
+- **Session State Machine & Authenticated Proxy (`backend/server.py`)**: Tracks `starting` → `ready` → `playing` → `ended` and proxies WebRTC signaling/input to the internal loopback-only container (`127.0.0.1:<internal_port>`), ensuring User B can never view or inject inputs into User A's stream.
+- **Safety Limits & Reconnect Grace Window**: Automatically terminates inactive sessions after `idle_timeout` (default 10m), keeps sessions alive during `disconnect_grace` (default 5m) if a browser tab closes or Wi-Fi drops so the player can seamlessly reconnect, and allows the admin to force-stop any session immediately.
+
+### Phase 4: Modern Product Web App & In-Stream HUD (Completed)
+- **Storefront & Game Library (`web/index.html`, `web/assets/styles.css`, `web/assets/app.js`)**: Dark glassmorphic UI with a featured Hero Spotlight banner, 600x900 vertical box art cards (`/assets/cyberarena-cover.svg`, `/assets/steam-cover.svg`, and Steam CDN covers with offline SVG fallback), instant search bar, and category filter pills.
+- **4-Stage Session Progress Stepper**: Clear visual progression (`1. Bubblewrap Sandbox` → `2. RTX 4060 Weston Kiosk & Virtual Audio` → `3. Isolated Game Process & Saves` → `4. Hardware NVENC WebRTC Stream`).
+- **Direct Integrated In-Stream WebRTC Player & Collapsible Floating HUD**: Native full-viewport `<video>` stream with a collapsible floating top HUD pill (`RYOKU HUD ▴ • 60 FPS • Ping ms`), `Lock Mouse (3D)` vs normal UI cursor toggle, live bitrate quality switcher, `Tab` diagnostics overlay, W3C Gamepad polling, and mobile virtual analog thumbstick + touch action buttons.
+
 ---
 
 ## Project Structure
 
 ```
 Home_Cloud_Gaming/
+├── backend/
+│   ├── database.py         # SQLite WAL database (users, single-use invites, tokens, session history)
+│   ├── orchestrator.py     # Single-session GPU lock, watchdog, idle/disconnect timers, NVML stats
+│   └── server.py           # Authenticated REST & WebSocket proxy server + Admin API
 ├── engine/
 │   ├── sandbox.py          # Ephemeral Bubblewrap container isolation manager & self-check
 │   ├── storage_manager.py  # Per-user persistent storage & shared read-only Steam library linker
@@ -40,17 +55,20 @@ Home_Cloud_Gaming/
 │   ├── session_runner.py   # Isolated session daemon (display, audio, game lifecycle, HTTP/WS)
 │   ├── webrtc_streamer.py  # GStreamer webrtcbin + NVENC H.264 + Opus audio + RTCDataChannel
 │   ├── input_manager.py    # X11 kiosk window enforcer & libXtst low-latency input injector
-│   ├── launch_phase1.py    # Host CLI launcher (supports --user, --app-id, --list-games, etc.)
+│   ├── launch_phase1.py    # Host CLI launcher for a single isolated container
 │   ├── launch_phase2.py    # Phase 2 CLI entrypoint for multi-user & Steam sessions
+│   ├── launch_phase3.py    # Phase 3 CLI entrypoint for the full Backend Orchestrator Server
 │   └── test_game/
 │       ├── arena3d.c       # Source for 60 FPS OpenGL/SDL2 test game with persistent saves
 │       └── arena3d         # Compiled binary
 ├── web/
+│   ├── index.html          # Invite-only login, Game Library, Session Progress & Admin UI
 │   └── prototype.html      # Browser WebRTC player UI (Cursor + Lock Mouse, stats HUD, touch pad)
 ├── tests/
 │   ├── test_phase1.py      # Phase 1 security invariant & WebRTC streaming test suite
-│   └── test_phase2.py      # Phase 2 multi-user save persistence & Steam library test suite
-├── data/                   # Auto-created runtime storage (shared_steam_library + users/<id>)
+│   ├── test_phase2.py      # Phase 2 multi-user save persistence & Steam library test suite
+│   └── test_phase3.py      # Phase 3 invite-only auth, GPU lock, reconnect & idle timeout test suite
+├── data/                   # Runtime storage (ignored by Git: cloud_gaming.db, shared_steam_library, users/)
 ├── README.md               # Quickstart & operational guide (this file)
 └── PLAN.md                 # Complete architectural blueprint and 6-phase roadmap
 ```
@@ -74,13 +92,29 @@ Home_Cloud_Gaming/
 ## How to Run & Verify
 
 ### 1. Run the Automated Test Suites
-Verify Phase 1 (sandbox isolation, WebRTC SDP/ICE, NVENC bitrate switching, input injection) and Phase 2 (per-user storage isolation, `.acf` game discovery, and multi-user persistent savegames across ephemeral container restarts):
+Verify Phase 1 (sandbox isolation, WebRTC SDP/ICE, NVENC bitrate switching, input injection), Phase 2 (per-user storage isolation, `.acf` game discovery, and multi-user persistent savegames), and Phase 3 (invite-only auth, single-session GPU lock, tab-close reconnect, admin force-stop, and automatic idle timeout):
 ```bash
 python3 tests/test_phase1.py
 python3 tests/test_phase2.py
+python3 tests/test_phase3.py
+python3 tests/test_phase4.py
 ```
 
-### 2. List Discovered Games & Check User Storage Status
+### 2. Start the Phase 3 Cloud Gaming Orchestrator Server (Recommended)
+Start the full multi-user server with invite-only authentication, game library, session state machine, and admin dashboard:
+```bash
+python3 engine/launch_phase3.py --port 8080 --admin-user vansh --admin-password ryoku-admin-2026
+```
+Open **`http://localhost:8080`** in your browser:
+1. **Log in as Admin**: Sign in with username `vansh` and password `ryoku-admin-2026`.
+2. **Generate an Invite Code for a Friend**: In the **Admin Control & Telemetry** panel, click **+ Generate Invite Code** (or run `python3 engine/launch_phase3.py --create-invite` in your terminal) to get a single-use `RYOKU-XXXX-XXXXXX` code.
+3. **Launch a Game**: Click **▶ Play Now** on **CyberArena 3D** or **Steam Big Picture** to watch the session progress (`STARTING` → `READY` → `PLAYING`) and play in your browser.
+4. **Test Reconnect & Concurrency Lock**:
+   - Refresh the page or click **Back to Library (Keep Running)**, then click **Reconnect to Active Game** to resume immediately.
+   - Open an Incognito window, redeem the invite code as `friend1`, and try clicking **Play Now** while `vansh` is playing—you'll see `"Server in use by vansh"`.
+   - From `vansh`'s Admin panel, click **Force-End Active Session** to immediately terminate the container and free the GPU.
+
+### 3. Direct Single-Session CLI Commands (Phase 2)
 ```bash
 # List built-in games and any Steam games in data/shared_steam_library/steamapps:
 python3 engine/launch_phase2.py --list-games

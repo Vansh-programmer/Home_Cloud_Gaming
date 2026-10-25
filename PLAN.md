@@ -126,30 +126,31 @@ To avoid duplicating large 50+ GB game installs across users:
 ---
 
 ### Phase 3: Backend Orchestrator, Safety Limits & Auth
-**Status: UP NEXT**
-- [ ] Central backend service (Node.js/Fastify or Go) with SQLite database (`better-sqlite3` or `sqlc`).
-- [ ] Invite-only user authentication (admin-generated invite tokens, salted password hashing with Argon2/bcrypt, secure session cookies).
-- [ ] Concurrency lock: enforce exactly 1 active game session on the server; return friendly "Server in use by [User]" status to others.
-- [ ] Session State Machine: `starting` → `ready` → `playing` → `ended`.
-- [ ] Idle timeout detection: terminate sessions automatically after configurable inactivity (e.g., 10 minutes without input).
-- [ ] Tab refresh / network disconnect tolerance: keep session alive for 5 minutes if browser disconnects, allowing instant seamless reconnection.
+**Status: COMPLETED (Verified with Automated Tests)**
+- [x] Central backend service (`backend/server.py` & `backend/orchestrator.py`) with SQLite database (`backend/database.py` using WAL mode).
+- [x] Invite-only user authentication (admin-generated single-use invite codes `RYOKU-XXXX-XXXXXX`, salted PBKDF2-HMAC-SHA256 password hashing with constant-time verification, `HttpOnly` session cookies).
+- [x] Concurrency lock: enforce strictly 1 active game session on the server (`409 Conflict` with `"Gaming PC is currently in use by <user>"` for other users).
+- [x] Session State Machine: `starting` → `ready` → `playing` → `ended` with friendly stage and end-reason messages.
+- [x] Idle timeout detection: terminate sessions automatically after configurable inactivity (default 10 minutes, tested at 2.2s in `tests/test_phase3.py`).
+- [x] Tab refresh / network disconnect tolerance: keep session alive during the reconnect grace window (default 5 minutes) if the browser disconnects, allowing instant seamless reconnection to the running container.
+- [x] Admin force-termination (`POST /api/admin/sessions/force-stop`), GPU telemetry (`nvidia-smi`), and session history audit log.
 
 ---
 
 ### Phase 4: Modern Product Web App & In-Stream HUD
-**Status: PLANNED**
-- [ ] Responsive web application (Next.js / React + Tailwind CSS) with modern styling (dark mode, glassmorphism, responsive navigation).
-- [ ] Game Library view: Steam game covers, search, filtering, and "Play" buttons.
-- [ ] Session loading view: smooth progress bar, stage indicators (`Starting Sandbox` → `Configuring Display` → `Launching Game`).
-- [ ] In-Stream floating HUD:
-  - Collapsible control bar (fullscreen, audio volume, stats toggle, quality preset selector).
-  - Virtual gamepad / touch overlay customized for mobile portrait/landscape orientations.
-  - Floating diagnostics panel (RTT latency, FPS counter, bitrate, packet loss, resolution).
+**Status: COMPLETED (Verified with Automated Tests)**
+- [x] Responsive web application (`web/index.html`, `web/assets/styles.css`, `web/assets/app.js`) with modern dark glassmorphism styling and desktop/mobile navigation.
+- [x] Game Library view: Hero spotlight banner, 600x900 vertical game covers (`/assets/cyberarena-cover.svg`, `/assets/steam-cover.svg`, Steam CDN artwork with automatic offline SVG fallback), instant search, category filter pills, resolution/quality selectors, and "Play" buttons.
+- [x] Session loading view: 4-stage visual progress stepper (`1. Ephemeral Bubblewrap Sandbox` → `2. Headless Weston Kiosk & Virtual Audio` → `3. Isolated Game Process & Persistent Saves` → `4. Hardware NVENC WebRTC Stream`).
+- [x] Direct Integrated In-Stream floating HUD (no nested iframe):
+  - Collapsible floating top HUD bar (`RYOKU HUD ▴ • 60 FPS • Ping ms`) with pointer-lock toggle (`Lock Mouse 3D` vs `UI Cursor`), audio mute, live quality switcher, stats toggle, touch pad toggle, and true fullscreen.
+  - Virtual analog thumbstick & touch button overlay (`JUMP`, `FIRE`, `TURN L/R`) for mobile play.
+  - Floating diagnostics panel (`RTT latency`, `FPS`, `bitrate`, `packet loss`, `resolution`, `input mode`, `user high score`, `Steam token`, and `Isolation Verified ✓`).
 
 ---
 
 ### Phase 5: Admin Dashboard & GPU Telemetry
-**Status: PLANNED**
+**Status: UP NEXT**
 - [ ] Admin portal accessible only by the server owner:
   - **Live Session View**: Who is currently playing, which game, connection duration, and a "Force End Session" emergency button.
   - **GPU Telemetry**: Real-time GPU load %, VRAM usage, temperature (°C), and encoder utilization via `nvidia-smi` / `NVML`.
@@ -176,8 +177,8 @@ To avoid duplicating large 50+ GB game installs across users:
 | :---: | :--- | :--- | :---: |
 | **1** | Single-Game WebRTC Prototype | Automated tests pass; 60 FPS hardware NVENC stream; zero host desktop/file exposure; container destroyed on game exit. | **Done** |
 | **2** | Steam & Persistent Storage | Launch Steam AppID; Steam login preserved across runs; save games persist; user A cannot see user B's saves. | **Done** |
-| **3** | Backend, Limits & Auth | Invite-only login works; 1-session GPU lock enforced; idle timeout ends container; tab reconnect resumes game. | Next |
-| **4** | Polished Web App & HUD | Steam library UI with artwork; in-stream mobile controls; telemetry HUD; responsive mobile experience. | Queued |
-| **5** | Admin Portal & Telemetry | Live GPU stats displayed; admin can force-kill session; user list & session history functional. | Queued |
+| **3** | Backend, Limits & Auth | Invite-only login works; 1-session GPU lock enforced; idle timeout ends container; tab reconnect resumes game. | **Done** |
+| **4** | Polished Web App & HUD | Steam library UI with artwork; in-stream mobile controls; telemetry HUD; responsive mobile experience. | **Done** |
+| **5** | Admin Portal & Telemetry | Live GPU stats displayed; admin can force-kill session; user list & session history functional. | Next |
 | **6** | Domain HTTPS & Offline Page | External access over custom domain; cellular playback via TURN; offline fallback page when PC is off. | Queued |
 

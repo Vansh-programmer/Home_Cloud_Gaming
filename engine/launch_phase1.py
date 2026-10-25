@@ -31,7 +31,9 @@ from engine.storage_manager import UserStorageManager, validate_user_id  # noqa:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Launch Isolated Cloud Gaming Session")
+    parser.add_argument("--host", default="0.0.0.0", help="Bind host for HTTP/WebSocket server (default: 0.0.0.0)")
     parser.add_argument("--port", type=int, default=8080, help="HTTP/WebSocket port (default: 8080)")
+    parser.add_argument("--session-id", default="", help="Optional explicit session ID")
     parser.add_argument("--width", type=int, default=1280, help="Stream width (default: 1280)")
     parser.add_argument("--height", type=int, default=720, help="Stream height (default: 720)")
     parser.add_argument("--fps", type=int, default=60, help="Stream FPS (default: 60)")
@@ -70,7 +72,7 @@ def main() -> int:
 
     user_paths = storage_mgr.prepare_user_storage(user_id)
 
-    session_id = f"cg-{user_id}-{uuid.uuid4().hex[:6]}"
+    session_id = args.session_id.strip() if args.session_id.strip() else f"cg-{user_id}-{uuid.uuid4().hex[:6]}"
     cfg = SandboxConfig(
         session_id=session_id,
         width=args.width,
@@ -91,6 +93,8 @@ def main() -> int:
         "/opt/cloudgaming/engine/session_runner.py",
         "--session-id",
         session_id,
+        "--host",
+        args.host,
         "--port",
         str(args.port),
         "--width",
@@ -139,6 +143,8 @@ def main() -> int:
             runner_script,
             "--session-id",
             session_id,
+            "--host",
+            args.host,
             "--port",
             str(args.port),
             "--width",

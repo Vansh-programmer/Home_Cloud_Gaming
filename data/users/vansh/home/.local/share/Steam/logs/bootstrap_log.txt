@@ -2157,3 +2157,31 @@
 [2026-10-26 00:31:12] Manifest download: finished
 [2026-10-26 00:31:12] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
 [2026-10-26 00:31:12] Nothing to do
+
+
+[2026-10-26 00:55:03] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 00:55:03] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 00:55:03] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 00:55:03] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 00:55:03] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 00:55:03] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 00:55:03] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 00:55:03] Checking for update on startup
+[2026-10-26 00:55:03] Checking for available updates...
+[2026-10-26 00:55:03] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 00:55:03] Manifest download: send request
+[2026-10-26 00:55:03] Manifest download: waiting for download to finish
+[2026-10-26 00:55:04] Manifest download: finished
+[2026-10-26 00:55:04] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 00:55:04] Nothing to do
+[2026-10-26 00:55:04] Verifying installation...
+[2026-10-26 00:55:04] Verifying all executable checksums
+[2026-10-26 00:55:05] Verification complete
+[2026-10-26 00:57:08] Background update loop checking for update. . .
+[2026-10-26 00:57:08] Checking for available updates...
+[2026-10-26 00:57:08] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 00:57:08] Manifest download: send request
+[2026-10-26 00:57:08] Manifest download: waiting for download to finish
+[2026-10-26 00:57:09] Manifest download: finished
+[2026-10-26 00:57:09] Download skipped by HTTP 304 Not Modified
+[2026-10-26 00:57:09] Nothing to do

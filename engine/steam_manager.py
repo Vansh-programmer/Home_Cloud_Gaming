@@ -103,8 +103,8 @@ class SteamLibraryManager:
                         title="Steam Big Picture (Account Login & Library)",
                         install_dir="steam",
                         size_bytes=0,
-                        cover_url="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/7/header.jpg",
-                        header_url="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/7/header.jpg",
+                        cover_url="/assets/steam-cover.svg",
+                        header_url="/assets/steam-cover.svg",
                         category="steam",
                     ),
                 ]

@@ -85,6 +85,7 @@ class IsolatedSessionRuntime:
         self.state = "starting"
         self.error_message: Optional[str] = None
         self.started_at = time.time()
+        self.last_input_at = time.time()
         self.isolation_report = run_isolation_self_check()
 
         raw_xdg = os.environ.get("XDG_RUNTIME_DIR", f"/tmp/cg-xdg-{session_id}")
@@ -417,6 +418,7 @@ class IsolatedSessionRuntime:
         }
 
     def get_status_dict(self) -> Dict[str, object]:
+        now = time.time()
         preset = QUALITY_PRESETS.get(self.quality, QUALITY_PRESETS["high"])
         persist = self._read_session_persistence_info()
         return {
@@ -433,7 +435,10 @@ class IsolatedSessionRuntime:
             "audio_enabled": self.audio_available,
             "game_running": self.game_proc is not None and self.game_proc.poll() is None,
             "game_pid": self.game_proc.pid if self.game_proc else None,
-            "uptime_sec": round(time.time() - self.started_at, 1),
+            "uptime_sec": round(now - self.started_at, 1),
+            "last_input_at": self.last_input_at,
+            "idle_sec": round(max(0.0, now - self.last_input_at), 1),
+            "client_connected": self.active_ws is not None and not self.active_ws.closed,
             "savegame": persist["savegame"],
             "steam_login_remembered": persist["steam_login_remembered"],
             "isolation": self.isolation_report,
@@ -486,6 +491,7 @@ def create_web_app(runtime: IsolatedSessionRuntime) -> web.Application:
                 asyncio.run_coroutine_threadsafe(ws.send_json(msg), loop)
 
         def on_input_from_peer(payload: dict) -> None:
+            runtime.last_input_at = time.time()
             if runtime.input_manager:
                 runtime.input_manager.handle_event(payload)
 
@@ -547,6 +553,7 @@ def create_web_app(runtime: IsolatedSessionRuntime) -> web.Application:
                         )
                     else:
                         # Fallback input handling over WebSocket if DataChannel isn't open yet
+                        runtime.last_input_at = time.time()
                         if runtime.input_manager:
                             runtime.input_manager.handle_event(data)
                 elif msg.type in (WSMsgType.ERROR, WSMsgType.CLOSE):
@@ -565,6 +572,8 @@ def create_web_app(runtime: IsolatedSessionRuntime) -> web.Application:
         return ws
 
     app.router.add_get("/", handle_index)
+    if (web_dir / "assets").exists():
+        app.router.add_static("/assets", path=web_dir / "assets", show_index=False)
     app.router.add_get("/api/session/status", handle_status)
     app.router.add_post("/api/session/quality", handle_quality)
     app.router.add_post("/api/session/stop", handle_stop)
