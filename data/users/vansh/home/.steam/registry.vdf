@@ -8,8 +8,30 @@
 			{
 				"Steam"
 				{
-					"SteamPID"		"635"
+					"SteamPID"		"4137"
 					"ClientLauncherType"		"0"
+				}
+			}
+		}
+	}
+	"HKCU"
+	{
+		"Software"
+		{
+			"Valve"
+			{
+				"Steamsteamglobal"
+				{
+					"language"		"english"
+				}
+				"Steam"
+				{
+					"language"		"english"
+					"CompletedOOBEStage1"		"1"
+					"SourceModInstallPath"		"/home/gamer/.local/share/Steam/steamapps\\sourcemods"
+					"AutoLoginUser"		"vanshpooniayt"
+					"Rate"		"30000"
+					"AlreadyRetriedOfflineMode"		"0"
 				}
 			}
 		}

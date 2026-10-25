@@ -1,0 +1,65 @@
+# =============================================================================
+# Ryoku Cloud Gaming - .gitignore
+# =============================================================================
+
+# 1. Runtime Data, Per-User Persistent Storage & Steam Library
+# (Keeps Steam binaries, user session tokens, Proton prefixes, and savegames out of Git)
+/data/
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+
+# 2. Secrets, Environment Variables & Tunnel Credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*credentials*.json
+
+# 3. Python Bytecode, Caches & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# 4. C / Native Build Intermediates (keep prebuilt CyberArena 3D binary working)
+*.o
+*.obj
+*.so
+*.dylib
+*.a
+*.out
+core
+!engine/test_game/arena3d
+
+# 5. Node.js / Web App Dependencies & Build Outputs (Phase 3+)
+node_modules/
+.next/
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# 6. Logs, Temp Directories & OS/Editor Files
+*.log
+logs/
+tmp/
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.idea/
+.vscode/
+

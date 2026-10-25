@@ -1,8 +1,15 @@
-# shellcheck shell=bash
+#!/usr/bin/env bash
 # Intended to be sourced (not executed), see srt-logger(1) for usage
 
 # Copyright © 2024 Collabora Ltd
 # SPDX-License-Identifier: MIT
+
+case "${0##*/}" in
+    (logger-0.bash | srt-logger-0.bash)
+        echo "srt-logger-0.bash should be sourced, not executed" >&2
+        echo "Usage: . $0 [SRT-LOGGER OPTIONS]" >&2
+        exit 1
+esac
 
 _srt_redirect_log () {
     local fifo
