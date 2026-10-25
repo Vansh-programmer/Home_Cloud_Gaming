@@ -83,13 +83,24 @@ class WebRTCPeerStream:
         stun_prop = f'stun-server="{self.stun_server}"' if self.stun_server else ""
         turn_prop = f'turn-server="{self.turn_server}"' if self.turn_server else ""
 
+        if Gst.ElementFactory.find("nvh264enc") is not None:
+            encoder_elem = (
+                f"nvh264enc name=venc preset=low-latency-hq zerolatency=true rc-mode=cbr "
+                f"bitrate={bitrate_kbps} gop-size={gop_size} bframes=0 "
+            )
+        else:
+            logger.warning("nvh264enc not found in GStreamer registry; falling back to x264enc")
+            encoder_elem = (
+                f"x264enc name=venc tune=zerolatency speed-preset=ultrafast "
+                f"bitrate={bitrate_kbps} key-int-max={gop_size} bframes=0 "
+            )
+
         video_branch = (
             f'ximagesrc display-name="{self.display_name}" use-damage=0 show-pointer=1 '
             f"! video/x-raw,framerate={target_fps}/1 "
             f"! queue max-size-buffers=2 leaky=downstream "
             f"! videoconvert "
-            f"! nvh264enc name=venc preset=low-latency-hq zerolatency=true rc-mode=cbr "
-            f"bitrate={bitrate_kbps} gop-size={gop_size} bframes=0 "
+            f"! {encoder_elem}"
             f"! video/x-h264,profile=constrained-baseline,stream-format=byte-stream "
             f"! h264parse config-interval=-1 "
             f"! rtph264pay config-interval=-1 aggregate-mode=zero-latency pt=96 "

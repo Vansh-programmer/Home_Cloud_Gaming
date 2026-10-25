@@ -118,8 +118,6 @@ class EphemeralSandbox:
         cmd: List[str] = [
             "bwrap",
             "--unshare-user",
-            "--uid", "0",
-            "--gid", "0",
             "--unshare-ipc",
             "--unshare-pid",
             "--unshare-uts",
@@ -134,27 +132,27 @@ class EphemeralSandbox:
             "--symlink", "usr/lib", "/lib64",
             "--symlink", "usr/bin", "/bin",
             "--symlink", "usr/bin", "/sbin",
-            # Minimal /proc, /sys (read-only), and isolated /dev
+            # Minimal /proc, read-only /sys, and isolated /dev with writable /dev/shm for CUDA & PulseAudio
             "--proc", "/proc",
             "--dev", "/dev",
-            "--ro-bind-try", "/sys/dev", "/sys/dev",
-            "--ro-bind-try", "/sys/devices", "/sys/devices",
-            "--ro-bind-try", "/sys/bus", "/sys/bus",
-            "--ro-bind-try", "/sys/class/drm", "/sys/class/drm",
+            "--tmpfs", "/dev/shm",
+            "--ro-bind", "/sys", "/sys",
             # Ephemeral tmpfs mounts for /tmp, /run, /var, /home
             "--tmpfs", "/tmp",
             "--tmpfs", "/run",
             "--tmpfs", "/var",
             "--tmpfs", "/home",
             "--dir", "/home/gamer",
-            "--dir", "/run/user/0",
-            "--chmod", "0700", "/run/user/0",
+            "--dir", "/tmp/runtime",
+            "--chmod", "0700", "/tmp/runtime",
             "--dir", "/tmp/.X11-unix",
             "--chmod", "1777", "/tmp/.X11-unix",
         ]
 
-        # Safe read-only /etc files needed for DNS, SSL, fonts, dynamic linker, and Vulkan ICDs
+        # Safe read-only /etc files needed for DNS, SSL, fonts, dynamic linker, NSS, and Vulkan/NVIDIA ICDs
         safe_etc_paths = [
+            "/etc/passwd",
+            "/etc/group",
             "/etc/ld.so.cache",
             "/etc/ld.so.conf",
             "/etc/ld.so.conf.d",
@@ -166,9 +164,11 @@ class EphemeralSandbox:
             "/etc/nsswitch.conf",
             "/etc/localtime",
             "/etc/machine-id",
+            "/etc/nvidia",
             "/etc/vulkan",
             "/etc/glvnd",
             "/etc/egl",
+            "/etc/gbm",
             "/etc/X11",
             "/etc/xdg",
             "/etc/pipewire",
@@ -223,7 +223,7 @@ class EphemeralSandbox:
             "HOME": "/home/gamer",
             "USER": "gamer",
             "LOGNAME": "gamer",
-            "XDG_RUNTIME_DIR": "/run/user/0",
+            "XDG_RUNTIME_DIR": "/tmp/runtime",
             "TMPDIR": "/tmp",
             "LANG": "C.UTF-8",
             "LC_ALL": "C.UTF-8",

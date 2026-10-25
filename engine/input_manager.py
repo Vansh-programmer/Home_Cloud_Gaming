@@ -124,6 +124,7 @@ class IsolatedInputManager:
         self._pressed_keycodes: Set[int] = set()
         self._pressed_buttons: Set[int] = set()
         self._virtual_pad_keys: Set[str] = set()
+        self._top_win: int = 0
         self.has_focused_window = False
         self._running = False
         self._wm_thread: Optional[threading.Thread] = None
@@ -260,6 +261,48 @@ class IsolatedInputManager:
                 self._libX11.XCloseDisplay(self._dpy)
                 self._dpy = None
 
+    def _ensure_focus_locked(self) -> None:
+        if not self._dpy or not self._root:
+            return
+        root_ret = ctypes.c_ulong()
+        parent_ret = ctypes.c_ulong()
+        children_ptr = ctypes.POINTER(ctypes.c_ulong)()
+        nchildren = ctypes.c_uint()
+        status = self._libX11.XQueryTree(
+            self._dpy,
+            self._root,
+            ctypes.byref(root_ret),
+            ctypes.byref(parent_ret),
+            ctypes.byref(children_ptr),
+            ctypes.byref(nchildren),
+        )
+        if status and nchildren.value > 0 and bool(children_ptr):
+            top_mapped_win = 0
+            for i in range(nchildren.value):
+                win = children_ptr[i]
+                attrs = XWindowAttributes()
+                if self._libX11.XGetWindowAttributes(self._dpy, win, ctypes.byref(attrs)):
+                    # MapState 2 == IsViewable
+                    if attrs.map_state == 2 and attrs.width >= 64 and attrs.height >= 64:
+                        top_mapped_win = win
+                        if not attrs.override_redirect and (
+                            attrs.x != 0
+                            or attrs.y != 0
+                            or attrs.width != self.width
+                            or attrs.height != self.height
+                        ):
+                            self._libX11.XMoveResizeWindow(
+                                self._dpy, win, 0, 0, self.width, self.height
+                            )
+            if top_mapped_win:
+                self._top_win = top_mapped_win
+                self._libX11.XSetInputFocus(
+                    self._dpy, top_mapped_win, RevertToPointerRoot, CurrentTime
+                )
+                self._libX11.XFlush(self._dpy)
+                self.has_focused_window = True
+            self._libX11.XFree(children_ptr)
+
     def _kiosk_window_loop(self) -> None:
         """
         Single-App Kiosk Window Manager loop:
@@ -268,45 +311,8 @@ class IsolatedInputManager:
         """
         while self._running:
             with self._lock:
-                if self._dpy and self._root:
-                    root_ret = ctypes.c_ulong()
-                    parent_ret = ctypes.c_ulong()
-                    children_ptr = ctypes.POINTER(ctypes.c_ulong)()
-                    nchildren = ctypes.c_uint()
-                    status = self._libX11.XQueryTree(
-                        self._dpy,
-                        self._root,
-                        ctypes.byref(root_ret),
-                        ctypes.byref(parent_ret),
-                        ctypes.byref(children_ptr),
-                        ctypes.byref(nchildren),
-                    )
-                    if status and nchildren.value > 0 and bool(children_ptr):
-                        top_mapped_win = 0
-                        for i in range(nchildren.value):
-                            win = children_ptr[i]
-                            attrs = XWindowAttributes()
-                            if self._libX11.XGetWindowAttributes(self._dpy, win, ctypes.byref(attrs)):
-                                # MapState 2 == IsViewable
-                                if attrs.map_state == 2 and attrs.width >= 64 and attrs.height >= 64:
-                                    top_mapped_win = win
-                                    if not attrs.override_redirect and (
-                                        attrs.x != 0
-                                        or attrs.y != 0
-                                        or attrs.width != self.width
-                                        or attrs.height != self.height
-                                    ):
-                                        self._libX11.XMoveResizeWindow(
-                                            self._dpy, win, 0, 0, self.width, self.height
-                                        )
-                        if top_mapped_win:
-                            self._libX11.XSetInputFocus(
-                                self._dpy, top_mapped_win, RevertToPointerRoot, CurrentTime
-                            )
-                            self._libX11.XFlush(self._dpy)
-                            self.has_focused_window = True
-                        self._libX11.XFree(children_ptr)
-            time.sleep(0.25)
+                self._ensure_focus_locked()
+            time.sleep(0.15)
 
     def _resolve_keycode(self, code: str, key: str = "") -> int:
         if not self._dpy:
@@ -326,6 +332,8 @@ class IsolatedInputManager:
         with self._lock:
             if not self._dpy:
                 return
+            if is_pressed:
+                self._ensure_focus_locked()
             keycode = self._resolve_keycode(code, key)
             if keycode == 0:
                 return

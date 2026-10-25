@@ -105,11 +105,13 @@ class IsolatedSessionRuntime:
         self._glib_thread.start()
 
     def _can_use_unix_x11_socket(self) -> bool:
+        if os.getuid() != 0:
+            return False
         x11_dir = Path("/tmp/.X11-unix")
         try:
             x11_dir.mkdir(parents=True, exist_ok=True)
             os.chmod(x11_dir, 0o1777)
-            return os.access(x11_dir, os.W_OK)
+            return os.access(x11_dir, os.W_OK) and x11_dir.stat().st_uid == 0
         except Exception:
             return False
 
@@ -161,7 +163,15 @@ class IsolatedSessionRuntime:
                 stderr=subprocess.DEVNULL,
             )
             self._procs.append(pwp_proc)
-            time.sleep(0.65)
+            pulse_sock = self.xdg_dir / "pulse" / "native"
+            for _ in range(25):
+                if pulse_sock.exists():
+                    break
+                time.sleep(0.05)
+
+            pulse_server = f"unix:{pulse_sock}"
+            env["PULSE_SERVER"] = pulse_server
+            os.environ["PULSE_SERVER"] = pulse_server
 
             res = subprocess.run(
                 [
@@ -297,9 +307,9 @@ class IsolatedSessionRuntime:
             stdout=sys.stdout,
             stderr=sys.stderr,
         )
-        # Wait until the game window is mapped and focused on Xwayland before marking ready
         for _ in range(40):
             if self.input_manager and self.input_manager.has_focused_window:
+                time.sleep(0.35)
                 break
             if self.game_proc.poll() is not None:
                 break
@@ -437,7 +447,12 @@ def create_web_app(runtime: IsolatedSessionRuntime) -> web.Application:
             audio_enabled=runtime.audio_available,
         )
         runtime.active_peer = peer
-        peer.start()
+        try:
+            peer.start()
+        except Exception as exc:
+            logger.exception("Failed to start WebRTC pipeline: %s", exc)
+            await ws.send_json({"type": "error", "error": str(exc)})
+            return ws
 
         try:
             async for msg in ws:

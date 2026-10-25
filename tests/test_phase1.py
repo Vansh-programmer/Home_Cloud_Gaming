@@ -130,8 +130,10 @@ class TestPhase1IsolatedStreaming(unittest.IsolatedAsyncioTestCase):
 
                     for _ in range(30):
                         msg = await ws.receive(timeout=5.0)
-                        self.assertEqual(msg.type, WSMsgType.TEXT)
+                        self.assertEqual(msg.type, WSMsgType.TEXT, f"Unexpected WS message: {msg}")
                         payload = json.loads(msg.data)
+                        if payload.get("type") == "error":
+                            self.fail(f"Server reported WebRTC pipeline error: {payload.get('error')}")
                         if payload.get("type") == "status":
                             got_status = True
                         elif payload.get("type") == "offer":
