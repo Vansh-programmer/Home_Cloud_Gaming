@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Ryoku Cloud — Isolated Session Player</title>
+  <style>
+    :root {
+      --bg-dark: #070913;
+      --panel-bg: rgba(13, 18, 34, 0.86);
+      --panel-border: rgba(99, 179, 237, 0.24);
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.35);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      overflow: hidden;
+    }
+
+    #player-stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #0f172a 0%, #05070f 100%);
+    }
+
+    video#stream-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+      cursor: crosshair;
+    }
+
+    /* Top Floating HUD Bar */
+    .hud-bar {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 999px;
+      backdrop-filter: blur(12px);
+      z-index: 30;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+      transition: opacity 0.25s ease;
+    }
+
+    .brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      padding-right: 10px;
+      border-right: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--warning);
+      box-shadow: 0 0 10px var(--warning);
+    }
+    .status-dot.playing {
+      background: var(--success);
+      box-shadow: 0 0 10px var(--success);
+    }
+    .status-dot.ended {
+      background: var(--danger);
+      box-shadow: 0 0 10px var(--danger);
+    }
+
+    .hud-btn, .hud-select {
+      background: rgba(30, 41, 59, 0.75);
+      color: var(--text-main);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .hud-btn:hover, .hud-select:hover {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.15);
+    }
+
+    .hud-btn.active {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .hud-btn.danger {
+      border-color: rgba(248, 113, 113, 0.4);
+      color: #fca5a5;
+    }
+    .hud-btn.danger:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: var(--danger);
+      color: #fff;
+    }
+
+    /* Toggleable Real-Time Stats & Isolation Overlay */
+    #stats-overlay {
+      position: absolute;
+      top: 68px;
+      left: 18px;
+      width: 280px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 14px;
+      backdrop-filter: blur(12px);
+      z-index: 25;
+      font-size: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+    #stats-overlay.hidden {
+      display: none;
+    }
+
+    .stats-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .stat-label {
+      color: var(--text-muted);
+    }
+    .stat-val {
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .iso-badge {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      color: #6ee7b7;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    /* Pointer lock prompt banner */
+    #pointer-hint {
+      position: absolute;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 18px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.82);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      font-size: 12px;
+      color: #e2e8f0;
+      pointer-events: none;
+      z-index: 20;
+      transition: opacity 0.2s ease;
+    }
+    #pointer-hint.hidden {
+      opacity: 0;
+    }
+
+    /* Session Ended / Status Modal */
+    #session-modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(7, 9, 19, 0.88);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    #session-modal.hidden {
+      display: none;
+    }
+    .modal-card {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      padding: 28px 32px;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    }
+    .modal-card h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    .modal-card p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    /* Mobile Touch Controls Overlay */
+    #touch-controls {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 28;
+    }
+    #touch-controls.hidden {
+      display: none;
+    }
+
+    .touch-zone-left {
+      position: absolute;
+      bottom: 36px;
+      left: 36px;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.45);
+      border: 2px solid rgba(56, 189, 248, 0.4);
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    #stick-nub {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 54px;
+      height: 54px;
+      margin-left: -27px;
+      margin-top: -27px;
+      border-radius: 50%;
+      background: rgba(56, 189, 248, 0.75);
+      box-shadow: 0 0 16px var(--accent-glow);
+      pointer-events: none;
+    }
+
+    .touch-zone-right {
+      position: absolute;
+      bottom: 36px;
+      right: 36px;
+      width: 170px;
+      height: 170px;
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    .touch-btn {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.65);
+      border: 2px solid rgba(56, 189, 248, 0.55);
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      touch-action: none;
+    }
+    .touch-btn:active, .touch-btn.pressed {
+      background: rgba(56, 189, 248, 0.85);
+      color: #000;
+      transform: scale(0.94);
+    }
+    .btn-a { bottom: 0; left: 57px; border-color: #34d399; }
+    .btn-b { top: 57px; right: 0; border-color: #f87171; }
+    .btn-x { top: 57px; left: 0; border-color: #38bdf8; }
+    .btn-y { top: 0; left: 57px; border-color: #fbbf24; }
+  </style>
+</head>
+<body>
+  <div id="player-stage">
+    <video id="stream-video" autoplay playsinline></video>
+
+    <!-- Floating Top Control Bar -->
+    <div class="hud-bar">
+      <div class="brand-badge">
+        <span id="status-dot" class="status-dot"></span>
+        <span id="status-text">CONNECTING...</span>
+      </div>
+
+      <button id="btn-stats" class="hud-btn active" title="Toggle Stream Telemetry (Tab)">Stats</button>
+
+      <select id="select-quality" class="hud-select" title="Stream Quality Preset">
+        <option value="low">Low (4 Mbps)</option>
+        <option value="medium">Medium (8 Mbps)</option>
+        <option value="high" selected>High (15 Mbps)</option>
+        <option value="ultra">Ultra (25 Mbps)</option>
+      </select>
+
+      <button id="btn-touch" class="hud-btn" title="Toggle On-Screen Touch Controller">Touch Pad</button>
+      <button id="btn-fullscreen" class="hud-btn" title="Toggle Fullscreen">Fullscreen</button>
+      <button id="btn-end" class="hud-btn danger" title="Terminate Isolated Session">End Session</button>
+    </div>
+
+    <!-- Real-Time Stream Stats & Isolation Verification Overlay -->
+    <div id="stats-overlay">
+      <div class="stats-title">
+        <span>Stream Telemetry</span>
+        <span id="pad-indicator" style="color: var(--text-muted);">No Pad</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">State</span>
+        <span id="stat-state" class="stat-val">starting</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Resolution / FPS</span>
+        <span id="stat-res" class="stat-val">1280x720 @ 60</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Bitrate</span>
+        <span id="stat-bitrate" class="stat-val">0.0 Mbps</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Input RTT (Ping)</span>
+        <span id="stat-rtt" class="stat-val">-- ms</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Packet Loss</span>
+        <span id="stat-loss" class="stat-val">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Encoder</span>
+        <span class="stat-val">NVIDIA NVENC H.264</span>
+      </div>
+      <div id="iso-box" class="iso-badge">
+        Verifying session isolation...
+      </div>
+    </div>
+
+    <!-- On-Screen Touch Controller for Mobile / Tablet -->
+    <div id="touch-controls" class="hidden">
+      <div id="stick-zone" class="touch-zone-left">
+        <div id="stick-nub"></div>
+      </div>
+      <div class="touch-zone-right">
+        <div class="touch-btn btn-y" data-code="KeyE">LOOK</div>
+        <div class="touch-btn btn-x" data-code="KeyF">FIRE</div>
+        <div class="touch-btn btn-b" data-code="KeyQ">TURN</div>
+        <div class="touch-btn btn-a" data-code="Space">JUMP</div>
+      </div>
+    </div>
+
+    <div id="pointer-hint">
+      Click video to lock mouse &amp; enable audio • WASD / Arrows to Move • Click / F to Fire • Space to Jump • ESC to Unlock
+    </div>
+
+    <!-- Session Ended Modal -->
+    <div id="session-modal" class="hidden">
+      <div class="modal-card">
+        <h2 id="modal-title">Session Ended</h2>
+        <p id="modal-desc">
+          The game has exited and your isolated container environment has been completely deleted.
+        </p>
+        <button id="btn-reconnect" class="hud-btn active" style="padding: 10px 20px; font-size: 14px;">
+          Reconnect
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const video = document.getElementById('stream-video');
+      const statusDot = document.getElementById('status-dot');
+      const statusText = document.getElementById('status-text');
+      const statsOverlay = document.getElementById('stats-overlay');
+      const statState = document.getElementById('stat-state');
+      const statRes = document.getElementById('stat-res');
+      const statBitrate = document.getElementById('stat-bitrate');
+      const statRtt = document.getElementById('stat-rtt');
+      const statLoss = document.getElementById('stat-loss');
+      const isoBox = document.getElementById('iso-box');
+      const padIndicator = document.getElementById('pad-indicator');
+      const pointerHint = document.getElementById('pointer-hint');
+      const sessionModal = document.getElementById('session-modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalDesc = document.getElementById('modal-desc');
+
+      const btnStats = document.getElementById('btn-stats');
+      const selectQuality = document.getElementById('select-quality');
+      const btnTouch = document.getElementById('btn-touch');
+      const btnFullscreen = document.getElementById('btn-fullscreen');
+      const btnEnd = document.getElementById('btn-end');
+      const btnReconnect = document.getElementById('btn-reconnect');
+      const touchControls = document.getElementById('touch-controls');
+
+      let ws = null;
+      let pc = null;
+      let dc = null;
+      let reconnectTimer = null;
+      let sessionEnded = false;
+      let lastBytesReceived = 0;
+      let lastStatsTime = performance.now();
+      let latestRttMs = null;
+
+      function setStatus(state, label) {
+        statState.textContent = state;
+        statusText.textContent = label || state.toUpperCase();
+        statusDot.className = 'status-dot ' + (state === 'playing' ? 'playing' : (state === 'ended' ? 'ended' : ''));
+      }
+
+      function sendInput(payload) {
+        const msg = JSON.stringify(payload);
+        if (dc && dc.readyState === 'open') {
+          dc.send(msg);
+        } else if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(msg);
+        }
+      }
+
+      function updateIsolationBadge(iso) {
+        if (!iso) return;
+        if (iso.all_passed) {
+          isoBox.innerHTML = '<strong>ISOLATION VERIFIED ✓</strong><br/>Host Home, Host Desktop, Physical Inputs &amp; Host Audio Blocked';
+        } else {
+          isoBox.innerHTML = '<strong>ISOLATION ACTIVE</strong><br/>Mode: ' + (iso.sandbox_mode || 'isolated');
+        }
+      }
+
+      function attachDataChannel(channel) {
+        dc = channel;
+        dc.onopen = () => {
+          setStatus('playing', 'PLAYING (LOW-LATENCY DC)');
+        };
+        dc.onmessage = (ev) => {
+          try {
+            const data = JSON.parse(ev.data);
+            if (data.type === 'pong' && data.client_ts) {
+              latestRttMs = Math.max(1, Math.round(performance.now() - data.client_ts));
+              statRtt.textContent = latestRttMs + ' ms';
+            }
+          } catch (_) {}
+        };
+      }
+
+      function connectWebRTC() {
+        if (sessionEnded) return;
+        clearTimeout(reconnectTimer);
+        setStatus('starting', 'CONNECTING...');
+
+        const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new WebSocket(`${proto}//${location.host}/ws`);
+
+        ws.onopen = () => {
+          setStatus('ready', 'NEGOTIATING WEBRTC...');
+        };
+
+        ws.onmessage = async (event) => {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'status' && msg.status) {
+            selectQuality.value = msg.status.quality || 'high';
+            updateIsolationBadge(msg.status.isolation);
+            if (msg.status.state === 'ended') {
+              showEndedModal('Session Ended', 'The isolated game session has finished.');
+              return;
+            }
+          } else if (msg.type === 'offer') {
+            if (pc) pc.close();
+            pc = new RTCPeerConnection({
+              iceServers: window.CLOUD_ICE_SERVERS || []
+            });
+
+            pc.ondatachannel = (ev) => {
+              attachDataChannel(ev.channel);
+            };
+
+            pc.ontrack = (ev) => {
+              if (video.srcObject !== ev.streams[0]) {
+                video.srcObject = ev.streams[0];
+                video.play().catch(() => {});
+              }
+              setStatus('playing', 'LIVE STREAM');
+            };
+
+            pc.onicecandidate = (ev) => {
+              if (ev.candidate && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                  type: 'ice',
+                  candidate: ev.candidate.candidate,
+                  sdpMLineIndex: ev.candidate.sdpMLineIndex
+                }));
+              }
+            };
+
+            pc.onconnectionstatechange = () => {
+              if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                scheduleReconnect();
+              }
+            };
+
+            await pc.setRemoteDescription({ type: 'offer', sdp: msg.sdp });
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            ws.send(JSON.stringify({ type: 'answer', sdp: answer.sdp }));
+          } else if (msg.type === 'ice' && msg.candidate && pc) {
+            try {
+              await pc.addIceCandidate({
+                candidate: msg.candidate,
+                sdpMLineIndex: msg.sdpMLineIndex || 0
+              });
+            } catch (_) {}
+          } else if (msg.type === 'pong' && msg.client_ts) {
+            latestRttMs = Math.max(1, Math.round(performance.now() - msg.client_ts));
+            statRtt.textContent = latestRttMs + ' ms';
+          }
+        };
+
+        ws.onclose = () => {
+          if (!sessionEnded) {
+            scheduleReconnect();
+          }
+        };
+      }
+
+      function scheduleReconnect() {
+        if (sessionEnded) return;
+        setStatus('reconnecting', 'RECONNECTING...');
+        clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(connectWebRTC, 1200);
+      }
+
+      function showEndedModal(title, desc) {
+        sessionEnded = true;
+        if (document.pointerLockElement) {
+          document.exitPointerLock();
+        }
+        setStatus('ended', 'SESSION ENDED');
+        modalTitle.textContent = title;
+        modalDesc.textContent = desc;
+        sessionModal.classList.remove('hidden');
+      }
+
+      // Pointer Lock & Mouse Input
+      video.addEventListener('click', () => {
+        video.muted = false;
+        video.play().catch(() => {});
+        if (!document.pointerLockElement && video.requestPointerLock) {
+          video.requestPointerLock();
+        }
+      });
+
+      document.addEventListener('pointerlockchange', () => {
+        const locked = document.pointerLockElement === video;
+        pointerHint.classList.toggle('hidden', locked);
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (document.pointerLockElement === video) {
+          if (e.movementX !== 0 || e.movementY !== 0) {
+            sendInput({ type: 'mousemove', dx: e.movementX, dy: e.movementY });
+          }
+        }
+      });
+
+      video.addEventListener('mousedown', (e) => {
+        if (document.pointerLockElement === video) {
+          e.preventDefault();
+          sendInput({ type: 'mousedown', button: e.button });
+        }
+      });
+
+      window.addEventListener('mouseup', (e) => {
+        if (document.pointerLockElement === video) {
+          e.preventDefault();
+          sendInput({ type: 'mouseup', button: e.button });
+        }
+      });
+
+      video.addEventListener('wheel', (e) => {
+        if (document.pointerLockElement === video) {
+          e.preventDefault();
+          sendInput({ type: 'wheel', dx: e.deltaX, dy: e.deltaY });
+        }
+      }, { passive: false });
+
+      // Keyboard Input
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Tab' && document.pointerLockElement !== video) {
+          e.preventDefault();
+          statsOverlay.classList.toggle('hidden');
+          btnStats.classList.toggle('active', !statsOverlay.classList.contains('hidden'));
+          return;
+        }
+        sendInput({ type: 'keydown', code: e.code, key: e.key });
+      });
+
+      window.addEventListener('keyup', (e) => {
+        sendInput({ type: 'keyup', code: e.code, key: e.key });
+      });
+
+      window.addEventListener('blur', () => {
+        sendInput({ type: 'release_all' });
+      });
+
+      // W3C Gamepad API Polling (60Hz)
+      let touchStickX = 0;
+      let touchStickY = 0;
+      function pollGamepads() {
+        const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+        let activePad = null;
+        for (const p of pads) {
+          if (p && p.connected) {
+            activePad = p;
+            break;
+          }
+        }
+        if (activePad) {
+          padIndicator.textContent = 'Pad Active';
+          padIndicator.style.color = '#34d399';
+          sendInput({
+            type: 'gamepad',
+            axes: activePad.axes.slice(0, 4),
+            buttons: activePad.buttons.map((b) => b.pressed)
+          });
+        } else if (touchStickX !== 0 || touchStickY !== 0) {
+          sendInput({
+            type: 'gamepad',
+            axes: [touchStickX, touchStickY, 0, 0],
+            buttons: []
+          });
+        }
+        requestAnimationFrame(pollGamepads);
+      }
+      requestAnimationFrame(pollGamepads);
+
+      // Mobile On-Screen Touch Controls
+      const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      if (isTouchDevice) {
+        touchControls.classList.remove('hidden');
+        btnTouch.classList.add('active');
+      }
+
+      btnTouch.addEventListener('click', () => {
+        touchControls.classList.toggle('hidden');
+        btnTouch.classList.toggle('active', !touchControls.classList.contains('hidden'));
+      });
+
+      const stickZone = document.getElementById('stick-zone');
+      const stickNub = document.getElementById('stick-nub');
+      let stickActive = false;
+
+      function handleStickMove(clientX, clientY) {
+        const rect = stickZone.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const maxR = rect.width / 2 - 20;
+        let dx = clientX - cx;
+        let dy = clientY - cy;
+        const dist = Math.hypot(dx, dy);
+        if (dist > maxR) {
+          dx = (dx / dist) * maxR;
+          dy = (dy / dist) * maxR;
+        }
+        stickNub.style.transform = `translate(${dx}px, ${dy}px)`;
+        touchStickX = +(dx / maxR).toFixed(2);
+        touchStickY = +(dy / maxR).toFixed(2);
+      }
+
+      function resetStick() {
+        stickActive = false;
+        stickNub.style.transform = 'translate(0px, 0px)';
+        touchStickX = 0;
+        touchStickY = 0;
+        sendInput({ type: 'gamepad', axes: [0, 0, 0, 0], buttons: [] });
+      }
+
+      stickZone.addEventListener('pointerdown', (e) => {
+        stickActive = true;
+        stickZone.setPointerCapture(e.pointerId);
+        handleStickMove(e.clientX, e.clientY);
+      });
+      stickZone.addEventListener('pointermove', (e) => {
+        if (stickActive) handleStickMove(e.clientX, e.clientY);
+      });
+      stickZone.addEventListener('pointerup', resetStick);
+      stickZone.addEventListener('pointercancel', resetStick);
+
+      document.querySelectorAll('.touch-btn').forEach((btn) => {
+        const code = btn.getAttribute('data-code');
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          btn.classList.add('pressed');
+          sendInput({ type: 'keydown', code });
+        });
+        const release = (e) => {
+          e.preventDefault();
+          btn.classList.remove('pressed');
+          sendInput({ type: 'keyup', code });
+        };
+        btn.addEventListener('pointerup', release);
+        btn.addEventListener('pointercancel', release);
+        btn.addEventListener('pointerleave', release);
+      });
+
+      // Top HUD Controls
+      btnStats.addEventListener('click', () => {
+        statsOverlay.classList.toggle('hidden');
+        btnStats.classList.toggle('active', !statsOverlay.classList.contains('hidden'));
+      });
+
+      selectQuality.addEventListener('change', () => {
+        sendInput({ type: 'quality', quality: selectQuality.value });
+      });
+
+      btnFullscreen.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      });
+
+      btnEnd.addEventListener('click', async () => {
+        await fetch('/api/session/stop', { method: 'POST' }).catch(() => {});
+        showEndedModal(
+          'Session Terminated',
+          'Your isolated gaming environment has been stopped and wiped.'
+        );
+      });
+
+      btnReconnect.addEventListener('click', () => {
+        location.reload();
+      });
+
+      // Periodic Ping + WebRTC GetStats Telemetry (1Hz)
+      setInterval(async () => {
+        if (sessionEnded) return;
+        sendInput({ type: 'ping', client_ts: performance.now() });
+
+        try {
+          const res = await fetch('/api/session/status');
+          if (res.ok) {
+            const st = await res.json();
+            updateIsolationBadge(st.isolation);
+            if (st.state === 'ended') {
+              showEndedModal('Game Exited', 'The game closed and the isolated container was destroyed.');
+            }
+          }
+        } catch (_) {}
+
+        if (!pc) return;
+        try {
+          const stats = await pc.getStats();
+          stats.forEach((report) => {
+            if (report.type === 'inbound-rtp' && report.kind === 'video') {
+              const now = performance.now();
+              const dtSec = (now - lastStatsTime) / 1000;
+              if (dtSec > 0 && lastBytesReceived > 0) {
+                const mbps = (((report.bytesReceived - lastBytesReceived) * 8) / (dtSec * 1e6)).toFixed(1);
+                statBitrate.textContent = `${mbps} Mbps`;
+              }
+              lastBytesReceived = report.bytesReceived;
+              lastStatsTime = now;
+
+              const fps = report.framesPerSecond ? Math.round(report.framesPerSecond) : 60;
+              const w = report.frameWidth || video.videoWidth || 1280;
+              const h = report.frameHeight || video.videoHeight || 720;
+              statRes.textContent = `${w}x${h} @ ${fps}`;
+              statLoss.textContent = String(report.packetsLost || 0);
+            }
+          });
+        } catch (_) {}
+      }, 1000);
+
+      connectWebRTC();
+    })();
+  </script>
+</body>
+</html>
+
