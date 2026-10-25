@@ -1,110 +1,294 @@
-# Ryoku Cloud Gaming
+# RYOKU // CLOUD GAMING ENGINE
 
-A personal browser-based cloud gaming system that turns your Linux gaming PC into a private cloud gaming service. Stream games directly to any desktop or mobile browser over WebRTC with hardware-accelerated video/audio encoding, per-user persistent saves, and low-latency controls.
-
----
-
-## The Core Security Rule
-
-> **Strict Isolation — Zero Host Access**
-> When a user launches a game, they interact **only** with that isolated game. They can never access your PC's desktop, files (`/home`), host applications, audio devices, physical keyboard/mouse devices, or other users' sessions. Each session runs in an unprivileged ephemeral sandbox that is completely destroyed when the session ends.
-
----
-
-## Current Status: All 6 Phases (Phases 1–6) Completed
-
-### Phase 1: Isolated Single-Game WebRTC Prototype (Completed)
-- **Sandbox**: Unprivileged Bubblewrap (`bwrap`) container with isolated PID, IPC, UTS, and user namespaces; ephemeral `tmpfs` mounts for `/tmp`, `/run`, `/var`, `/home`, `/dev/shm`.
-- **Kiosk Display**: Headless `weston` compositor + isolated `Xwayland` server running with single-window enforcement (no window manager, desktop icons, or panels).
-- **Isolated Audio**: Private `pipewire` + `wireplumber` + `pipewire-pulse` daemon with a virtual null-sink (`cloud_sink`), streaming audio only to the browser without playing out of host speakers or accessing host microphones.
-- **Hardware Video Encoding**: NVIDIA NVENC (`nvh264enc`) on RTX 4060 with low-latency baseline CBR profiles and dynamic bitrate switching (4 Mbps to 25 Mbps).
-- **Input Engine**: Browser keyboard, mouse (both normal UI cursor mode and 3D Pointer Lock relative mode), Gamepad API (controllers), and mobile touch controls injected directly into the isolated Xwayland server using `libXtst`.
-
-### Phase 2: Steam Integration & Per-User Persistent Storage (Completed)
-- **Shared Read-Only Base Library**: `data/shared_steam_library` is mounted strictly read-only (`:ro` at `/steam_shared`) inside the container so game binaries are never duplicated across users and cannot be modified by any session.
-- **Per-User Persistent Storage**: Each user gets an isolated persistent directory (`data/users/<user_id>/home/`) mounted into `/home/gamer/.steam`, `/home/gamer/.local/share`, and `/home/gamer/.config`. User A can never see or access User B's saves or Steam session.
-- **Zero-Knowledge Steam Login**: Users type Steam credentials strictly into Steam's own GamepadUI (`--app-id 7`) inside the video stream; our application never sees or stores Steam passwords. Steam's encrypted session tokens (`config/loginusers.vdf`, `config/config.vdf`, `userdata/`) persist across sessions per user.
-- **Steam `.acf` Manifest Scanner**: Automatically discovers installed Steam games (`appmanifest_*.acf`), filters out Proton/runtime redistributables, and launches games via `/usr/bin/steam -gamepadui -applaunch <AppID>`.
-- **Multi-User Save Persistence**: `CyberArena 3D` and native/Proton games persist save files in the user's isolated `$XDG_DATA_HOME` across container destruction and restarts.
-
-### Phase 3: Backend Orchestrator, Safety Limits & Invite-Only Auth (Completed)
-- **Invite-Only Authentication (`backend/database.py`)**: SQLite database (`data/cloud_gaming.db` in WAL mode) with PBKDF2-HMAC-SHA256 salted password hashes, `HttpOnly` session cookies, and single-use invite codes (`RYOKU-XXXX-XXXXXX`). Public sign-up without an invite code is strictly blocked (`403 Forbidden`).
-- **Single-Session GPU Lock (`backend/orchestrator.py`)**: Enforces 1 active gaming session on the PC at a time. If User A is playing, User B receives a friendly `"Gaming PC is currently in use by <user>"` status.
-- **Session State Machine & Authenticated Proxy (`backend/server.py`)**: Tracks `starting` → `ready` → `playing` → `ended` and proxies WebRTC signaling/input to the internal loopback-only container (`127.0.0.1:<internal_port>`), ensuring User B can never view or inject inputs into User A's stream.
-- **Safety Limits & Reconnect Grace Window**: Automatically terminates inactive sessions after `idle_timeout` (default 10m), keeps sessions alive during `disconnect_grace` (default 5m) if a browser tab closes or Wi-Fi drops so the player can seamlessly reconnect, and allows the admin to force-stop any session immediately.
-
-### Phase 4: Modern Product Web App & In-Stream HUD (Completed)
-- **Storefront & Game Library (`web/index.html`, `web/assets/styles.css`, `web/assets/app.js`)**: Dark glassmorphic UI with a featured Hero Spotlight banner, 600x900 vertical box art cards (`/assets/cyberarena-cover.svg`, `/assets/steam-cover.svg`, and Steam CDN covers with offline SVG fallback), instant search bar, and category filter pills.
-- **4-Stage Session Progress Stepper**: Clear visual progression (`1. Bubblewrap Sandbox` → `2. RTX 4060 Weston Kiosk & Virtual Audio` → `3. Isolated Game Process & Saves` → `4. Hardware NVENC WebRTC Stream`).
-- **Direct Integrated In-Stream WebRTC Player & Collapsible Floating HUD**: Native full-viewport `<video>` stream with a collapsible floating top HUD pill (`RYOKU HUD ▴ • 60 FPS • Ping ms`), `Lock Mouse (3D)` vs normal UI cursor toggle, live bitrate quality switcher, `Tab` diagnostics overlay, W3C Gamepad polling, and mobile virtual analog thumbstick + touch action buttons.
-
-### Phase 5: Admin Dashboard, GPU/NVENC Telemetry & Account Controls (Completed)
-- **Live Active Session Control Banner**: Real-time monitor in the **Admin Console** showing who is playing, game title, resolution/FPS/bitrate, connection state, idle countdown, and a one-click **⚡ Force-End Session Now** button.
-- **Deep RTX 4060 + Host Telemetry**: Visual progress bars and a rolling 60-sample SVG sparkline for GPU 3D Core %, NVENC Hardware Encoder %, VRAM MB / 8188 MB, GPU Temperature (°C), Power Draw (W), plus Host CPU load, RAM usage, and Disk free space.
-- **Live Safety Limit Tuning & Full User Lifecycle**: Adjust `idle_timeout_sec` and `disconnect_grace_sec` live, generate/copy/revoke single-use invite codes, and add, suspend/reactivate (with automatic mid-session termination), or remove user accounts.
-
-### Phase 6: External HTTPS Access, STUN/TURN & PC-Offline Status (Completed)
-- **Dynamic STUN & Ephemeral HMAC-SHA1 TURN REST Credentials (`backend/network_manager.py`)**: Generates time-limited HMAC-SHA1 TURN credentials (`coturn` `--use-auth-secret` standard) per user via `GET /api/webrtc/ice-config` and formats GStreamer `stun://` and `turn://user:pass@host:port` URIs for WAN/5G mobile play.
-- **Always-On PC-Offline Status Page (`web/offline.html` & `deploy/cloudflare_worker.js`)**: Branded "Gaming PC is Currently Powered Off" status page that automatically polls `/api/health` every 5 seconds and redirects into the Game Library as soon as the home PC powers on.
-- **Production Deployment Bundle (`deploy/`)**: Ready-to-use `deploy/cloudflare_worker.js`, `deploy/cloudflared-config.yml`, `deploy/turnserver.conf`, and `deploy/ryoku-cloud-gaming.service`.
-
----
-
-## Project Structure
-
+```text
++-----------------------------------------------------------------------------------+
+|  RYOKU CLOUD GAMING PLATFORM  //  SELF-HOSTED WEBRTC GAME STREAMING ENGINE        |
+|  ARCHITECTURE : BUBBLEWRAP SANDBOX + WESTON/XWAYLAND + PIPEWIRE + GSTREAMER NVENC |
+|  TARGET GPU   : NVIDIA GEFORCE RTX 4060 (NVENC H.264 + OPUS AUDIO + DATACHANNEL)  |
+|  SECURITY     : STRICT ZERO-HOST-ACCESS CONTAINER ISOLATION PER SESSION           |
++-----------------------------------------------------------------------------------+
 ```
+
+[![Status](https://img.shields.io/badge/STATUS-PRODUCTION_READY-c8ff00?style=flat-square&labelColor=0b0d11)](file:///home/vansh/Projects/Home_Cloud_Gaming/PLAN.md)
+[![Encoder](https://img.shields.io/badge/ENCODER-NVIDIA_NVENC_H.264-00e676?style=flat-square&labelColor=0b0d11)](file:///home/vansh/Projects/Home_Cloud_Gaming/engine/webrtc_streamer.py)
+[![Sandbox](https://img.shields.io/badge/SANDBOX-BUBBLEWRAP_ISOLATED-00d2ff?style=flat-square&labelColor=0b0d11)](file:///home/vansh/Projects/Home_Cloud_Gaming/engine/sandbox.py)
+[![Transport](https://img.shields.io/badge/TRANSPORT-WEBRTC_SRTP_%2B_SCTP-ffab00?style=flat-square&labelColor=0b0d11)](file:///home/vansh/Projects/Home_Cloud_Gaming/backend/network_manager.py)
+
+**Ryoku Cloud Gaming** is a self-hosted, browser-based cloud gaming platform that turns a Linux gaming PC into an isolated, low-latency cloud gaming server. Players connect from any desktop, laptop, tablet, or mobile browser (`https://vanshdev.online/cloudgaming` or `https://play.vanshdev.online`) and stream hardware-accelerated 60 FPS video and stereo Opus audio over WebRTC with sub-frame `RTCDataChannel` input injection.
+
+---
+
+## TABLE OF CONTENTS
+
+1. [Core Security Architecture](#1-core-security-architecture)
+2. [System Architecture & Visual Dataflow](#2-system-architecture--visual-dataflow)
+3. [Filesystem & Per-User Persistence Model](#3-filesystem--per-user-persistence-model)
+4. [WebRTC Media & Input Pipeline Sequence](#4-webrtc-media--input-pipeline-sequence)
+5. [Control System & Input Mapping Matrix](#5-control-system--input-mapping-matrix)
+6. [Repository Structure](#6-repository-structure)
+7. [Quickstart & Production Deployment](#7-quickstart--production-deployment)
+8. [Verification & Automated Test Suite](#8-verification--automated-test-suite)
+
+---
+
+## 1. CORE SECURITY ARCHITECTURE
+
+> [!IMPORTANT]
+> **Strict Per-Session Isolation Rule**
+> When a user launches a game, they interact exclusively with that isolated game instance. Players can never view or access the host desktop, host `/home` directory, host processes, physical `/dev/input` devices, host `/dev/snd` speakers/microphones, or another user's files. Every session boots inside a fresh unprivileged Bubblewrap (`bwrap`) container and is wiped on termination.
+
+| Security Layer | Enforcement Mechanism | Host Exposure |
+| :--- | :--- | :--- |
+| **Process & IPC Namespace** | `bwrap --unshare-pid --unshare-ipc --unshare-uts --die-with-parent` | Blocked (Isolated PID 1 tree) |
+| **Host Home Directory** | Ephemeral `tmpfs` mounted over `/home`, `/root`, `/tmp`, `/run`, `/var` | Blocked (`0` host files visible) |
+| **Display Server** | Dedicated headless `weston` (`wayland-cloud-0`) + isolated `Xwayland` (`:99`) | Blocked (Host X11/Wayland hidden) |
+| **Audio Subsystem** | Private `pipewire` + `wireplumber` graph with virtual `cloud_sink` | Blocked (Host `/dev/snd` hidden) |
+| **Input Subsystem** | `libXtst` synthetic events injected strictly into isolated display `:99` | Blocked (Host `/dev/input` hidden) |
+| **GPU Device Access** | Selective bind-mount of `/dev/dri` and `/dev/nvidia*` only | Scoped to 3D rendering & NVENC |
+
+---
+
+## 2. SYSTEM ARCHITECTURE & VISUAL DATAFLOW
+
+```mermaid
+flowchart LR
+    subgraph Client["BROWSER CLIENT (DESKTOP / MOBILE)"]
+        UI["Tactical Web Client\n(web/index.html + app.js)"]
+        VID["HTML5 Video Element\n(60 FPS H.264 + Opus)"]
+        INP["Input Capture Engine\n(KB / 3D Mouse / Gamepad / Touch)"]
+    end
+
+    subgraph Edge["CLOUDFLARE EDGE & TURN"]
+        CFW["Cloudflare Worker\n(/cloudgaming Router & Offline Page)"]
+        CFT["Cloudflared Tunnel\n(play.vanshdev.online)"]
+        ICE["STUN / Coturn TURN\n(HMAC-SHA1 Ephemeral Auth)"]
+    end
+
+    subgraph Host["LINUX HOST ORCHESTRATOR (PORT 8080)"]
+        SRV["Backend Server & Proxy\n(backend/server.py)"]
+        ORC["Session Orchestrator\n(Single-Session GPU Lock)"]
+        DB[("SQLite WAL DB\n(Users, Invites, History)")]
+        NVML["RTX 4060 Telemetry\n(GPU / NVENC / VRAM)"]
+    end
+
+    subgraph Sandbox["EPHEMERAL BWRAP CONTAINER (ISOLATED NAMESPACE)"]
+        WST["Headless Weston + Xwayland\n(Single-App Kiosk Display)"]
+        PW["Private PipeWire Daemon\n(Virtual Null Sink: cloud_sink)"]
+        GAME["Game Process\n(CyberArena 3D / Steam GamepadUI)"]
+        GST["GStreamer WebRTC Engine\n(nvh264enc + opusenc + webrtcbin)"]
+        XTEST["IsolatedInputManager\n(libXtst + Auto-Centering 3D Look)"]
+    end
+
+    UI <-->|"HTTPS / WSS"| CFW
+    CFW <-->|"HTTP2 Tunnel"| CFT
+    CFT <-->|"127.0.0.1:8080"| SRV
+    SRV <--> ORC
+    ORC <--> DB
+    ORC <--> NVML
+    SRV <-->|"Loopback Proxy"| GST
+
+    GAME -->|"OpenGL / Vulkan Frames"| WST
+    GAME -->|"PCM Audio"| PW
+    WST -->|"ximagesrc"| GST
+    PW -->|"pulsesrc (cloud_sink.monitor)"| GST
+
+    GST <==>|"WebRTC SRTP Video/Audio"| ICE
+    ICE <==>|"UDP P2P / Relay"| VID
+    INP <==>|"WebRTC SCTP DataChannel"| GST
+    GST -->|"JSON Input Events"| XTEST
+    XTEST -->|"X11 Key / Button / Relative Motion"| WST
+    WST --> GAME
+```
+
+---
+
+## 3. FILESYSTEM & PER-USER PERSISTENCE MODEL
+
+Each user receives an isolated persistent storage overlay while sharing a single read-only base Steam library (`data/shared_steam_library`) so multi-gigabyte game installations are never duplicated across users.
+
+```mermaid
+flowchart TD
+    subgraph HostFS["HOST FILESYSTEM (data/)"]
+        SHARED["data/shared_steam_library/\n(Installed Steam Games & .acf Manifests)"]
+        USER_A["data/users/vansh/home/\n(.steam, .local/share, .config)"]
+        USER_B["data/users/friend1/home/\n(.steam, .local/share, .config)"]
+    end
+
+    subgraph ContainerFS["BWRAP CONTAINER FILESYSTEM (USER: vansh)"]
+        ROOT_TMP["/tmp, /run, /var, /home\n(Ephemeral RAM tmpfs - Wiped on Exit)"]
+        MNT_SHARED["/steam_shared (READ-ONLY :ro)\nLinked into ~/.steam/steam/steamapps"]
+        MNT_USER["/home/gamer/ (.steam, .local/share, .config)\n(READ-WRITE :rw Bind Mount for vansh)"]
+    end
+
+    SHARED ==>|"ro-bind (Immutable)"| MNT_SHARED
+    USER_A ==>|"bind (Persistent Saves & Steam Token)"| MNT_USER
+    USER_B -.->|"Completely Unmounted & Inaccessible"| ContainerFS
+```
+
+---
+
+## 4. WEBRTC MEDIA & INPUT PIPELINE SEQUENCE
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Browser as Browser Client (app.js)
+    participant Server as Orchestrator (server.py)
+    participant Sandbox as Bwrap Session (session_runner.py)
+    participant GStreamer as GStreamer NVENC (webrtc_streamer.py)
+    participant X11 as Xwayland + Game (input_manager.py)
+
+    Browser->>Server: POST /api/sessions/start (app_id, 1280x720, 60fps, high)
+    Server->>Sandbox: Spawn unprivileged bwrap container + Weston + PipeWire
+    Sandbox->>X11: Launch game fullscreen on isolated Xwayland display
+    Sandbox-->>Server: Readiness check passed (Sanity + Isolation verified)
+    Browser->>Server: WebSocket /api/sessions/current/ws
+    Server->>GStreamer: Open signaling bridge + request SDP Offer
+    GStreamer-->>Browser: SDP Offer (H.264 NVENC + Opus + RTCDataChannel)
+    Browser->>Server: GET /api/webrtc/ice-config (STUN + HMAC-SHA1 TURN)
+    Browser->>GStreamer: SDP Answer + Trickle ICE Candidates
+    GStreamer-->>Browser: 60 FPS Hardware H.264 Video + 48kHz Opus Audio (SRTP)
+    loop Sub-Frame Input Loop
+        Browser->>GStreamer: RTCDataChannel JSON (keydown / mousemove / gamepad / touch)
+        GStreamer->>X11: libXtst injection + boundary auto-warp for 360° 3D look
+    end
+```
+
+---
+
+## 5. CONTROL SYSTEM & INPUT MAPPING MATRIX
+
+The client and isolated X11 input manager support four simultaneous input modes with zero-repeat keyboard deduplication and automatic edge-warping so 3D camera rotation never hits a screen boundary.
+
+```text
++-----------------------------------------------------------------------------------+
+|                              IN-STREAM TACTICAL HUD                               |
+|  [ LOCK AIM ] [ AUDIO ON ] [ 15 MBPS v ] [ TELEMETRY ] [ TOUCH ] [ FULL ] [ QUIT ]|
++-----------------------------------------------------------------------------------+
+|  +-----------------------+                                                        |
+|  | TELEMETRY (TAB)       |                                                        |
+|  | STATE : PLAYING       |                                                        |
+|  | PING  : 4 ms          |                       +                                |
+|  | FPS   : 60 FPS        |                   ----+---- (3D Crosshair & Auto-Lock) |
+|  | RATE  : 14.8 Mbps     |                       +                                |
+|  | SANDBOX ISOLATED      |                                                        |
+|  +-----------------------+                                                        |
+|                                                                                   |
+|  +---------------+                                        +--------------------+  |
+|  |     [ | ]     |                                        | [TURN L]  [TURN R] |  |
+|  |  --- (O) ---  |  <-- Virtual Stick      Touch Pad -->  | [SPRINT]  [ FIRE ] |  |
+|  |     [ | ]     |      (Pointer Events)                  | [      JUMP      ] |  |
+|  +---------------+                                        +--------------------+  |
+|        [ WASD: MOVE // SHIFT: SPRINT // SPACE: JUMP // CLICK/F: FIRE ]            |
++-----------------------------------------------------------------------------------+
+```
+
+| Input Device / Mode | Trigger / Control | In-Game Action | Technical Implementation |
+| :--- | :--- | :--- | :--- |
+| **3D Mouse Aim** | Move Mouse / Click Stream | 360-degree camera rotation + Auto Pointer Lock | `XTestFakeRelativeMotionEvent` + automatic center re-warp at `64px` margin |
+| **Mouse Buttons** | Left Click (Hold) / Right Click | Rapid-fire laser (`0.16s` cooldown) / Jump | `XTestFakeButtonEvent` (Buttons 1 & 3) |
+| **Keyboard Movement** | `W`, `A`, `S`, `D` / `Arrow Keys` | Forward, Strafe Left, Backward, Strafe Right | Deduplicated `keydown`/`keyup` (`e.repeat` filtered) |
+| **Keyboard Sprint** | `Left Shift` / `Right Shift` | Sprint movement speed (`14.5` units/sec) | Scancode state polling in `arena3d` / X11 key hold |
+| **Keyboard Actions** | `Space` (Hold) / `F` (Hold) / `Q` & `E` / `R` | Continuous Jump / Rapid Fire / Yaw Turn / Reset Pos | Direct keysym mapping via `libX11` + `libXtst` |
+| **W3C Gamepad API** | Left Stick / Right Stick / `A` / `X` or `RT` | Move / 3D Camera Look / Jump / Fire Laser | 60 Hz `requestAnimationFrame` polling in `app.js` |
+| **Touch / Pointer Pad** | Left Virtual Stick + Right `DRAG TO AIM` + Buttons | Full mobile & mouse-driven analog movement + aim | Unified `pointerdown` / `pointermove` / `setPointerCapture` |
+| **Tactical HUD** | `Tab` / `ESC` / Bitrate Selector | Toggle Telemetry / Unlock Pointer / Live NVENC Bitrate | Dynamic GStreamer `nvh264enc.set_property("bitrate")` |
+
+---
+
+## 6. REPOSITORY STRUCTURE
+
+```text
 Home_Cloud_Gaming/
 ├── backend/
-│   ├── database.py         # SQLite WAL database (users, single-use invites, tokens, session history)
-│   ├── orchestrator.py     # Single-session GPU lock, watchdog, idle/disconnect timers, NVML stats
-│   └── server.py           # Authenticated REST & WebSocket proxy server + Admin API
+│   ├── database.py               # SQLite WAL store (PBKDF2 auth, single-use invites, session logs)
+│   ├── network_manager.py        # Dynamic STUN & HMAC-SHA1 TURN credential generator + health probe
+│   ├── orchestrator.py           # Single-session GPU lock, idle/disconnect watchdog, NVML telemetry
+│   └── server.py                 # Authenticated HTTP/WS reverse proxy, /cloudgaming subpath middleware
 ├── engine/
-│   ├── sandbox.py          # Ephemeral Bubblewrap container isolation manager & self-check
-│   ├── storage_manager.py  # Per-user persistent storage & shared read-only Steam library linker
-│   ├── steam_manager.py    # Valve .acf manifest parser, game scanner & GamepadUI launcher
-│   ├── session_runner.py   # Isolated session daemon (display, audio, game lifecycle, HTTP/WS)
-│   ├── webrtc_streamer.py  # GStreamer webrtcbin + NVENC H.264 + Opus audio + RTCDataChannel
-│   ├── input_manager.py    # X11 kiosk window enforcer & libXtst low-latency input injector
-│   ├── launch_phase1.py    # Host CLI launcher for a single isolated container
-│   ├── launch_phase2.py    # Phase 2 CLI entrypoint for multi-user & Steam sessions
-│   ├── launch_phase3.py    # Phase 3 CLI entrypoint for the full Backend Orchestrator Server
+│   ├── sandbox.py                # Unprivileged Bubblewrap (bwrap) container builder & isolation verifier
+│   ├── session_runner.py         # Container daemon (Weston, Xwayland, PipeWire, game lifecycle)
+│   ├── webrtc_streamer.py        # GStreamer webrtcbin + nvh264enc + opusenc + RTCDataChannel bridge
+│   ├── input_manager.py          # X11 fullscreen window enforcer & libXtst input injector
+│   ├── storage_manager.py        # Per-user persistent storage overlays & read-only Steam linker
+│   ├── steam_manager.py          # Valve .acf manifest parser, game scanner & GamepadUI launcher
+│   ├── launch_phase1.py          # Phase 1 standalone container CLI
+│   ├── launch_phase2.py          # Phase 2 multi-user & Steam CLI
+│   ├── launch_phase3.py          # Phase 3 orchestrator CLI
+│   ├── launch_phase6.py          # Phase 6 full production server entrypoint
 │   └── test_game/
-│       ├── arena3d.c       # Source for 60 FPS OpenGL/SDL2 test game with persistent saves
-│       └── arena3d         # Compiled binary
+│       ├── arena3d.c             # 60 FPS OpenGL/SDL2 3D arena game with synth audio & savegames
+│       └── arena3d               # Compiled native binary
 ├── web/
-│   ├── index.html          # Invite-only login, Game Library, Session Progress & Admin UI
-│   └── prototype.html      # Browser WebRTC player UI (Cursor + Lock Mouse, stats HUD, touch pad)
-├── tests/
-│   ├── test_phase1.py      # Phase 1 security invariant & WebRTC streaming test suite
-│   ├── test_phase2.py      # Phase 2 multi-user save persistence & Steam library test suite
-│   └── test_phase3.py      # Phase 3 invite-only auth, GPU lock, reconnect & idle timeout test suite
-├── data/                                # Runtime storage (ignored by Git: cloud_gaming.db, shared_steam_library, users/)
-├── COMPLETE_WORKFLOW_AND_DEPLOYMENT.md  # Complete end-to-end architecture workflow & global Cloudflare deployment guide
-├── SETUP_AND_REQUIREMENTS.md            # Complete guide for running on this PC & any other Linux PC
-├── README.md                            # Quickstart & operational guide (this file)
-└── PLAN.md                              # Complete architectural blueprint and 6-phase roadmap
+│   ├── index.html                # Tactical desktop-grade web client (Command Rail, Library, HUD, Admin)
+│   ├── offline.html              # Always-on "Host PC Offline" status page with 5s auto-reconnect
+│   └── assets/
+│       ├── styles.css            # Matte-carbon 0px industrial stylesheet
+│       ├── app.js                # WebRTC client, Pointer/Gamepad/Keyboard engine, Admin telemetry
+│       ├── cyberarena-cover.svg  # Vector cover art for CyberArena 3D
+│       └── steam-cover.svg       # Vector cover art for Steam Big Picture
+├── deploy/
+│   ├── cloudflared-config.yml    # Cloudflare Tunnel ingress config (play.vanshdev.online -> :8080)
+│   ├── cloudflare_worker.js      # Edge router for vanshdev.online/cloudgaming* + 502 offline fallback
+│   ├── ryoku-cloud-gaming.service      # Systemd unit for automatic boot startup of backend server
+│   ├── ryoku-cloudflare-tunnel.service # Systemd unit for automatic boot startup of Cloudflare tunnel
+│   └── turnserver.conf           # Coturn HMAC-SHA1 relay server configuration
+└── tests/
+    ├── test_phase1.py            # Sandbox isolation invariants & WebRTC streaming tests
+    ├── test_phase2.py            # Per-user storage isolation & persistent savegame tests
+    ├── test_phase3.py            # Invite-only auth, GPU lock, reconnect grace & idle timeout tests
+    ├── test_phase4.py            # Web UI, game library & HUD control tests
+    ├── test_phase5.py            # Admin telemetry, invite lifecycle & live settings tests
+    └── test_phase6.py            # Dynamic TURN HMAC credentials & offline status tests
 ```
 
 ---
 
-## Prerequisites
+## 7. QUICKSTART & PRODUCTION DEPLOYMENT
 
-- **OS**: Linux (tested on CachyOS / Arch Linux with kernel 7.2+)
-- **GPU**: NVIDIA GPU with NVENC support (tested on RTX 4060, driver 615+)
-- **Installed Packages**:
-  - `bubblewrap` (`bwrap`)
-  - `gamescope`, `weston`, `xorg-server-xwayland`
-  - `gstreamer`, `gst-plugins-base`, `gst-plugins-good`, `gst-plugins-bad`, `gst-libav`
-  - `pipewire`, `pipewire-pulse`, `wireplumber`
-  - `python` (3.10+), `python-gobject`, `python-aiohttp`
-  - `sdl2`, `mesa-utils`, `steam`
+### Prerequisites (Arch Linux / CachyOS)
+```bash
+sudo pacman -S --needed bubblewrap weston xorg-server-xwayland gamescope \
+  pipewire pipewire-pulse wireplumber gstreamer gst-plugins-base \
+  gst-plugins-good gst-plugins-bad gst-libav python python-gobject \
+  python-aiohttp sdl2 glu mesa-utils steam cloudflared
+```
+
+### Compile the Built-In 3D Test Game (`CyberArena 3D`)
+```bash
+gcc -O2 engine/test_game/arena3d.c -o engine/test_game/arena3d -lSDL2 -lGL -lGLU -lm
+```
+
+### Run the Production Server Manually
+```bash
+python3 engine/launch_phase6.py \
+  --port 8080 \
+  --admin-user vansh \
+  --admin-password ryoku-admin-2026 \
+  --public-domain vanshdev.online/cloudgaming
+```
+Open `http://localhost:8080` (or `http://localhost:8080/cloudgaming`) and sign in with username `vansh` and password `ryoku-admin-2026`.
+
+### Enable Automatic Startup on PC Boot (`systemd`)
+```bash
+sudo cp deploy/ryoku-cloud-gaming.service /etc/systemd/system/
+sudo cp deploy/ryoku-cloudflare-tunnel.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now ryoku-cloud-gaming.service
+sudo systemctl enable --now ryoku-cloudflare-tunnel.service
+```
+
+Check live service status at any time:
+```bash
+sudo systemctl status ryoku-cloud-gaming.service ryoku-cloudflare-tunnel.service
+```
 
 ---
 
-## How to Run & Verify
+## 8. VERIFICATION & AUTOMATED TEST SUITE
 
-### 1. Run the Automated Test Suites
-Verify Phase 1 (sandbox isolation, WebRTC SDP/ICE, NVENC bitrate switching, input injection), Phase 2 (per-user storage isolation, `.acf` game discovery, and multi-user persistent savegames), and Phase 3 (invite-only auth, single-session GPU lock, tab-close reconnect, admin force-stop, and automatic idle timeout):
+Every phase includes an automated end-to-end test suite that boots real isolated containers, negotiates WebRTC streams, verifies filesystem/process isolation invariants, and asserts zero orphaned processes on teardown.
+
 ```bash
 python3 tests/test_phase1.py
 python3 tests/test_phase2.py
@@ -114,69 +298,19 @@ python3 tests/test_phase5.py
 python3 tests/test_phase6.py
 ```
 
-### 2. Start the Full Production Cloud Gaming Server (Phase 6)
-Start the full multi-user server with invite-only authentication, game library, session state machine, admin dashboard, and STUN/TURN + offline status support:
-```bash
-python3 engine/launch_phase6.py --port 8080 --admin-user vansh --admin-password ryoku-admin-2026
-```
-Open **`http://localhost:8080`** in your browser:
-1. **Log in as Admin**: Sign in with username `vansh` and password `ryoku-admin-2026`.
-2. **Generate an Invite Code for a Friend**: In the **Admin Control & Telemetry** panel, click **+ Generate Invite Code** (or run `python3 engine/launch_phase3.py --create-invite` in your terminal) to get a single-use `RYOKU-XXXX-XXXXXX` code.
-3. **Launch a Game**: Click **▶ Play Now** on **CyberArena 3D** or **Steam Big Picture** to watch the session progress (`STARTING` → `READY` → `PLAYING`) and play in your browser.
-4. **Test Reconnect & Concurrency Lock**:
-   - Refresh the page or click **Back to Library (Keep Running)**, then click **Reconnect to Active Game** to resume immediately.
-   - Open an Incognito window, redeem the invite code as `friend1`, and try clicking **Play Now** while `vansh` is playing—you'll see `"Server in use by vansh"`.
-   - From `vansh`'s Admin panel, click **Force-End Active Session** to immediately terminate the container and free the GPU.
-
-### 3. Direct Single-Session CLI Commands (Phase 2)
-```bash
-# List built-in games and any Steam games in data/shared_steam_library/steamapps:
-python3 engine/launch_phase2.py --list-games
-
-# Check persistent savegame & Steam login status for a specific user:
-python3 engine/launch_phase2.py --user vansh --user-status
-```
-
-### 3. Launch a Session with Per-User Persistent Saves
-Launch `CyberArena 3D` (`--app-id 0`) for user `vansh`:
-```bash
-python3 engine/launch_phase2.py --user vansh --app-id 0 --port 8080
-```
-Open **`http://localhost:8080`** (or `http://<YOUR_PC_LAN_IP>:8080` on your phone/laptop):
-1. Click **Lock Mouse** in the top bar (or click the video) to lock the mouse for 3D look, and press **`F`** or **Left Click** to shoot crystals (`+250` points each).
-2. Notice the 3D HUD at the top (`CYBERARENA 3D - SCORE: ... HIGH: ... USER: VANSH (RUN 1)`) and the **Stats** overlay (`User Profile`, `High Score`, `Steam Login`).
-3. Press **`Escape`** (or click **End Session**) to exit the game and destroy the ephemeral container.
-4. Run the command again for `--user vansh`: your `HIGH` score and `RUN 2` counter are automatically restored in the new container!
-5. Run with `--user friend1`: `friend1` starts cleanly with `HIGH: 0` and `RUN 1`, completely isolated from `vansh`.
-
-### 4. Launch Isolated Steam Big Picture (Account Login & Steam Games)
-To log into Steam inside your isolated per-user container (so your Steam credentials are typed strictly inside Steam's own UI and remembered for next time):
-```bash
-python3 engine/launch_phase2.py --user vansh --app-id 7 --port 8080
-```
-- In the browser (`http://localhost:8080`), use normal cursor mode (default) to click and type into Steam's login screen, or use a controller.
-- To expose existing installed Steam games from a library folder into the read-only shared library (`data/shared_steam_library/steamapps`), copy or bind-mount `appmanifest_<appid>.acf` and `common/<GameFolder>` into `data/shared_steam_library/steamapps/`, then launch directly with `--app-id <appid>`.
+| Test Suite | Coverage Area | Key Assertions |
+| :--- | :--- | :--- |
+| [tests/test_phase1.py](file:///home/vansh/Projects/Home_Cloud_Gaming/tests/test_phase1.py) | Container Sandbox & WebRTC Engine | Verifies `/home/vansh`, host X11/Wayland, `/dev/input`, and `/dev/snd` are blocked; tests SDP/ICE & NVENC bitrate switching |
+| [tests/test_phase2.py](file:///home/vansh/Projects/Home_Cloud_Gaming/tests/test_phase2.py) | Multi-User Storage & Steam Library | Verifies per-user save persistence across container restarts and strict separation between `user_a` and `user_b` |
+| [tests/test_phase3.py](file:///home/vansh/Projects/Home_Cloud_Gaming/tests/test_phase3.py) | Auth, GPU Lock & Safety Timers | Verifies invite-only signup, single-session GPU lock (`409`), tab-close reconnect grace, and idle auto-termination |
+| [tests/test_phase4.py](file:///home/vansh/Projects/Home_Cloud_Gaming/tests/test_phase4.py) | Web Client & In-Stream HUD | Verifies library storefront assets, session stepper states, and live bitrate/input HUD controls |
+| [tests/test_phase5.py](file:///home/vansh/Projects/Home_Cloud_Gaming/tests/test_phase5.py) | Admin Console & GPU Telemetry | Verifies RTX 4060 NVML metrics, rolling history, user suspension mid-stream, and invite revocation |
+| [tests/test_phase6.py](file:///home/vansh/Projects/Home_Cloud_Gaming/tests/test_phase6.py) | External Access, TURN & Offline Mode | Verifies HMAC-SHA1 TURN credentials, `/cloudgaming` subpath routing, and `503` offline maintenance page |
 
 ---
 
-## In-Game Controls & Features
+## ADDITIONAL DOCUMENTATION
 
-| Control | Action |
-| :--- | :--- |
-| **Normal Cursor Mode** | Default mode: move cursor, click buttons, and type into Steam login / game menus |
-| **Lock Mouse Button** | Locks mouse pointer for 360° 3D FPS camera look |
-| **W, A, S, D / Arrow Keys** | Move and strafe in 3D |
-| **Left Click / F / Enter** | Fire laser projectile (plays procedural synth laser sound & saves high score) |
-| **Right Click / Space** | Jump (plays whoosh sound effect) |
-| **Gamepad (Controller)** | Left stick to move, right stick to look, `A` to jump, `X`/`RT` to fire |
-| **Touch Pad (Mobile)** | On-screen virtual analog thumbstick + `JUMP`, `FIRE`, `TURN`, `LOOK` touch buttons |
-| **Stats Button / Tab** | Toggle real-time overlay (Latency/RTT ms, FPS, Bitrate, User, High Score, Steam Login, Isolation) |
-| **Quality Dropdown** | Dynamically adjust NVENC bitrate on the fly (Low 4M, Med 8M, High 15M, Ultra 25M) |
-| **Fullscreen Button** | Toggle true fullscreen video mode |
-| **Escape Key / End Session** | Quits the game, immediately destroys the container, and wipes all temporary session files |
-
----
-
-## Next Steps
-
-See [PLAN.md](file:///home/vansh/Projects/Home_Cloud_Gaming/PLAN.md) for the complete roadmap and details on **Phase 3: Backend Orchestrator, Safety Limits & Invite-Only Auth**.
+- [SETUP_AND_REQUIREMENTS.md](file:///home/vansh/Projects/Home_Cloud_Gaming/SETUP_AND_REQUIREMENTS.md) — Hardware & software requirements for running on this PC or any other Linux PC.
+- [COMPLETE_WORKFLOW_AND_DEPLOYMENT.md](file:///home/vansh/Projects/Home_Cloud_Gaming/COMPLETE_WORKFLOW_AND_DEPLOYMENT.md) — Step-by-step Cloudflare Tunnel, DNS, Worker, and systemd deployment guide.
+- [PLAN.md](file:///home/vansh/Projects/Home_Cloud_Gaming/PLAN.md) — Architectural blueprint and 6-phase engineering specification.

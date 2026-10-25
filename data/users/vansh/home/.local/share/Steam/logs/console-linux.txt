@@ -6922,3 +6922,175 @@
 [2026-10-26 03:22:06] [2026-10-26 03:22:06] Manifest download: finished
 [2026-10-26 03:22:06] [2026-10-26 03:22:06] Download skipped by HTTP 304 Not Modified
 [2026-10-26 03:22:06] [2026-10-26 03:22:06] Nothing to do
+[2026-10-26 03:27:12] X connection to 127.0.0.1:133 broken (explicit kill or server shutdown).
+[2026-10-26 03:27:12] X connection to 127.0.0.1:133 broken (explicit kill or server shutdown).
+[2026-10-26 03:27:12] X connection to 127.0.0.1:133 broken (explicit kill or server shutdown).
+[2026-10-26 03:27:12] X connection to 127.0.0.1:133 broken (explicit kill or server shutdown).
+[2026-10-26 03:27:12] X connection to 127.0.0.1:133 broken (explicit kill or server shutdown).
+[2026-10-26 03:27:12] X connection to 127.0.0.1:133 broken (explicit kill or server shutdown).
+[2026-10-26 03:27:12] X connection to 127.0.0.1:133 broken (explicit kill or server shutdown).
+[2026-10-26 03:27:12] X connection to 127.0.0.1:133 broken (explicit kill or server shutdown).
+[2026-10-26 03:27:12] X connection to 127.0.0.1:133 broken (explicit kill or server shutdown).
+[2026-10-26 03:27:12] ../steamnetworkingsockets/clientlib/steamnetworkingsockets_socketthread.cpp (3844) : Trying to close low level socket support, but we still have sockets open!
+[2026-10-26 03:27:12] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:133"
+[2026-10-26 03:27:12]       after 60 requests (60 known processed) with 0 events remaining.
+[2026-10-26 03:27:12] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:133"
+[2026-10-26 03:27:12]       after 60 requests (60 known processed) with 0 events remaining.
+[2026-10-26 03:27:12] XIO:  fatal IO error 10 (No child processes) on X server "127.0.0.1:133"
+[2026-10-26 03:27:12]       after 275 requests (275 known processed) with 0 events remaining.
+[2026-10-26 03:27:12] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:133"
+[2026-10-26 03:27:12]       after 591 requests (591 known processed) with 7 events remaining.
+[2026-10-26 03:27:12] 10/26 03:27:12 minidumps folder is set to /tmp/dumps
+[2026-10-26 03:27:12] assert_20261026032712_3.dmp[2392]: Uploading dump (out-of-process)
+[2026-10-26 03:27:12] /tmp/dumps/assert_20261026032712_3.dmp
+[2026-10-26 03:27:13] X connection to 127.0.0.1:133 broken (explicit kill or server shutdown).
+[2026-10-26 03:27:13] X connection to 127.0.0.1:133 broken (explicit kill or server shutdown).
+[2026-10-26 03:27:13] XIO:  fatal IO error 22 (Invalid argument) on X server "127.0.0.1:133"
+[2026-10-26 03:27:13]       after 24 requests (21 known processed) with 0 events remaining.
+[2026-10-26 03:27:13] pid 1707 != 1706, skipping destruction (fork without exec?)
+[2026-10-25 21:57:23+0000] srt-logger[317]: Log opened
+[2026-10-26 03:27:23] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 03:27:23] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 03:27:23] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 03:27:25] steam.sh[307]: Log already open
+[2026-10-26 03:27:25] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 03:27:25] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 03:27:25] 10/26 03:27:25 minidumps folder is set to /tmp/dumps
+[2026-10-26 03:27:25] 10/26 03:27:25 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 03:27:25] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 03:27:25] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 03:27:25] 10/26 03:27:25 minidumps folder is set to /tmp/dumps
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Using update UI: xwin
+[2026-10-26 03:27:25] 10/26 03:27:25 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Create window
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Checking for update on startup
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Checking for available updates...
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Manifest download: send request
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Set percent complete: 0
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Set status message: Checking for available updates...
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Set percent complete: -1
+[2026-10-26 03:27:25] [2026-10-26 03:27:25] Manifest download: waiting for download to finish
+[2026-10-26 03:27:26] [2026-10-26 03:27:26] Manifest download: finished
+[2026-10-26 03:27:26] [2026-10-26 03:27:26] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 03:27:26] [2026-10-26 03:27:26] Nothing to do
+[2026-10-26 03:27:26] [2026-10-26 03:27:26] Verifying installation...
+[2026-10-26 03:27:26] [2026-10-26 03:27:26] Verifying all executable checksums
+[2026-10-26 03:27:26] [2026-10-26 03:27:26] Set percent complete: -1
+[2026-10-26 03:27:26] [2026-10-26 03:27:26] Set status message: Verifying installation...
+[2026-10-26 03:27:26] [2026-10-26 03:27:26] Show window
+[2026-10-26 03:27:28] [2026-10-26 03:27:28] Verification complete
+[2026-10-26 03:27:28] UpdateUI: skip show logo
+[2026-10-26 03:27:28] [2026-10-26 03:27:28] Destroy window
+[2026-10-26 03:27:28] [2026-10-26 03:27:28] Shutdown
+[2026-10-26 03:27:28] 
+[2026-10-26 03:27:28] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 03:27:28] 
+[2026-10-26 03:27:29] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 03:27:29] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5f49ec0
+[2026-10-26 03:27:29] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5f48590
+[2026-10-26 03:27:29] 10/26 03:27:29 minidumps folder is set to /tmp/dumps
+[2026-10-26 03:27:29] 10/26 03:27:29 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(494)
+[2026-10-26 03:27:29] Running query: 1 - GpuTopology
+[2026-10-26 03:27:29] Response: gpu_topology {
+[2026-10-26 03:27:29]   gpus {
+[2026-10-26 03:27:29]     id: 1
+[2026-10-26 03:27:29]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 03:27:29]     vram_size_bytes: 8843689984
+[2026-10-26 03:27:29]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 03:27:29]     driver_version_major: 615
+[2026-10-26 03:27:29]     driver_version_minor: 71
+[2026-10-26 03:27:29]     driver_version_patch: 9
+[2026-10-26 03:27:29]     luid: 0
+[2026-10-26 03:27:29]   }
+[2026-10-26 03:27:29]   default_gpu_id: 1
+[2026-10-26 03:27:29] }
+[2026-10-26 03:27:29] 
+[2026-10-26 03:27:29] Exit code: 0
+[2026-10-26 03:27:29] Saving response to: /tmp/steampfejdJ - 50 bytes
+[2026-10-26 03:27:32] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 03:27:32] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 714
+[2026-10-26 03:27:32] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 03:27:38] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 03:27:38] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 03:27:39] pressure-vessel-wrap[858]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 03:27:39] pressure-vessel-wrap[860]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 03:27:40] ProtonFixes[1035] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 03:27:40] ProtonFixes[1034] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 03:27:40] ProtonFixes[1035] INFO: Setting up fsr4 version "default".
+[2026-10-26 03:27:40] ProtonFixes[1034] INFO: Setting up fsr4 version "default".
+[2026-10-26 03:27:41] ProtonFixes[1034] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 03:27:41] ProtonFixes[1034] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 03:27:41] ProtonFixes[1035] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 03:27:41] ProtonFixes[1035] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 03:27:41] fsync: up and running.
+[2026-10-26 03:27:42] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 03:27:42] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 03:27:42] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 03:27:43] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 03:27:43] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 03:27:47] pressure-vessel-wrap[1172]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 03:27:47] fsync: up and running.
+[2026-10-26 03:27:51] Fossilize INFO: Setting autogroup scheduling.
+[2026-10-26 03:27:54] chdir "/home/gamer/.local/share/Steam/steamapps/common/Bunny Guys!"
+[2026-10-26 03:27:54] Game Recording - would start recording game 2218460, but recording for this game is disabled
+[2026-10-26 03:27:54] Adding process 1609 for gameID 2218460
+[2026-10-26 03:27:54] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 03:27:54] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 03:27:54] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 03:27:54] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 03:27:54] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 03:27:54] Adding process 1610 for gameID 2218460
+[2026-10-26 03:27:54] Adding process 1611 for gameID 2218460
+[2026-10-26 03:27:55] pressure-vessel-wrap[1610]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 03:27:55] Adding process 1690 for gameID 2218460
+[2026-10-26 03:27:55] fsync: up and running.
+[2026-10-26 03:27:55] Adding process 1691 for gameID 2218460
+[2026-10-26 03:27:55] Adding process 1692 for gameID 2218460
+[2026-10-26 03:27:55] Adding process 1693 for gameID 2218460
+[2026-10-26 03:27:55] Adding process 1696 for gameID 2218460
+[2026-10-26 03:27:55] Adding process 1698 for gameID 2218460
+[2026-10-26 03:27:55] Adding process 1701 for gameID 2218460
+[2026-10-26 03:27:55] Adding process 1711 for gameID 2218460
+[2026-10-26 03:27:56] Adding process 1717 for gameID 2218460
+[2026-10-26 03:27:56] Adding process 1724 for gameID 2218460
+[2026-10-26 03:27:56] Adding process 1746 for gameID 2218460
+[2026-10-26 03:27:56] Adding process 1756 for gameID 2218460
+[2026-10-26 03:27:56] Adding process 1758 for gameID 2218460
+[2026-10-26 03:27:56] Adding process 1764 for gameID 2218460
+[2026-10-26 03:27:57] Adding process 1778 for gameID 2218460
+[2026-10-26 03:27:58] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/steamapps/shadercache/2218460/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 03:27:59] 10/26 03:27:59 minidumps folder is set to /tmp/dumps
+[2026-10-26 03:27:59] 10/26 03:27:59 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(20261021210950)/tid(1854)
+[2026-10-26 03:27:59] 10/26 03:27:59 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(1.0)/tid(1854)
+[2026-10-26 03:29:16] X connection to 127.0.0.1:93 broken (explicit kill or server shutdown).
+[2026-10-26 03:29:16] X connection to 127.0.0.1:93 broken (explicit kill or server shutdown).
+[2026-10-26 03:29:16] X connection to 127.0.0.1:93 broken (explicit kill or server shutdown).
+[2026-10-26 03:29:16] X connection to 127.0.0.1:93 broken (explicit kill or server shutdown).
+[2026-10-26 03:29:16] X connection to 127.0.0.1:93 broken (explicit kill or server shutdown).
+[2026-10-26 03:29:16] X connection to 127.0.0.1:93 broken (explicit kill or server shutdown).
+[2026-10-26 03:29:16] X connection to 127.0.0.1:93 broken (explicit kill or server shutdown).
+[2026-10-26 03:29:16] X connection to 127.0.0.1:93 broken (explicit kill or server shutdown).
+[2026-10-26 03:29:16] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:93"
+[2026-10-26 03:29:16]       after 60 requests (60 known processed) with 0 events remaining.
+[2026-10-26 03:29:16] X connection to 127.0.0.1:93 broken (explicit kill or server shutdown).
+[2026-10-26 03:29:16] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:93"
+[2026-10-26 03:29:16]       after 473 requests (473 known processed) with 3 events remaining.
+[2026-10-26 03:29:16] ../steamnetworkingsockets/clientlib/steamnetworkingsockets_socketthread.cpp (3844) : Trying to close low level socket support, but we still have sockets open!
+[2026-10-26 03:29:16] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:93"
+[2026-10-26 03:29:16]       after 60 requests (60 known processed) with 0 events remaining.
+[2026-10-26 03:29:16] 10/26 03:29:16 minidumps folder is set to /tmp/dumps
+[2026-10-26 03:29:16] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:93"
+[2026-10-26 03:29:16]       after 266 requests (266 known processed) with 0 events remaining.
+[2026-10-26 03:29:16] X connection to 127.0.0.1:93 broken (explicit kill or server shutdown).
+[2026-10-26 03:29:16] X connection to 127.0.0.1:93 broken (explicit kill or server shutdown).
+[2026-10-26 03:29:16] assert_20261026032916_3.dmp[1898]: Uploading dump (out-of-process)
+[2026-10-26 03:29:16] /tmp/dumps/assert_20261026032916_3.dmp
