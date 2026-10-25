@@ -16,6 +16,9 @@
 
 const OFFLINE_STATUS_CODES = new Set([502, 503, 521, 522, 523, 524, 530]);
 
+// Tunnel subdomain created via: `cloudflared tunnel route dns vansh-cloud-gaming play.vanshdev.online`
+const TUNNEL_ORIGIN_HOST = "play.vanshdev.online";
+
 const OFFLINE_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -124,12 +127,13 @@ const OFFLINE_HTML = `<!DOCTYPE html>
     <div class="poll-note" id="last-checked">Checking every 5 seconds...</div>
   </main>
   <script>
+    const basePrefix = window.location.pathname.startsWith('/cloudgaming') ? '/cloudgaming' : '';
     async function checkNow() {
       try {
-        const res = await fetch('/api/health', { cache: 'no-store' });
+        const res = await fetch(basePrefix + '/api/health', { cache: 'no-store' });
         const data = await res.json();
         if (res.ok && data && data.online === true) {
-          window.location.href = '/';
+          window.location.href = basePrefix || '/';
           return;
         }
       } catch (_e) {}
@@ -144,10 +148,19 @@ const OFFLINE_HTML = `<!DOCTYPE html>
 export default {
   async fetch(request) {
     const url = new URL(request.url);
-    const isApi = url.pathname.startsWith("/api/");
+    const isApi = url.pathname.startsWith("/api/") || url.pathname.startsWith("/cloudgaming/api/");
 
     try {
-      const response = await fetch(request);
+      // If the user visits vanshdev.online/cloudgaming*, forward to the tunnel origin (play.vanshdev.online)
+      // so the root domain vanshdev.online can keep its existing DNS record for your main website.
+      let upstreamRequest = request;
+      if (url.hostname === "vanshdev.online" || url.hostname === "www.vanshdev.online") {
+        const targetUrl = new URL(request.url);
+        targetUrl.hostname = TUNNEL_ORIGIN_HOST;
+        upstreamRequest = new Request(targetUrl.toString(), request);
+      }
+
+      const response = await fetch(upstreamRequest);
       if (OFFLINE_STATUS_CODES.has(response.status)) {
         return buildOfflineResponse(isApi);
       }

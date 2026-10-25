@@ -124,15 +124,29 @@ def create_orchestrator_app(
             }
         )
 
-    async def handle_index(_request: web.Request) -> web.StreamResponse:
+    async def handle_index(request: web.Request) -> web.StreamResponse:
         app_html = web_dir / "index.html"
-        if app_html.exists():
-            return web.FileResponse(app_html)
-        return web.FileResponse(web_dir / "prototype.html")
+        target_html = app_html if app_html.exists() else (web_dir / "prototype.html")
+        if request.path.startswith("/cloudgaming"):
+            html_text = target_html.read_text(encoding="utf-8")
+            html_text = (
+                html_text.replace('href="/assets/', 'href="/cloudgaming/assets/')
+                .replace('src="/assets/', 'src="/cloudgaming/assets/')
+                .replace('href="/offline"', 'href="/cloudgaming/offline"')
+            )
+            return web.Response(text=html_text, content_type="text/html")
+        return web.FileResponse(target_html)
 
-    async def handle_offline_page(_request: web.Request) -> web.StreamResponse:
+    async def handle_offline_page(request: web.Request) -> web.StreamResponse:
         offline_html = web_dir / "offline.html"
         if offline_html.exists():
+            if request.path.startswith("/cloudgaming"):
+                html_text = offline_html.read_text(encoding="utf-8")
+                html_text = (
+                    html_text.replace('fetch("/api/health"', 'fetch("/cloudgaming/api/health"')
+                    .replace('window.location.href = "/"', 'window.location.href = "/cloudgaming"')
+                )
+                return web.Response(text=html_text, content_type="text/html")
             return web.FileResponse(offline_html)
         return web.Response(text="Gaming PC is currently offline.", status=503)
 
@@ -661,42 +675,48 @@ def create_orchestrator_app(
         revoked = db.revoke_invite(code)
         return web.json_response({"ok": revoked, "code": code})
 
-    # Register Routes
+    # Register Routes (both root `/` and subpath `/cloudgaming` for vanshdev.online/cloudgaming)
     app.router.add_get("/", handle_index)
-    app.router.add_get("/offline", handle_offline_page)
-    app.router.add_get("/prototype", handle_prototype)
+    app.router.add_get("/cloudgaming", handle_index)
+    app.router.add_get("/cloudgaming/", handle_index)
+
     if (web_dir / "assets").exists():
         app.router.add_static("/assets", path=web_dir / "assets", show_index=False)
-    app.router.add_get("/api/health", handle_health)
+        app.router.add_static("/cloudgaming/assets", path=web_dir / "assets", show_index=False)
 
-    app.router.add_post("/api/auth/login", handle_login)
-    app.router.add_post("/api/auth/redeem-invite", handle_redeem_invite)
-    app.router.add_post("/api/auth/register", handle_redeem_invite)
-    app.router.add_post("/api/auth/logout", handle_logout)
-    app.router.add_get("/api/auth/me", handle_me)
+    for prefix in ("", "/cloudgaming"):
+        app.router.add_get(f"{prefix}/offline", handle_offline_page)
+        app.router.add_get(f"{prefix}/prototype", handle_prototype)
+        app.router.add_get(f"{prefix}/api/health", handle_health)
 
-    app.router.add_get("/api/games", handle_list_games)
-    app.router.add_get("/api/server/status", handle_server_status)
-    app.router.add_get("/api/webrtc/ice-config", handle_webrtc_ice_config)
-    app.router.add_post("/api/sessions/start", handle_session_start)
-    app.router.add_get("/api/sessions/current", handle_session_current)
-    app.router.add_get("/api/session/status", handle_session_current)
-    app.router.add_post("/api/sessions/quality", handle_session_quality)
-    app.router.add_post("/api/session/quality", handle_session_quality)
-    app.router.add_post("/api/sessions/stop", handle_session_stop)
-    app.router.add_post("/api/session/stop", handle_session_stop)
-    app.router.add_get("/api/sessions/current/ws", handle_session_ws_proxy)
-    app.router.add_get("/ws", handle_session_ws_proxy)
+        app.router.add_post(f"{prefix}/api/auth/login", handle_login)
+        app.router.add_post(f"{prefix}/api/auth/redeem-invite", handle_redeem_invite)
+        app.router.add_post(f"{prefix}/api/auth/register", handle_redeem_invite)
+        app.router.add_post(f"{prefix}/api/auth/logout", handle_logout)
+        app.router.add_get(f"{prefix}/api/auth/me", handle_me)
 
-    app.router.add_get("/api/admin/overview", handle_admin_overview)
-    app.router.add_post("/api/admin/sessions/force-stop", handle_admin_force_stop)
-    app.router.add_post("/api/admin/settings", handle_admin_settings)
-    app.router.add_post("/api/admin/network", handle_admin_network)
-    app.router.add_post("/api/admin/users", handle_admin_create_user)
-    app.router.add_patch("/api/admin/users/{username}", handle_admin_update_user)
-    app.router.add_delete("/api/admin/users/{username}", handle_admin_delete_user)
-    app.router.add_post("/api/admin/invites", handle_admin_create_invite)
-    app.router.add_delete("/api/admin/invites/{code}", handle_admin_revoke_invite)
-    app.router.add_delete("/api/admin/history", handle_admin_clear_history)
+        app.router.add_get(f"{prefix}/api/games", handle_list_games)
+        app.router.add_get(f"{prefix}/api/server/status", handle_server_status)
+        app.router.add_get(f"{prefix}/api/webrtc/ice-config", handle_webrtc_ice_config)
+        app.router.add_post(f"{prefix}/api/sessions/start", handle_session_start)
+        app.router.add_get(f"{prefix}/api/sessions/current", handle_session_current)
+        app.router.add_get(f"{prefix}/api/session/status", handle_session_current)
+        app.router.add_post(f"{prefix}/api/sessions/quality", handle_session_quality)
+        app.router.add_post(f"{prefix}/api/session/quality", handle_session_quality)
+        app.router.add_post(f"{prefix}/api/sessions/stop", handle_session_stop)
+        app.router.add_post(f"{prefix}/api/session/stop", handle_session_stop)
+        app.router.add_get(f"{prefix}/api/sessions/current/ws", handle_session_ws_proxy)
+        app.router.add_get(f"{prefix}/ws", handle_session_ws_proxy)
+
+        app.router.add_get(f"{prefix}/api/admin/overview", handle_admin_overview)
+        app.router.add_post(f"{prefix}/api/admin/sessions/force-stop", handle_admin_force_stop)
+        app.router.add_post(f"{prefix}/api/admin/settings", handle_admin_settings)
+        app.router.add_post(f"{prefix}/api/admin/network", handle_admin_network)
+        app.router.add_post(f"{prefix}/api/admin/users", handle_admin_create_user)
+        app.router.add_patch(f"{prefix}/api/admin/users/{{username}}", handle_admin_update_user)
+        app.router.add_delete(f"{prefix}/api/admin/users/{{username}}", handle_admin_delete_user)
+        app.router.add_post(f"{prefix}/api/admin/invites", handle_admin_create_invite)
+        app.router.add_delete(f"{prefix}/api/admin/invites/{{code}}", handle_admin_revoke_invite)
+        app.router.add_delete(f"{prefix}/api/admin/history", handle_admin_clear_history)
 
     return app

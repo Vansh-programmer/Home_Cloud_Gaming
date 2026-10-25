@@ -154,27 +154,65 @@ python3 tests/test_phase6.py
 
 ---
 
-## 4. Setting Up External HTTPS Access & Always-On Offline Page (Optional)
+## 4. Deploying on Your Domain (`https://vanshdev.online/cloudgaming`)
 
-To access your cloud gaming server from outside your home network (e.g., on your phone over 5G or from a friend's house) over `https://play.yourdomain.com`:
+The backend ([`backend/server.py`](file:///home/vansh/Projects/Home_Cloud_Gaming/backend/server.py)) and frontend ([`web/assets/app.js`](file:///home/vansh/Projects/Home_Cloud_Gaming/web/assets/app.js)) natively support the `/cloudgaming` subpath—so all pages, static assets (`/cloudgaming/assets/...`), REST API calls (`/cloudgaming/api/...`), and WebSocket streams (`wss://vanshdev.online/cloudgaming/api/sessions/current/ws`) work automatically without interfering with anything else hosted at the root of `vanshdev.online`.
 
-### Step 1: Start the Cloudflare Tunnel (`cloudflared`)
-1. Log in and create a tunnel:
+### Step 1: Install & Authenticate Cloudflare Tunnel (`cloudflared`)
+1. Install `cloudflared` on your CachyOS PC if not installed yet:
+   ```bash
+   sudo pacman -S --needed cloudflared
+   ```
+2. Log into your Cloudflare account (select `vanshdev.online` in the browser prompt):
    ```bash
    cloudflared tunnel login
+   ```
+3. Create the tunnel:
+   ```bash
    cloudflared tunnel create ryoku-cloud-gaming
    ```
-2. Edit [`deploy/cloudflared-config.yml`](file:///home/vansh/Projects/Home_Cloud_Gaming/deploy/cloudflared-config.yml) with your tunnel's `credentials-file` path and your hostname (`play.yourdomain.com`).
-3. Route DNS and start the tunnel:
-   ```bash
-   cloudflared tunnel route dns ryoku-cloud-gaming play.yourdomain.com
-   cloudflared tunnel --config deploy/cloudflared-config.yml run
-   ```
+   *(Copy the **Tunnel UUID** and JSON file path printed in the terminal, e.g. `/home/vansh/.cloudflared/<TUNNEL_UUID>.json`.)*
 
-### Step 2: Deploy the Always-On PC-Offline Cloudflare Worker
-1. In your Cloudflare Dashboard → **Workers & Pages**, create a new Worker and paste the contents of [`deploy/cloudflare_worker.js`](file:///home/vansh/Projects/Home_Cloud_Gaming/deploy/cloudflare_worker.js).
-2. Add a Worker Route for `play.yourdomain.com/*`.
-3. Now, whenever your gaming PC is turned off, visitors to `https://play.yourdomain.com` will see the **Ryoku Cloud — Gaming PC is Currently Powered Off** page, which automatically redirects them into the Game Library the moment your PC boots up.
+### Step 2: Configure the `/cloudgaming` Subpath Route
+You can configure the `/cloudgaming` path either via the **Cloudflare Zero Trust Dashboard** (easiest if `vanshdev.online` already hosts another site) or via [`deploy/cloudflared-config.yml`](file:///home/vansh/Projects/Home_Cloud_Gaming/deploy/cloudflared-config.yml):
+
+- **Option A — Via Cloudflare Zero Trust Dashboard (Recommended if `vanshdev.online` is already live)**:
+  1. Go to **Cloudflare Zero Trust Dashboard** → **Networks** → **Tunnels** → select `ryoku-cloud-gaming` → **Public Hostname** → **Add a public hostname**:
+     - **Subdomain**: *(leave blank)*
+     - **Domain**: `vanshdev.online`
+     - **Path**: `cloudgaming`
+     - **Service Type**: `HTTP`
+     - **URL**: `127.0.0.1:8080`
+  2. Start the tunnel on your PC:
+     ```bash
+     cloudflared tunnel run ryoku-cloud-gaming
+     ```
+
+- **Option B — Via Local Config File ([`deploy/cloudflared-config.yml`](file:///home/vansh/Projects/Home_Cloud_Gaming/deploy/cloudflared-config.yml))**:
+  1. Open [`deploy/cloudflared-config.yml`](file:///home/vansh/Projects/Home_Cloud_Gaming/deploy/cloudflared-config.yml) and replace `TUNNEL_UUID` with your actual Tunnel UUID.
+  2. Route DNS and run the tunnel:
+     ```bash
+     cloudflared tunnel route dns ryoku-cloud-gaming vanshdev.online
+     cloudflared tunnel --config deploy/cloudflared-config.yml run
+     ```
+
+### Step 3: Start the Ryoku Cloud Gaming Server on Your PC
+```bash
+python3 engine/launch_phase6.py \
+  --host 0.0.0.0 \
+  --port 8080 \
+  --public-domain vanshdev.online/cloudgaming \
+  --admin-user vansh \
+  --admin-password ryoku-admin-2026
+```
+You and your invited friends can now open **`https://vanshdev.online/cloudgaming`** from any desktop or mobile browser!
+
+### Step 4: Deploy the Always-On PC-Offline Cloudflare Worker for `vanshdev.online/cloudgaming*`
+1. In your Cloudflare Dashboard → **Workers & Pages**, create a new Worker (e.g. `ryoku-offline-gateway`) and paste the contents of [`deploy/cloudflare_worker.js`](file:///home/vansh/Projects/Home_Cloud_Gaming/deploy/cloudflare_worker.js).
+2. In your `vanshdev.online` zone → **Workers Routes** → **Add route**:
+   - **Route**: `vanshdev.online/cloudgaming*`
+   - **Worker**: `ryoku-offline-gateway`
+3. Now, whenever your gaming PC is turned off, anyone visiting **`https://vanshdev.online/cloudgaming`** will see the **Ryoku Cloud — Gaming PC is Currently Powered Off** page, which automatically polls `/cloudgaming/api/health` and redirects into the Game Library the moment your PC boots up.
 
 ### Step 3: Enable TURN Relay for Strict Cellular/5G Networks (Optional)
 1. Edit [`deploy/turnserver.conf`](file:///home/vansh/Projects/Home_Cloud_Gaming/deploy/turnserver.conf) and set a strong `static-auth-secret`.

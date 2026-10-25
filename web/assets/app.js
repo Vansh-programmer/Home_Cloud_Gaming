@@ -3,6 +3,15 @@
    ========================================================================== */
 
 (() => {
+  const BASE_PREFIX = window.location.pathname.startsWith('/cloudgaming') ? '/cloudgaming' : '';
+  const _origFetch = window.fetch.bind(window);
+  window.fetch = (input, init) => {
+    if (typeof input === 'string' && input.startsWith('/api/')) {
+      input = BASE_PREFIX + input;
+    }
+    return _origFetch(input, init);
+  };
+
   // Top-level Views
   const authView = document.getElementById('auth-view');
   const appView = document.getElementById('app-view');
@@ -280,9 +289,13 @@
         ? 'Native 3D Arena'
         : (g.app_id === '7' ? 'Steam Account Login' : 'Steam Game');
 
+      const coverSrc = (g.cover_url && g.cover_url.startsWith('/assets/'))
+        ? (BASE_PREFIX + g.cover_url)
+        : g.cover_url;
+
       card.innerHTML = `
         <div class="game-cover-wrap">
-          <img alt="${g.title}" src="${g.cover_url}" />
+          <img alt="${g.title}" src="${coverSrc}" />
           <div class="game-cover-overlay">
             <div class="game-card-cat">${catLabel}</div>
             <div class="game-card-title">${g.title}</div>
@@ -510,7 +523,7 @@
     wsConnectingForSession = sessionId;
 
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    ws = new WebSocket(`${proto}//${location.host}/api/sessions/current/ws`);
+    ws = new WebSocket(`${proto}//${location.host}${BASE_PREFIX}/api/sessions/current/ws`);
 
     ws.onmessage = async (ev) => {
       let msg;

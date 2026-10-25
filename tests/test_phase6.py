@@ -114,12 +114,28 @@ class TestPhase6ExternalAccessAndTurn(unittest.IsolatedAsyncioTestCase):
         self.assertIn("use-auth-secret", turn_conf.read_text(encoding="utf-8"))
 
         async with ClientSession(cookie_jar=CookieJar(unsafe=True)) as client:
-            # 2. Verify GET /offline serves the branded PC-Offline status page
+            # 2. Verify GET /offline and subpath GET /cloudgaming & /cloudgaming/offline
             async with client.get(f"{self.base_url}/offline") as resp:
                 self.assertEqual(resp.status, 200)
                 html = await resp.text()
                 self.assertIn("Gaming PC is Currently Powered Off", html)
                 self.assertIn("/api/health", html)
+
+            async with client.get(f"{self.base_url}/cloudgaming") as resp:
+                self.assertEqual(resp.status, 200)
+                cg_html = await resp.text()
+                self.assertIn('/cloudgaming/assets/styles.css', cg_html)
+                self.assertIn('/cloudgaming/assets/app.js', cg_html)
+
+            async with client.get(f"{self.base_url}/cloudgaming/assets/app.js") as resp:
+                self.assertEqual(resp.status, 200)
+                js_text = await resp.text()
+                self.assertIn("BASE_PREFIX", js_text)
+
+            async with client.get(f"{self.base_url}/cloudgaming/api/health") as resp:
+                self.assertEqual(resp.status, 200)
+                cg_health = await resp.json()
+                self.assertTrue(cg_health["online"])
 
             # 3. Log in over simulated HTTPS (X-Forwarded-Proto: https) and check Secure cookie
             async with client.post(

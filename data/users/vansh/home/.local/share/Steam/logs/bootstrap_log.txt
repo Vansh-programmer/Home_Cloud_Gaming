@@ -2233,3 +2233,31 @@
 [2026-10-26 01:15:40] Manifest download: finished
 [2026-10-26 01:15:40] Download skipped by HTTP 304 Not Modified
 [2026-10-26 01:15:40] Nothing to do
+
+
+[2026-10-26 02:36:51] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 02:36:51] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 02:36:51] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 02:36:51] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 02:36:51] 1. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 02:36:51] 2. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 02:36:51] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 02:36:51] Checking for update on startup
+[2026-10-26 02:36:51] Checking for available updates...
+[2026-10-26 02:36:51] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 02:36:51] Manifest download: send request
+[2026-10-26 02:36:51] Manifest download: waiting for download to finish
+[2026-10-26 02:36:52] Manifest download: finished
+[2026-10-26 02:36:52] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 02:36:52] Nothing to do
+[2026-10-26 02:36:52] Verifying installation...
+[2026-10-26 02:36:52] Verifying all executable checksums
+[2026-10-26 02:36:54] Verification complete
+[2026-10-26 02:38:55] Background update loop checking for update. . .
+[2026-10-26 02:38:55] Checking for available updates...
+[2026-10-26 02:38:55] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 02:38:55] Manifest download: send request
+[2026-10-26 02:38:56] Manifest download: waiting for download to finish
+[2026-10-26 02:38:57] Manifest download: finished
+[2026-10-26 02:38:57] Download skipped by HTTP 304 Not Modified
+[2026-10-26 02:38:57] Nothing to do
