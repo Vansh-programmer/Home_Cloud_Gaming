@@ -137,7 +137,7 @@
       position: absolute;
       top: 68px;
       left: 18px;
-      width: 280px;
+      width: 295px;
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
       border-radius: 14px;
@@ -330,6 +330,7 @@
       </div>
 
       <button id="btn-stats" class="hud-btn active" title="Toggle Stream Telemetry (Tab)">Stats</button>
+      <button id="btn-lock-mouse" class="hud-btn" title="Lock Mouse for 3D FPS Look (or Double-Click Video)">Lock Mouse</button>
 
       <select id="select-quality" class="hud-select" title="Stream Quality Preset">
         <option value="low">Low (4 Mbps)</option>
@@ -348,6 +349,18 @@
       <div class="stats-title">
         <span>Stream Telemetry</span>
         <span id="pad-indicator" style="color: var(--text-muted);">No Pad</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">User / AppID</span>
+        <span id="stat-user" class="stat-val">default / App 0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Saved High Score</span>
+        <span id="stat-save" class="stat-val">0 (Run #1)</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Steam Login</span>
+        <span id="stat-steam" class="stat-val">In-Stream Only</span>
       </div>
       <div class="stat-row">
         <span class="stat-label">State</span>
@@ -392,7 +405,7 @@
     </div>
 
     <div id="pointer-hint">
-      Click video to lock mouse &amp; enable audio • WASD / Arrows to Move • Click / F to Fire • Space to Jump • ESC to Unlock
+      Click for UI / Steam Login • Double-Click or 'Lock Mouse' for 3D FPS Look • WASD to Move • F to Fire • Space to Jump
     </div>
 
     <!-- Session Ended Modal -->
@@ -415,6 +428,9 @@
       const statusDot = document.getElementById('status-dot');
       const statusText = document.getElementById('status-text');
       const statsOverlay = document.getElementById('stats-overlay');
+      const statUser = document.getElementById('stat-user');
+      const statSave = document.getElementById('stat-save');
+      const statSteam = document.getElementById('stat-steam');
       const statState = document.getElementById('stat-state');
       const statRes = document.getElementById('stat-res');
       const statBitrate = document.getElementById('stat-bitrate');
@@ -428,6 +444,7 @@
       const modalDesc = document.getElementById('modal-desc');
 
       const btnStats = document.getElementById('btn-stats');
+      const btnLockMouse = document.getElementById('btn-lock-mouse');
       const selectQuality = document.getElementById('select-quality');
       const btnTouch = document.getElementById('btn-touch');
       const btnFullscreen = document.getElementById('btn-fullscreen');
@@ -462,10 +479,26 @@
       function updateIsolationBadge(iso) {
         if (!iso) return;
         if (iso.all_passed) {
-          isoBox.innerHTML = '<strong>ISOLATION VERIFIED ✓</strong><br/>Host Home, Host Desktop, Physical Inputs &amp; Host Audio Blocked';
+          isoBox.innerHTML = '<strong>ISOLATION VERIFIED ✓</strong><br/>Host Home, Host Desktop, Physical Inputs &amp; Host Audio Blocked • Shared Library Read-Only';
         } else {
           isoBox.innerHTML = '<strong>ISOLATION ACTIVE</strong><br/>Mode: ' + (iso.sandbox_mode || 'isolated');
         }
+      }
+
+      function updateStatusTelemetry(st) {
+        if (!st) return;
+        statUser.textContent = `${st.user_id || 'default'} / App ${st.app_id || '0'}`;
+        if (st.savegame) {
+          statSave.textContent = `${st.savegame.high_score || 0} (Run #${st.savegame.sessions_played || 1})`;
+        }
+        if (st.steam_login_remembered) {
+          statSteam.textContent = 'Remembered ✓';
+          statSteam.style.color = '#34d399';
+        } else {
+          statSteam.textContent = 'In-Stream Only';
+          statSteam.style.color = '#94a3b8';
+        }
+        updateIsolationBadge(st.isolation);
       }
 
       function attachDataChannel(channel) {
@@ -500,7 +533,7 @@
           const msg = JSON.parse(event.data);
           if (msg.type === 'status' && msg.status) {
             selectQuality.value = msg.status.quality || 'high';
-            updateIsolationBadge(msg.status.isolation);
+            updateStatusTelemetry(msg.status);
             if (msg.status.state === 'ended') {
               showEndedModal('Session Ended', 'The isolated game session has finished.');
               return;
@@ -581,10 +614,32 @@
         sessionModal.classList.remove('hidden');
       }
 
-      // Pointer Lock & Mouse Input
-      video.addEventListener('click', () => {
+      function getNormalizedVideoCoords(e) {
+        const rect = video.getBoundingClientRect();
+        const vw = video.videoWidth || 1280;
+        const vh = video.videoHeight || 720;
+        const scale = Math.min(rect.width / vw, rect.height / vh);
+        const dispW = vw * scale;
+        const dispH = vh * scale;
+        const offX = rect.left + (rect.width - dispW) / 2;
+        const offY = rect.top + (rect.height - dispH) / 2;
+        const x = Math.max(0, Math.min(1, (e.clientX - offX) / dispW));
+        const y = Math.max(0, Math.min(1, (e.clientY - offY) / dispH));
+        return { x: +x.toFixed(4), y: +y.toFixed(4) };
+      }
+
+      // Pointer Lock & Mouse Input (supports both normal UI cursor mode for Steam login & FPS Pointer Lock)
+      btnLockMouse.addEventListener('click', () => {
         video.muted = false;
         video.play().catch(() => {});
+        if (!document.pointerLockElement && video.requestPointerLock) {
+          video.requestPointerLock();
+        } else if (document.pointerLockElement === video) {
+          document.exitPointerLock();
+        }
+      });
+
+      video.addEventListener('dblclick', () => {
         if (!document.pointerLockElement && video.requestPointerLock) {
           video.requestPointerLock();
         }
@@ -592,6 +647,7 @@
 
       document.addEventListener('pointerlockchange', () => {
         const locked = document.pointerLockElement === video;
+        btnLockMouse.classList.toggle('active', locked);
         pointerHint.classList.toggle('hidden', locked);
       });
 
@@ -600,28 +656,31 @@
           if (e.movementX !== 0 || e.movementY !== 0) {
             sendInput({ type: 'mousemove', dx: e.movementX, dy: e.movementY });
           }
+        } else if (e.target === video) {
+          const coords = getNormalizedVideoCoords(e);
+          sendInput({ type: 'mousemove', x: coords.x, y: coords.y });
         }
       });
 
       video.addEventListener('mousedown', (e) => {
-        if (document.pointerLockElement === video) {
-          e.preventDefault();
-          sendInput({ type: 'mousedown', button: e.button });
+        video.muted = false;
+        video.play().catch(() => {});
+        if (document.pointerLockElement !== video) {
+          const coords = getNormalizedVideoCoords(e);
+          sendInput({ type: 'mousemove', x: coords.x, y: coords.y });
         }
+        sendInput({ type: 'mousedown', button: e.button });
       });
 
-      window.addEventListener('mouseup', (e) => {
-        if (document.pointerLockElement === video) {
-          e.preventDefault();
-          sendInput({ type: 'mouseup', button: e.button });
-        }
+      video.addEventListener('mouseup', (e) => {
+        sendInput({ type: 'mouseup', button: e.button });
       });
+
+      video.addEventListener('contextmenu', (e) => e.preventDefault());
 
       video.addEventListener('wheel', (e) => {
-        if (document.pointerLockElement === video) {
-          e.preventDefault();
-          sendInput({ type: 'wheel', dx: e.deltaX, dy: e.deltaY });
-        }
+        e.preventDefault();
+        sendInput({ type: 'wheel', dx: e.deltaX, dy: e.deltaY });
       }, { passive: false });
 
       // Keyboard Input
@@ -782,7 +841,7 @@
           const res = await fetch('/api/session/status');
           if (res.ok) {
             const st = await res.json();
-            updateIsolationBadge(st.isolation);
+            updateStatusTelemetry(st);
             if (st.state === 'ended') {
               showEndedModal('Game Exited', 'The game closed and the isolated container was destroyed.');
             }
@@ -818,4 +877,3 @@
   </script>
 </body>
 </html>
-

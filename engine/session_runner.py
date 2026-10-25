@@ -38,6 +38,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from engine.input_manager import IsolatedInputManager  # noqa: E402
 from engine.sandbox import run_isolation_self_check  # noqa: E402
+from engine.steam_manager import SteamLibraryManager  # noqa: E402
 from engine.webrtc_streamer import QUALITY_PRESETS, WebRTCPeerStream  # noqa: E402
 
 logging.basicConfig(
@@ -59,6 +60,8 @@ class IsolatedSessionRuntime:
         quality: str = "high",
         game_cmd: Optional[List[str]] = None,
         port: int = 8080,
+        user_id: str = "default",
+        app_id: str = "0",
     ) -> None:
         self.session_id = session_id
         self.width = width
@@ -66,9 +69,18 @@ class IsolatedSessionRuntime:
         self.fps = fps
         self.quality = quality if quality in QUALITY_PRESETS else "high"
         self.port = port
+        self.user_id = user_id or os.environ.get("CLOUD_USER_ID", "default")
+        self.app_id = str(app_id or os.environ.get("CLOUD_APP_ID", "0"))
+        os.environ["CLOUD_USER_ID"] = self.user_id
+        os.environ["CLOUD_APP_ID"] = self.app_id
 
-        default_game = str(PROJECT_ROOT / "engine" / "test_game" / "arena3d")
-        self.game_cmd = game_cmd if game_cmd else [default_game]
+        if game_cmd:
+            self.game_cmd = game_cmd
+        else:
+            shared_dir = Path("/steam_shared") if Path("/steam_shared").exists() else (PROJECT_ROOT / "data" / "shared_steam_library")
+            inside_container = Path("/opt/cloudgaming").exists()
+            steam_mgr = SteamLibraryManager(shared_dir)
+            self.game_cmd = steam_mgr.build_launch_command(self.app_id, inside_container=inside_container)
 
         self.state = "starting"
         self.error_message: Optional[str] = None
@@ -156,6 +168,10 @@ class IsolatedSessionRuntime:
             )
             self._procs.append(wp_proc)
 
+            pulse_dir = self.xdg_dir / "pulse"
+            env["PULSE_RUNTIME_PATH"] = str(pulse_dir)
+            os.environ["PULSE_RUNTIME_PATH"] = str(pulse_dir)
+
             pwp_proc = subprocess.Popen(
                 ["pipewire-pulse"],
                 env=env,
@@ -163,7 +179,7 @@ class IsolatedSessionRuntime:
                 stderr=subprocess.DEVNULL,
             )
             self._procs.append(pwp_proc)
-            pulse_sock = self.xdg_dir / "pulse" / "native"
+            pulse_sock = pulse_dir / "native"
             for _ in range(25):
                 if pulse_sock.exists():
                     break
@@ -252,12 +268,18 @@ class IsolatedSessionRuntime:
                 f"{self.width}x{self.height}",
             ]
         else:
-            # Find a free TCP port for X11 (6000 + display_num) when /tmp/.X11-unix is read-only
-            for candidate in range(90, 150):
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    if s.connect_ex(("127.0.0.1", 6000 + candidate)) != 0:
-                        display_num = candidate
-                        break
+            # Find a genuinely bindable TCP port for X11 (6000 + display_num) when /tmp/.X11-unix is read-only.
+            # Using bind() instead of connect_ex() avoids picking a port in TCP TIME_WAIT from a prior session.
+            start_disp = 90 + (self.port % 50)
+            for offset in range(60):
+                candidate = 90 + ((start_disp - 90 + offset) % 60)
+                try:
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        s.bind(("0.0.0.0", 6000 + candidate))
+                    display_num = candidate
+                    break
+                except OSError:
+                    continue
             self.display_name = f"127.0.0.1:{display_num}"
             xw_cmd = [
                 "Xwayland",
@@ -364,10 +386,43 @@ class IsolatedSessionRuntime:
         if self._glib_loop is not None and self._glib_loop.is_running():
             self._glib_loop.quit()
 
+    def _read_session_persistence_info(self) -> Dict[str, object]:
+        data_home = Path(os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")))
+        save_path = data_home / "cyberarena" / "savegame.json"
+        save_info: Dict[str, object] = {"high_score": 0, "sessions_played": 0, "exists": False}
+        if save_path.exists():
+            try:
+                raw = json.loads(save_path.read_text(encoding="utf-8"))
+                save_info = {
+                    "high_score": int(raw.get("high_score", 0)),
+                    "last_score": int(raw.get("last_score", 0)),
+                    "sessions_played": int(raw.get("sessions_played", 0)),
+                    "exists": True,
+                }
+            except Exception:
+                pass
+
+        loginusers = data_home / "Steam" / "config" / "loginusers.vdf"
+        steam_remembered = False
+        if loginusers.exists():
+            try:
+                txt = loginusers.read_text(encoding="utf-8", errors="ignore")
+                steam_remembered = '"AccountName"' in txt or '"MostRecent"' in txt
+            except Exception:
+                pass
+
+        return {
+            "savegame": save_info,
+            "steam_login_remembered": steam_remembered,
+        }
+
     def get_status_dict(self) -> Dict[str, object]:
         preset = QUALITY_PRESETS.get(self.quality, QUALITY_PRESETS["high"])
+        persist = self._read_session_persistence_info()
         return {
             "session_id": self.session_id,
+            "user_id": self.user_id,
+            "app_id": self.app_id,
             "state": self.state,
             "error": self.error_message,
             "width": self.width,
@@ -379,6 +434,8 @@ class IsolatedSessionRuntime:
             "game_running": self.game_proc is not None and self.game_proc.poll() is None,
             "game_pid": self.game_proc.pid if self.game_proc else None,
             "uptime_sec": round(time.time() - self.started_at, 1),
+            "savegame": persist["savegame"],
+            "steam_login_remembered": persist["steam_login_remembered"],
             "isolation": self.isolation_report,
         }
 
@@ -525,6 +582,8 @@ async def run_session_async(args: argparse.Namespace) -> int:
         quality=args.quality,
         game_cmd=game_cmd,
         port=args.port,
+        user_id=args.user_id,
+        app_id=args.app_id,
     )
 
     state_dir = os.environ.get("SESSION_STATE_DIR")
@@ -591,6 +650,8 @@ def main() -> int:
     parser.add_argument("--height", type=int, default=720, help="Stream height")
     parser.add_argument("--fps", type=int, default=60, help="Target stream framerate")
     parser.add_argument("--quality", default="high", choices=list(QUALITY_PRESETS.keys()))
+    parser.add_argument("--user-id", default="default", help="User identifier for persistent saves/Steam profile")
+    parser.add_argument("--app-id", default="0", help="Steam AppID or 0 for CyberArena 3D, 7 for Steam GamepadUI")
     parser.add_argument("--game-cmd", default="", help="Optional custom game command")
     args = parser.parse_args()
 

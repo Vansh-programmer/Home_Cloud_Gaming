@@ -1,0 +1,2 @@
+[default-nodes]
+default.configured.audio.sink=cloud_sink

@@ -1,0 +1,13 @@
+"libraryfolders"
+{
+	"0"
+	{
+		"path"		"/home/gamer/.local/share/Steam"
+		"label"		"UserPersistent"
+	}
+	"1"
+	{
+		"path"		"/steam_shared"
+		"label"		"SharedReadOnlyLibrary"
+	}
+}

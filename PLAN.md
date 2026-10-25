@@ -116,17 +116,17 @@ To avoid duplicating large 50+ GB game installs across users:
 ---
 
 ### Phase 2: Steam Integration & Per-User Persistent Storage
-**Status: UP NEXT**
-- [ ] Install / configure headless Steam runtime inside container using `gamescope -e -- /usr/bin/steam -tenfoot` or direct AppID launch (`steam -applaunch <AppID>`).
-- [ ] Configure per-user persistent directories for Steam authentication credentials (`config/config.vdf`, `ssfn*` files), Proton prefixes (`compatdata`), and save games.
-- [ ] Ensure shared game files are mounted read-only while user-generated writes route to the user's upper directory.
-- [ ] Implement Steam login flow inside the stream: users type passwords directly into Steam's authentic UI; the website backend never intercepts or stores credentials.
-- [ ] Verify save file persistence across container destruction and restarts for multiple distinct user accounts.
+**Status: COMPLETED (Verified with Automated Tests)**
+- [x] Configure headless Steam runtime inside container using `/usr/bin/steam -gamepadui` (`--app-id 7`) or direct AppID launch (`steam -gamepadui -applaunch <AppID>`).
+- [x] Configure per-user persistent directories (`engine/storage_manager.py`) for Steam authentication tokens (`config/loginusers.vdf`, `config/config.vdf`, `userdata/`), Proton prefixes (`compatdata`), and save games (`$XDG_DATA_HOME`).
+- [x] Ensure shared game files (`data/shared_steam_library`) are mounted strictly read-only (`:ro` at `/steam_shared`) while user-generated writes route to the user's persistent directories.
+- [x] Implement Steam login flow inside the stream: users type passwords directly into Steam's authentic UI using normal cursor/keyboard mode; the website backend never intercepts or stores credentials.
+- [x] Verify save file persistence across container destruction and restarts for multiple distinct user accounts (`tests/test_phase2.py`).
 
 ---
 
 ### Phase 3: Backend Orchestrator, Safety Limits & Auth
-**Status: PLANNED**
+**Status: UP NEXT**
 - [ ] Central backend service (Node.js/Fastify or Go) with SQLite database (`better-sqlite3` or `sqlc`).
 - [ ] Invite-only user authentication (admin-generated invite tokens, salted password hashing with Argon2/bcrypt, secure session cookies).
 - [ ] Concurrency lock: enforce exactly 1 active game session on the server; return friendly "Server in use by [User]" status to others.
@@ -175,8 +175,8 @@ To avoid duplicating large 50+ GB game installs across users:
 | Phase | Core Deliverable | Verification Criteria | Status |
 | :---: | :--- | :--- | :---: |
 | **1** | Single-Game WebRTC Prototype | Automated tests pass; 60 FPS hardware NVENC stream; zero host desktop/file exposure; container destroyed on game exit. | **Done** |
-| **2** | Steam & Persistent Storage | Launch Steam AppID; Steam login preserved across runs; save games persist; user A cannot see user B's saves. | Next |
-| **3** | Backend, Limits & Auth | Invite-only login works; 1-session GPU lock enforced; idle timeout ends container; tab reconnect resumes game. | Queued |
+| **2** | Steam & Persistent Storage | Launch Steam AppID; Steam login preserved across runs; save games persist; user A cannot see user B's saves. | **Done** |
+| **3** | Backend, Limits & Auth | Invite-only login works; 1-session GPU lock enforced; idle timeout ends container; tab reconnect resumes game. | Next |
 | **4** | Polished Web App & HUD | Steam library UI with artwork; in-stream mobile controls; telemetry HUD; responsive mobile experience. | Queued |
 | **5** | Admin Portal & Telemetry | Live GPU stats displayed; admin can force-kill session; user list & session history functional. | Queued |
 | **6** | Domain HTTPS & Offline Page | External access over custom domain; cellular playback via TURN; offline fallback page when PC is off. | Queued |

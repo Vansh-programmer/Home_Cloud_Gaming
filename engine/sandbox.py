@@ -27,10 +27,18 @@ class SandboxConfig:
     width: int = 1280
     height: int = 720
     fps: int = 60
+    user_id: str = "default"
+    app_id: str = "0"
     # Optional read-only game directory to mount at /game inside the container
     game_dir: Optional[Path] = None
-    # Optional per-user persistent directory (used in Phase 2+ for Steam/saves)
+    # Shared read-only base Steam library mounted at /steam_shared (:ro)
+    shared_steam_dir: Optional[Path] = None
+    # Per-user persistent directories (Phase 2+: Steam login tokens, Proton prefixes, game saves)
     user_persist_dir: Optional[Path] = None
+    user_steam_dot_dir: Optional[Path] = None
+    user_steam_dir: Optional[Path] = None
+    user_local_share_dir: Optional[Path] = None
+    user_config_dir: Optional[Path] = None
     # Extra read-only binds if needed
     extra_ro_binds: Dict[str, str] = field(default_factory=dict)
 
@@ -126,10 +134,11 @@ class EphemeralSandbox:
             "--die-with-parent",
             "--new-session",
             "--clearenv",
-            # Read-only system binaries & libraries
+            # Read-only system binaries & libraries (including 32-bit multilib for Steam/Proton)
             "--ro-bind", "/usr", "/usr",
             "--symlink", "usr/lib", "/lib",
             "--symlink", "usr/lib", "/lib64",
+            "--symlink", "usr/lib32", "/lib32",
             "--symlink", "usr/bin", "/bin",
             "--symlink", "usr/bin", "/sbin",
             # Minimal /proc, read-only /sys, and isolated /dev with writable /dev/shm for CUDA & PulseAudio
@@ -209,9 +218,21 @@ class EphemeralSandbox:
         if self.config.game_dir and self.config.game_dir.exists():
             cmd.extend(["--ro-bind", str(self.config.game_dir), "/game"])
 
-        # Mount optional per-user persistent directory
+        # Mount shared Steam library strictly READ-ONLY at /steam_shared
+        if self.config.shared_steam_dir and self.config.shared_steam_dir.exists():
+            cmd.extend(["--ro-bind", str(self.config.shared_steam_dir), "/steam_shared"])
+
+        # Mount optional per-user persistent directories (Phase 2+: Steam login tokens, Proton prefixes, saves)
         if self.config.user_persist_dir and self.config.user_persist_dir.exists():
             cmd.extend(["--bind", str(self.config.user_persist_dir), "/home/gamer/persist"])
+        steam_dot = self.config.user_steam_dot_dir or self.config.user_steam_dir
+        if steam_dot and steam_dot.exists():
+            cmd.extend(["--bind", str(steam_dot), "/home/gamer/.steam"])
+        if self.config.user_local_share_dir and self.config.user_local_share_dir.exists():
+            cmd.extend(["--dir", "/home/gamer/.local"])
+            cmd.extend(["--bind", str(self.config.user_local_share_dir), "/home/gamer/.local/share"])
+        if self.config.user_config_dir and self.config.user_config_dir.exists():
+            cmd.extend(["--bind", str(self.config.user_config_dir), "/home/gamer/.config"])
 
         for src, dst in self.config.extra_ro_binds.items():
             if os.path.exists(src):
@@ -224,6 +245,9 @@ class EphemeralSandbox:
             "USER": "gamer",
             "LOGNAME": "gamer",
             "XDG_RUNTIME_DIR": "/tmp/runtime",
+            "XDG_DATA_HOME": "/home/gamer/.local/share",
+            "XDG_CONFIG_HOME": "/home/gamer/.config",
+            "XDG_CURRENT_DESKTOP": "gamescope",
             "TMPDIR": "/tmp",
             "LANG": "C.UTF-8",
             "LC_ALL": "C.UTF-8",
@@ -232,6 +256,8 @@ class EphemeralSandbox:
             "STREAM_FPS": str(self.config.fps),
             "SESSION_ID": self.config.session_id,
             "SESSION_STATE_DIR": "/run/session",
+            "CLOUD_USER_ID": self.config.user_id,
+            "CLOUD_APP_ID": self.config.app_id,
             "SANDBOX_MODE": "bwrap-strict",
         }
         if env_vars:
@@ -266,8 +292,20 @@ def run_isolation_self_check(host_user: str = "vansh") -> Dict[str, object]:
     host_sound_accessible = dev_snd.exists()
     gpu_accessible = gpu_render.exists() or nvidia_ctl.exists()
 
+    # Check shared Steam library is strictly read-only if mounted
+    steam_shared = Path("/steam_shared")
+    if steam_shared.exists():
+        shared_library_readonly = not os.access(steam_shared, os.W_OK)
+    else:
+        shared_library_readonly = True
+
+    data_home = Path(os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")))
+    user_storage_writable = data_home.exists() and os.access(data_home, os.W_OK)
+
     checks = {
         "sandbox_mode": os.environ.get("SANDBOX_MODE", "unknown"),
+        "user_id": os.environ.get("CLOUD_USER_ID", "default"),
+        "app_id": os.environ.get("CLOUD_APP_ID", "0"),
         "isolated_home": os.environ.get("HOME", ""),
         "isolated_xdg_runtime": os.environ.get("XDG_RUNTIME_DIR", ""),
         "host_home_inaccessible": not host_home_accessible,
@@ -276,6 +314,8 @@ def run_isolation_self_check(host_user: str = "vansh") -> Dict[str, object]:
         "physical_inputs_inaccessible": not physical_inputs_accessible,
         "host_soundcard_inaccessible": not host_sound_accessible,
         "gpu_accessible": gpu_accessible,
+        "shared_library_readonly": shared_library_readonly,
+        "user_storage_writable": user_storage_writable,
     }
     checks["all_passed"] = all(
         [
@@ -285,6 +325,7 @@ def run_isolation_self_check(host_user: str = "vansh") -> Dict[str, object]:
             checks["physical_inputs_inaccessible"],
             checks["host_soundcard_inaccessible"],
             checks["gpu_accessible"],
+            checks["shared_library_readonly"],
         ]
     )
     return checks

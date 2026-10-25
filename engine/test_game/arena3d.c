@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #ifndef M_PI
@@ -239,6 +240,62 @@ static void draw_cube(float size, const float color[3]) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
+static void get_save_path(char *out, size_t out_sz) {
+    const char *xdg = getenv("XDG_DATA_HOME");
+    const char *home = getenv("HOME");
+    char dir[480];
+    if (xdg && xdg[0]) {
+        snprintf(dir, sizeof(dir), "%.440s/cyberarena", xdg);
+    } else if (home && home[0]) {
+        char p1[480], p2[480];
+        snprintf(p1, sizeof(p1), "%.440s/.local", home);
+        mkdir(p1, 0700);
+        snprintf(p2, sizeof(p2), "%.440s/.local/share", home);
+        mkdir(p2, 0700);
+        snprintf(dir, sizeof(dir), "%.440s/.local/share/cyberarena", home);
+    } else {
+        snprintf(dir, sizeof(dir), "/tmp/cyberarena");
+    }
+    mkdir(dir, 0700);
+    snprintf(out, out_sz, "%s/savegame.json", dir);
+}
+
+static void load_savegame(const char *path, int *high_score, int *sessions_played) {
+    *high_score = 0;
+    *sessions_played = 0;
+    FILE *fp = fopen(path, "r");
+    if (!fp) return;
+    char buf[1024] = {0};
+    size_t n = fread(buf, 1, sizeof(buf) - 1, fp);
+    fclose(fp);
+    if (n == 0) return;
+
+    const char *hs = strstr(buf, "\"high_score\"");
+    if (hs) {
+        const char *colon = strchr(hs, ':');
+        if (colon) *high_score = atoi(colon + 1);
+    }
+    const char *sp = strstr(buf, "\"sessions_played\"");
+    if (sp) {
+        const char *colon = strchr(sp, ':');
+        if (colon) *sessions_played = atoi(colon + 1);
+    }
+}
+
+static void write_savegame(const char *path, const char *user, int high_score, int last_score, int sessions_played) {
+    FILE *fp = fopen(path, "w");
+    if (!fp) return;
+    fprintf(
+        fp,
+        "{\n  \"user\": \"%s\",\n  \"high_score\": %d,\n  \"last_score\": %d,\n  \"sessions_played\": %d\n}\n",
+        user ? user : "default",
+        high_score,
+        last_score,
+        sessions_played
+    );
+    fclose(fp);
+}
+
 int main(int argc, char *argv[]) {
     int max_frames = 0;
     for (int i = 1; i < argc; i++) {
@@ -312,12 +369,23 @@ int main(int argc, char *argv[]) {
     printf("[CyberArena3D] Running on GPU: %s\n", gpu_renderer);
     fflush(stdout);
 
-    /* Player state */
+    /* Player state & per-user persistent savegame */
     float px = 0.0f, py = 1.7f, pz = 12.0f;
     float vy = 0.0f;
     float yaw = 0.0f, pitch = -5.0f;
     bool on_ground = true;
     int score = 0;
+    int high_score = 0;
+    int sessions_played = 0;
+    const char *cloud_user = getenv("CLOUD_USER_ID");
+    if (!cloud_user || !cloud_user[0]) cloud_user = "default";
+
+    char save_path[512];
+    get_save_path(save_path, sizeof(save_path));
+    load_savegame(save_path, &high_score, &sessions_played);
+    sessions_played += 1;
+    write_savegame(save_path, cloud_user, high_score, score, sessions_played);
+
     char last_input[64] = "READY - USE WASD / MOUSE / GAMEPAD";
 
     Target targets[MAX_TARGETS];
@@ -526,8 +594,10 @@ int main(int argc, char *argv[]) {
                 targets[i].active = false;
                 targets[i].respawn_timer = 3.0f;
                 score += 100;
+                if (score > high_score) high_score = score;
+                write_savegame(save_path, cloud_user, high_score, score, sessions_played);
                 trigger_hit_sound();
-                snprintf(last_input, sizeof(last_input), "CRYSTAL CAPTURED! +100");
+                snprintf(last_input, sizeof(last_input), "CRYSTAL CAPTURED! +100 (SAVED)");
             }
         }
 
@@ -549,11 +619,13 @@ int main(int argc, char *argv[]) {
                 float dz = lasers[i].z - targets[t].z;
                 if (dx * dx + dy * dy + dz * dz < 1.8f) {
                     targets[t].active = false;
-                    targets[t].respawn_timer = 2.5f;
+                    targets[t].respawn_timer = 0.05f;
                     lasers[i].active = false;
                     score += 250;
+                    if (score > high_score) high_score = score;
+                    write_savegame(save_path, cloud_user, high_score, score, sessions_played);
                     trigger_hit_sound();
-                    snprintf(last_input, sizeof(last_input), "TARGET DESTROYED! +250");
+                    snprintf(last_input, sizeof(last_input), "TARGET DESTROYED! +250 (SAVED)");
                     break;
                 }
             }
@@ -649,8 +721,16 @@ int main(int argc, char *argv[]) {
 
         char buf[160];
         glColor3f(0.25f, 0.95f, 1.0f);
-        snprintf(buf, sizeof(buf), "CYBERARENA 3D  -  SCORE: %d", score);
-        draw_text(buf, 28.0f, 24.0f, 2.5f);
+        snprintf(
+            buf,
+            sizeof(buf),
+            "CYBERARENA 3D - SCORE: %d  HIGH: %d  USER: %.16s (RUN %d)",
+            score,
+            high_score,
+            cloud_user,
+            sessions_played
+        );
+        draw_text(buf, 28.0f, 24.0f, 2.2f);
 
         glColor3f(0.65f, 0.85f, 0.95f);
         snprintf(buf, sizeof(buf), "GPU: %.48s", gpu_renderer);
@@ -680,6 +760,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    write_savegame(save_path, cloud_user, high_score, score, sessions_played);
     if (controller) SDL_GameControllerClose(controller);
     if (joystick) SDL_JoystickClose(joystick);
     SDL_CloseAudio();

@@ -195,6 +195,8 @@ class TestPhase1IsolatedStreaming(unittest.IsolatedAsyncioTestCase):
                     proc.wait(timeout=3)
                 except Exception:
                     proc.kill()
+            if proc.stdout:
+                proc.stdout.close()
 
 
 if __name__ == "__main__":
