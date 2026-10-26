@@ -99,8 +99,9 @@ class WebRTCPeerStream:
 
         if Gst.ElementFactory.find("nvh264enc") is not None:
             encoder_elem = (
-                f"nvh264enc name=venc preset=low-latency-hq zerolatency=true rc-mode=cbr "
-                f"bitrate={bitrate_kbps} gop-size={gop_size} bframes=0 "
+                f"nvh264enc name=venc preset=p2 tune=ultra-low-latency zerolatency=true rc-mode=cbr "
+                f"aud=true repeat-sequence-header=true bitrate={bitrate_kbps} gop-size={gop_size} bframes=0 "
+                f"vbv-buffer-size={vbv_kbits} "
             )
         else:
             logger.warning("nvh264enc not found in GStreamer registry; falling back to x264enc")
@@ -110,10 +111,10 @@ class WebRTCPeerStream:
             )
 
         video_branch = (
-            f'ximagesrc display-name="{self.display_name}" use-damage=0 show-pointer=1 '
+            f'ximagesrc display-name="{self.display_name}" use-damage=0 show-pointer=1 do-timestamp=true '
             f"! video/x-raw,framerate={target_fps}/1 "
-            f"! queue max-size-buffers=2 leaky=downstream "
-            f"! videoconvert "
+            f"! queue max-size-buffers=1 max-size-bytes=0 max-size-time=0 leaky=downstream "
+            f"! videoconvert n-threads=4 "
             f"! {encoder_elem}"
             f"! video/x-h264,profile=constrained-baseline,stream-format=byte-stream "
             f"! h264parse config-interval=-1 "
@@ -124,7 +125,7 @@ class WebRTCPeerStream:
         if self.audio_enabled and self.pulse_source:
             audio_branch = (
                 f'pulsesrc device="{self.pulse_source}" do-timestamp=true '
-                f"! queue max-size-buffers=10 leaky=downstream "
+                f"! queue max-size-buffers=2 max-size-time=20000000 leaky=downstream "
                 f"! audioconvert ! audioresample "
                 f"! audio/x-raw,rate=48000,channels=2 "
                 f"! opusenc bitrate=128000 frame-size=10 audio-type=restricted-lowdelay "
@@ -269,11 +270,21 @@ class WebRTCPeerStream:
             return
         self._negotiated = True
         try:
-            dc = element.emit("create-data-channel", "input", None)
+            # Low-latency unordered, 0-retransmission SCTP DataChannel (UDP-like raw input)
+            dc_opts = Gst.Structure.new_empty("application/data-channel")
+            dc_opts.set_value("ordered", False)
+            dc_opts.set_value("max-retransmits", 0)
+            dc = element.emit("create-data-channel", "input", dc_opts)
             if dc is not None:
                 self._attach_data_channel_handlers(dc)
         except Exception as exc:
             logger.warning("create-data-channel warning: %s", exc)
+            try:
+                dc = element.emit("create-data-channel", "input", None)
+                if dc is not None:
+                    self._attach_data_channel_handlers(dc)
+            except Exception:
+                pass
 
         promise = Gst.Promise.new_with_change_func(self._on_offer_created, element, None)
         element.emit("create-offer", None, promise)

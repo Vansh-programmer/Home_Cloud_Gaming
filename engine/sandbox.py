@@ -293,6 +293,13 @@ class EphemeralSandbox:
             "PRESSURE_VESSEL_FILESYSTEMS_RO": "/steam_shared:/game",
             "STEAM_COMPAT_MOUNTS": "/steam_shared:/game",
             "STEAM_COMPAT_LIBRARY_PATHS": "/home/gamer/.local/share/Steam:/steam_shared",
+            "DXVK_FRAME_RATE": str(self.config.fps),
+            "DXVK_ASYNC": "1",
+            "__GL_MaxFramesAllowed": "1",
+            "__GL_THREADED_OPTIMIZATIONS": "1",
+            "__GL_SYNC_TO_VBLANK": "0",
+            "PROTON_ENABLE_NVAPI": "1",
+            "vblank_mode": "0",
         }
         if env_vars:
             default_env.update(env_vars)

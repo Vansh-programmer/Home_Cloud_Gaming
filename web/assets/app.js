@@ -509,11 +509,14 @@
 
   function sendInputPacket(payload) {
     if (!streamOpen || streamReplaced) return;
-    const raw = JSON.stringify(payload);
     if (dc && dc.readyState === 'open') {
-      dc.send(raw);
+      // If network backpressure occurs, drop stale high-frequency mouse movements to prevent input lag backlog
+      if (payload.type === 'mousemove' && dc.bufferedAmount > 16384) {
+        return;
+      }
+      dc.send(JSON.stringify(payload));
     } else if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(raw);
+      ws.send(JSON.stringify(payload));
     }
   }
 
@@ -670,9 +673,13 @@
             if (event.receiver && 'playoutDelayHint' in event.receiver) {
               event.receiver.playoutDelayHint = 0;
             }
+            if (event.receiver && 'jitterBufferTarget' in event.receiver) {
+              event.receiver.jitterBufferTarget = 0;
+            }
             if (pc && pc.getReceivers) {
               pc.getReceivers().forEach((r) => {
                 if ('playoutDelayHint' in r) r.playoutDelayHint = 0;
+                if ('jitterBufferTarget' in r) r.jitterBufferTarget = 0;
               });
             }
           } catch (_) {}

@@ -320,6 +320,14 @@ class IsolatedSessionRuntime:
         env["PRESSURE_VESSEL_FILESYSTEMS_RO"] = "/steam_shared:/game"
         env["STEAM_COMPAT_MOUNTS"] = "/steam_shared:/game"
         env["STEAM_COMPAT_LIBRARY_PATHS"] = "/home/gamer/.local/share/Steam:/steam_shared"
+        # Ultra-low latency frame pacing & driver tuning (Moonlight-class responsiveness)
+        env["DXVK_FRAME_RATE"] = str(self.fps)
+        env["DXVK_ASYNC"] = "1"
+        env["__GL_MaxFramesAllowed"] = "1"
+        env["__GL_THREADED_OPTIMIZATIONS"] = "1"
+        env["__GL_SYNC_TO_VBLANK"] = "0"
+        env["PROTON_ENABLE_NVAPI"] = "1"
+        env["vblank_mode"] = "0"
         if self.audio_available:
             env["PULSE_SINK"] = "cloud_sink"
             env["SDL_AUDIODRIVER"] = "pulseaudio"
