@@ -9691,3 +9691,1342 @@
 [2026-10-26 21:44:47] write: Bad file descriptor
 [2026-10-26 21:44:47] wine client error:1fc: write: Bad file descriptor
 [2026-10-26 21:44:47] pid 1277 != 1275, skipping destruction (fork without exec?)
+[2026-10-26 16:27:34+0000] srt-logger[317]: Log opened
+[2026-10-26 21:57:34] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 21:57:34] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 21:57:34] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 21:57:35] steam.sh[307]: Log already open
+[2026-10-26 21:57:35] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 21:57:35] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-applaunch' '203160'
+[2026-10-26 21:57:35] 10/26 21:57:35 minidumps folder is set to /tmp/dumps
+[2026-10-26 21:57:35] 10/26 21:57:35 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 21:57:35] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 21:57:35] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-applaunch' '203160'
+[2026-10-26 21:57:35] 10/26 21:57:35 minidumps folder is set to /tmp/dumps
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] Using update UI: xwin
+[2026-10-26 21:57:35] 10/26 21:57:35 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] Create window
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] 1. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] 2. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] Checking for update on startup
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] Checking for available updates...
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 21:57:35] [2026-10-26 21:57:35] Manifest download: send request
+[2026-10-26 21:57:36] [2026-10-26 21:57:36] Set percent complete: 0
+[2026-10-26 21:57:36] [2026-10-26 21:57:36] Set status message: Checking for available updates...
+[2026-10-26 21:57:36] [2026-10-26 21:57:36] Set percent complete: -1
+[2026-10-26 21:57:36] [2026-10-26 21:57:36] Manifest download: waiting for download to finish
+[2026-10-26 21:57:36] [2026-10-26 21:57:36] Manifest download: finished
+[2026-10-26 21:57:36] [2026-10-26 21:57:36] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 21:57:36] [2026-10-26 21:57:36] Nothing to do
+[2026-10-26 21:57:36] [2026-10-26 21:57:36] Verifying installation...
+[2026-10-26 21:57:36] [2026-10-26 21:57:36] Verifying all executable checksums
+[2026-10-26 21:57:36] [2026-10-26 21:57:36] Set percent complete: -1
+[2026-10-26 21:57:36] [2026-10-26 21:57:36] Set status message: Verifying installation...
+[2026-10-26 21:57:36] [2026-10-26 21:57:36] Show window
+[2026-10-26 21:57:39] [2026-10-26 21:57:39] Verification complete
+[2026-10-26 21:57:39] UpdateUI: skip show logo
+[2026-10-26 21:57:39] [2026-10-26 21:57:39] Destroy window
+[2026-10-26 21:57:39] [2026-10-26 21:57:39] Shutdown
+[2026-10-26 21:57:39] 
+[2026-10-26 21:57:39] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 21:57:39] 
+[2026-10-26 21:57:39] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 21:57:39] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5f8aec0
+[2026-10-26 21:57:39] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5f89590
+[2026-10-26 21:57:39] 10/26 21:57:39 minidumps folder is set to /tmp/dumps
+[2026-10-26 21:57:39] 10/26 21:57:39 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(534)
+[2026-10-26 21:57:39] Running query: 1 - GpuTopology
+[2026-10-26 21:57:39] Response: gpu_topology {
+[2026-10-26 21:57:39]   gpus {
+[2026-10-26 21:57:39]     id: 1
+[2026-10-26 21:57:39]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 21:57:39]     vram_size_bytes: 8843689984
+[2026-10-26 21:57:39]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 21:57:39]     driver_version_major: 615
+[2026-10-26 21:57:39]     driver_version_minor: 71
+[2026-10-26 21:57:39]     driver_version_patch: 9
+[2026-10-26 21:57:39]     luid: 0
+[2026-10-26 21:57:39]   }
+[2026-10-26 21:57:39]   default_gpu_id: 1
+[2026-10-26 21:57:39] }
+[2026-10-26 21:57:39] 
+[2026-10-26 21:57:39] Exit code: 0
+[2026-10-26 21:57:39] Saving response to: /tmp/steamCCjMaE - 50 bytes
+[2026-10-26 21:57:42] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 21:57:42] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 796
+[2026-10-26 21:57:42] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 21:57:47] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 21:57:47] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 21:57:49] pressure-vessel-wrap[858]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 21:57:49] pressure-vessel-wrap[856]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 21:57:50] ProtonFixes[1032] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 21:57:50] ProtonFixes[1033] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 21:57:50] ProtonFixes[1032] INFO: Setting up fsr4 version "default".
+[2026-10-26 21:57:50] ProtonFixes[1033] INFO: Setting up fsr4 version "default".
+[2026-10-26 21:57:51] ProtonFixes[1032] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 21:57:51] ProtonFixes[1033] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 21:57:51] ProtonFixes[1033] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 21:57:51] ProtonFixes[1032] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 21:57:51] fsync: up and running.
+[2026-10-26 21:57:51] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 21:57:51] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 21:57:51] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 21:57:51] chdir "/steam_shared/steamapps/common/Tomb Raider"
+[2026-10-26 21:57:51] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 21:57:51] Adding process 1059 for gameID 203160
+[2026-10-26 21:57:51] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 21:57:51] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 21:57:51] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 21:57:51] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 21:57:51] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 21:57:51] Adding process 1061 for gameID 203160
+[2026-10-26 21:57:51] Adding process 1062 for gameID 203160
+[2026-10-26 21:57:51] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 21:57:51] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 21:57:51] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 21:57:52] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 21:57:52] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 21:57:52] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 21:57:52] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 21:57:52] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 21:57:52] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 21:57:52] pressure-vessel-wrap[1061]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 21:57:52] pressure-vessel-wrap[1061]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 21:57:52] Adding process 1181 for gameID 203160
+[2026-10-26 21:57:52] ProtonFixes[1181] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 21:57:52] ProtonFixes[1181] INFO: Running checks
+[2026-10-26 21:57:52] ProtonFixes[1181] INFO: All checks successful
+[2026-10-26 21:57:52] ProtonFixes[1181] INFO: Using early stage global defaults for UNKNOWN (203160)
+[2026-10-26 21:57:52] ProtonFixes[1181] INFO: No early stage global protonfix found for UNKNOWN (203160)
+[2026-10-26 21:57:52] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 21:57:52] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 21:57:52] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 21:57:52] ProtonFixes[1181] INFO: Setting up fsr4 version "default".
+[2026-10-26 21:57:52] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 21:57:52] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 21:57:52] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 21:57:52] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 21:57:52] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 21:57:52] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 21:57:53] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 21:57:53] ProtonFixes[1181] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 21:57:53] ProtonFixes[1181] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 21:57:53] ProtonFixes[1181] INFO: Running checks
+[2026-10-26 21:57:53] ProtonFixes[1181] INFO: All checks successful
+[2026-10-26 21:57:53] ProtonFixes[1181] INFO: Using main stage global defaults for UNKNOWN (203160)
+[2026-10-26 21:57:53] ProtonFixes[1181] INFO: No main stage global protonfix found for UNKNOWN (203160)
+[2026-10-26 21:57:53] Adding process 1243 for gameID 203160
+[2026-10-26 21:57:53] fsync: up and running.
+[2026-10-26 21:57:53] Adding process 1244 for gameID 203160
+[2026-10-26 21:57:53] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 21:57:53] Adding process 1245 for gameID 203160
+[2026-10-26 21:57:53] Adding process 1250 for gameID 203160
+[2026-10-26 21:57:53] Adding process 1256 for gameID 203160
+[2026-10-26 21:57:54] Adding process 1259 for gameID 203160
+[2026-10-26 21:57:54] Adding process 1269 for gameID 203160
+[2026-10-26 21:57:54] Adding process 1280 for gameID 203160
+[2026-10-26 21:57:54] Adding process 1287 for gameID 203160
+[2026-10-26 21:57:54] Adding process 1304 for gameID 203160
+[2026-10-26 21:57:55] Adding process 1316 for gameID 203160
+[2026-10-26 21:57:55] Adding process 1325 for gameID 203160
+[2026-10-26 21:57:55] Adding process 1327 for gameID 203160
+[2026-10-26 21:57:55] Adding process 1335 for gameID 203160
+[2026-10-26 21:57:56] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/steamapps/shadercache/203160/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 21:57:57] Fossilize WARN: Graphics pipeline handle 0xffffffffd3b6a318 is not registered.
+[2026-10-26 21:57:57] It has either not been recorded, or it failed to be recorded earlier (which is expected if application uses an extension that is not recognized by Fossilize).
+[2026-10-26 21:57:57] Fossilize WARN: Graphics pipeline handle 0xffffffffd3b6c8e8 is not registered.
+[2026-10-26 21:57:57] It has either not been recorded, or it failed to be recorded earlier (which is expected if application uses an extension that is not recognized by Fossilize).
+[2026-10-26 21:57:57] Fossilize WARN: Pipeline library handle 0xffffffffd3b6a318 is not registered.
+[2026-10-26 21:57:57] It has either not been recorded, or it failed to be recorded earlier (which is expected if application uses an extension that is not recognized by Fossilize).
+[2026-10-26 21:57:57] 10/26 21:57:57 minidumps folder is set to /tmp/dumps
+[2026-10-26 21:57:57] 10/26 21:57:57 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(20261021210950)/tid(1405)
+[2026-10-26 21:57:57] 10/26 21:57:57 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(1.0)/tid(1405)
+[2026-10-26 21:57:59] Fossilize WARN:  ... warning spam detected at fossilize_errors.hpp:163, silencing.
+[2026-10-26 21:59:42] [2026-10-26 21:59:42] Background update loop checking for update. . .
+[2026-10-26 21:59:42] [2026-10-26 21:59:42] Checking for available updates...
+[2026-10-26 21:59:42] [2026-10-26 21:59:42] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 21:59:42] [2026-10-26 21:59:42] Manifest download: send request
+[2026-10-26 21:59:42] [2026-10-26 21:59:42] Manifest download: waiting for download to finish
+[2026-10-26 21:59:43] [2026-10-26 21:59:43] Manifest download: finished
+[2026-10-26 21:59:43] [2026-10-26 21:59:43] Download skipped by HTTP 304 Not Modified
+[2026-10-26 21:59:43] [2026-10-26 21:59:43] Nothing to do
+[2026-10-26 22:10:27] X connection to 127.0.0.1:129 broken (explicit kill or server shutdown).
+[2026-10-26 22:10:27] X connection to 127.0.0.1:129 broken (explicit kill or server shutdown).
+[2026-10-26 22:10:27] X connection to 127.0.0.1:129 broken (explicit kill or server shutdown).
+[2026-10-26 22:10:27] X connection to 127.0.0.1:129 broken (explicit kill or server shutdown).
+[2026-10-26 22:10:27] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:129"
+[2026-10-26 22:10:27] X connection to 127.0.0.1:129 broken (explicit kill or server shutdown).
+[2026-10-26 22:10:27] X connection to 127.0.0.1:129 broken (explicit kill or server shutdown).
+[2026-10-26 22:10:27]       after 60 requests (60 known processed) with 0 events remaining.
+[2026-10-26 22:10:27] X connection to 127.0.0.1:129 broken (explicit kill or server shutdown).
+[2026-10-26 22:10:27] X connection to 127.0.0.1:129 broken (explicit kill or server shutdown).
+[2026-10-26 22:10:27] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:129"
+[2026-10-26 22:10:27]       after 60 requests (60 known processed) with 0 events remaining.
+[2026-10-26 22:10:27] ../steamnetworkingsockets/clientlib/steamnetworkingsockets_socketthread.cpp (3844) : Trying to close low level socket support, but we still have sockets open!
+[2026-10-26 22:10:27] X connection to 127.0.0.1:129 broken (explicit kill or server shutdown).
+[2026-10-26 22:10:27] 10/26 22:10:27 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:10:27] X connection to 127.0.0.1:129 broken (explicit kill or server shutdown).
+[2026-10-26 22:10:27] X connection to 127.0.0.1:129 broken (explicit kill or server shutdown).
+[2026-10-26 22:10:27] ../common/html/chrome_ipc_client.cpp (1254) : Failed connecting to webhelper process
+[2026-10-26 22:10:27] 10/26 22:10:27 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(1.0)/tid(1405)
+[2026-10-26 22:10:27] assert_20261026221027_8.dmp[1530]: Uploading dump (out-of-process)
+[2026-10-26 22:10:27] /tmp/dumps/assert_20261026221027_8.dmp
+[2026-10-26 22:10:27] XIO:  fatal IO error 2 (No such file or directory) on X server "127.0.0.1:129"
+[2026-10-26 22:10:27]       after 288 requests (288 known processed) with 0 events remaining.
+[2026-10-26 22:10:27] assert_20261026221027_3.dmp[1534]: Uploading dump (out-of-process)
+[2026-10-26 22:10:27] /tmp/dumps/assert_20261026221027_3.dmp
+[2026-10-26 16:52:03+0000] srt-logger[317]: Log opened
+[2026-10-26 22:22:03] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 22:22:03] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 22:22:03] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 22:22:05] steam.sh[307]: Log already open
+[2026-10-26 22:22:05] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 22:22:05] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-applaunch' '203160'
+[2026-10-26 22:22:05] 10/26 22:22:05 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:22:05] 10/26 22:22:05 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 22:22:05] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 22:22:05] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-applaunch' '203160'
+[2026-10-26 22:22:05] 10/26 22:22:05 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Using update UI: xwin
+[2026-10-26 22:22:05] 10/26 22:22:05 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Create window
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Checking for update on startup
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Checking for available updates...
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Manifest download: send request
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Set percent complete: 0
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Set status message: Checking for available updates...
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Set percent complete: -1
+[2026-10-26 22:22:05] [2026-10-26 22:22:05] Manifest download: waiting for download to finish
+[2026-10-26 22:22:06] [2026-10-26 22:22:06] Manifest download: finished
+[2026-10-26 22:22:06] [2026-10-26 22:22:06] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 22:22:06] [2026-10-26 22:22:06] Nothing to do
+[2026-10-26 22:22:06] [2026-10-26 22:22:06] Verifying installation...
+[2026-10-26 22:22:06] [2026-10-26 22:22:06] Verifying all executable checksums
+[2026-10-26 22:22:06] [2026-10-26 22:22:06] Set percent complete: -1
+[2026-10-26 22:22:06] [2026-10-26 22:22:06] Set status message: Verifying installation...
+[2026-10-26 22:22:06] [2026-10-26 22:22:06] Show window
+[2026-10-26 22:22:08] [2026-10-26 22:22:08] Verification complete
+[2026-10-26 22:22:08] UpdateUI: skip show logo
+[2026-10-26 22:22:08] [2026-10-26 22:22:08] Destroy window
+[2026-10-26 22:22:08] [2026-10-26 22:22:08] Shutdown
+[2026-10-26 22:22:08] 
+[2026-10-26 22:22:08] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 22:22:08] 
+[2026-10-26 22:22:08] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 22:22:08] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5f59ec0
+[2026-10-26 22:22:08] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5f58590
+[2026-10-26 22:22:08] 10/26 22:22:08 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:22:08] 10/26 22:22:08 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(535)
+[2026-10-26 22:22:08] Running query: 1 - GpuTopology
+[2026-10-26 22:22:08] Response: gpu_topology {
+[2026-10-26 22:22:08]   gpus {
+[2026-10-26 22:22:08]     id: 1
+[2026-10-26 22:22:08]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 22:22:08]     vram_size_bytes: 8843689984
+[2026-10-26 22:22:08]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 22:22:08]     driver_version_major: 615
+[2026-10-26 22:22:08]     driver_version_minor: 71
+[2026-10-26 22:22:08]     driver_version_patch: 9
+[2026-10-26 22:22:08]     luid: 0
+[2026-10-26 22:22:08]   }
+[2026-10-26 22:22:08]   default_gpu_id: 1
+[2026-10-26 22:22:08] }
+[2026-10-26 22:22:08] 
+[2026-10-26 22:22:08] Exit code: 0
+[2026-10-26 22:22:08] Saving response to: /tmp/steamlggGOe - 50 bytes
+[2026-10-26 22:22:10] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 22:22:10] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 801
+[2026-10-26 22:22:10] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 22:22:16] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 22:22:16] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 22:22:17] pressure-vessel-wrap[862]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:22:18] pressure-vessel-wrap[864]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:22:18] ProtonFixes[1032] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:22:18] ProtonFixes[1033] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:22:18] ProtonFixes[1032] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:22:18] ProtonFixes[1033] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:22:19] ProtonFixes[1032] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:22:19] ProtonFixes[1032] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:22:19] ProtonFixes[1033] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:22:19] ProtonFixes[1033] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:22:19] fsync: up and running.
+[2026-10-26 22:22:20] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:22:20] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:22:20] Adding process 1094 for gameID 203160
+[2026-10-26 22:22:20] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:22:20] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:22:20] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:22:20] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:22:20] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:22:20] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 22:22:20] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 22:22:20] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 22:22:20] Adding process 1110 for gameID 203160
+[2026-10-26 22:22:20] Adding process 1111 for gameID 203160
+[2026-10-26 22:22:21] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 22:22:21] pressure-vessel-wrap[1110]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:22:21] pressure-vessel-wrap[1110]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:22:21] Adding process 1229 for gameID 203160
+[2026-10-26 22:22:21] ProtonFixes[1229] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:22:21] ProtonFixes[1229] INFO: Running checks
+[2026-10-26 22:22:21] ProtonFixes[1229] INFO: All checks successful
+[2026-10-26 22:22:21] ProtonFixes[1229] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:22:21] ProtonFixes[1229] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:22:21] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 22:22:21] ProtonFixes[1229] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:22:22] ProtonFixes[1229] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:22:22] ProtonFixes[1229] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:22:22] ProtonFixes[1229] INFO: Running checks
+[2026-10-26 22:22:22] ProtonFixes[1229] INFO: All checks successful
+[2026-10-26 22:22:22] ProtonFixes[1229] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:22:22] ProtonFixes[1229] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:22:22] fsync: up and running.
+[2026-10-26 22:22:22] Adding process 1245 for gameID 203160
+[2026-10-26 22:22:22] Adding process 1246 for gameID 203160
+[2026-10-26 22:22:22] Adding process 1247 for gameID 203160
+[2026-10-26 22:22:22] Adding process 1250 for gameID 203160
+[2026-10-26 22:22:22] Adding process 1252 for gameID 203160
+[2026-10-26 22:22:22] Adding process 1255 for gameID 203160
+[2026-10-26 22:22:22] Adding process 1265 for gameID 203160
+[2026-10-26 22:22:22] Adding process 1271 for gameID 203160
+[2026-10-26 22:22:22] Adding process 1278 for gameID 203160
+[2026-10-26 22:22:23] Adding process 1295 for gameID 203160
+[2026-10-26 22:22:23] Adding process 1307 for gameID 203160
+[2026-10-26 22:22:23] Adding process 1316 for gameID 203160
+[2026-10-26 22:22:23] Adding process 1318 for gameID 203160
+[2026-10-26 22:22:23] pid 1248 != 1247, skipping destruction (fork without exec?)
+[2026-10-26 22:22:24] Game Recording - game stopped [gameid=203160]
+[2026-10-26 22:22:24] Removing process 1318 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1316 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1307 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1295 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1278 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1271 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1265 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1255 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1252 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1250 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1247 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1246 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1245 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1229 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1111 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1110 for gameID 203160
+[2026-10-26 22:22:24] Removing process 1094 for gameID 203160
+[2026-10-26 22:23:16] Fossilize INFO: Setting autogroup scheduling.
+[2026-10-26 22:23:32] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:23:32] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:23:32] Adding process 1631 for gameID 203160
+[2026-10-26 22:23:33] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:23:33] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:23:33] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:23:33] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:23:33] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:23:33] Adding process 1632 for gameID 203160
+[2026-10-26 22:23:33] Adding process 1633 for gameID 203160
+[2026-10-26 22:23:34] pressure-vessel-wrap[1632]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:23:34] pressure-vessel-wrap[1632]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:23:34] Adding process 1712 for gameID 203160
+[2026-10-26 22:23:34] ProtonFixes[1712] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:23:34] ProtonFixes[1712] INFO: Running checks
+[2026-10-26 22:23:34] ProtonFixes[1712] INFO: All checks successful
+[2026-10-26 22:23:34] ProtonFixes[1712] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:23:34] ProtonFixes[1712] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:23:34] ProtonFixes[1712] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:23:35] ProtonFixes[1712] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:23:35] ProtonFixes[1712] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:23:35] ProtonFixes[1712] INFO: Running checks
+[2026-10-26 22:23:35] ProtonFixes[1712] INFO: All checks successful
+[2026-10-26 22:23:35] ProtonFixes[1712] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:23:35] ProtonFixes[1712] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:23:35] fsync: up and running.
+[2026-10-26 22:23:35] Adding process 1717 for gameID 203160
+[2026-10-26 22:23:35] Adding process 1718 for gameID 203160
+[2026-10-26 22:23:35] Adding process 1719 for gameID 203160
+[2026-10-26 22:23:35] Adding process 1722 for gameID 203160
+[2026-10-26 22:23:35] Adding process 1724 for gameID 203160
+[2026-10-26 22:23:35] Adding process 1727 for gameID 203160
+[2026-10-26 22:23:36] Adding process 1737 for gameID 203160
+[2026-10-26 22:23:36] Adding process 1743 for gameID 203160
+[2026-10-26 22:23:36] Adding process 1750 for gameID 203160
+[2026-10-26 22:23:36] Adding process 1767 for gameID 203160
+[2026-10-26 22:23:36] Adding process 1779 for gameID 203160
+[2026-10-26 22:23:37] Adding process 1788 for gameID 203160
+[2026-10-26 22:23:37] Adding process 1790 for gameID 203160
+[2026-10-26 22:23:37] pid 1720 != 1719, skipping destruction (fork without exec?)
+[2026-10-26 22:23:37] Game Recording - game stopped [gameid=203160]
+[2026-10-26 22:23:37] Removing process 1790 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1788 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1779 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1767 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1750 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1743 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1737 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1727 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1724 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1722 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1719 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1718 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1717 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1712 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1633 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1632 for gameID 203160
+[2026-10-26 22:23:37] Removing process 1631 for gameID 203160
+[2026-10-26 22:23:40] Fossilize INFO: Setting autogroup scheduling.
+[2026-10-26 22:23:42] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:23:42] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:23:42] Adding process 2083 for gameID 203160
+[2026-10-26 22:23:42] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:23:42] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:23:42] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:23:42] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:23:42] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:23:42] Adding process 2084 for gameID 203160
+[2026-10-26 22:23:43] Adding process 2085 for gameID 203160
+[2026-10-26 22:23:43] pressure-vessel-wrap[2084]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:23:43] pressure-vessel-wrap[2084]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:23:43] Adding process 2164 for gameID 203160
+[2026-10-26 22:23:43] ProtonFixes[2164] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:23:43] ProtonFixes[2164] INFO: Running checks
+[2026-10-26 22:23:43] ProtonFixes[2164] INFO: All checks successful
+[2026-10-26 22:23:43] ProtonFixes[2164] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:23:43] ProtonFixes[2164] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:23:43] ProtonFixes[2164] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:23:44] ProtonFixes[2164] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:23:44] ProtonFixes[2164] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:23:44] ProtonFixes[2164] INFO: Running checks
+[2026-10-26 22:23:44] ProtonFixes[2164] INFO: All checks successful
+[2026-10-26 22:23:44] ProtonFixes[2164] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:23:44] ProtonFixes[2164] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:23:44] fsync: up and running.
+[2026-10-26 22:23:44] Adding process 2169 for gameID 203160
+[2026-10-26 22:23:44] Adding process 2170 for gameID 203160
+[2026-10-26 22:23:44] Adding process 2171 for gameID 203160
+[2026-10-26 22:23:44] Adding process 2174 for gameID 203160
+[2026-10-26 22:23:44] Adding process 2176 for gameID 203160
+[2026-10-26 22:23:44] Adding process 2179 for gameID 203160
+[2026-10-26 22:23:44] Adding process 2189 for gameID 203160
+[2026-10-26 22:23:45] Adding process 2195 for gameID 203160
+[2026-10-26 22:23:45] Adding process 2202 for gameID 203160
+[2026-10-26 22:23:45] Adding process 2219 for gameID 203160
+[2026-10-26 22:23:45] Adding process 2231 for gameID 203160
+[2026-10-26 22:23:45] Adding process 2240 for gameID 203160
+[2026-10-26 22:23:45] Adding process 2242 for gameID 203160
+[2026-10-26 22:23:46] pid 2172 != 2171, skipping destruction (fork without exec?)
+[2026-10-26 22:23:46] Game Recording - game stopped [gameid=203160]
+[2026-10-26 22:23:46] Removing process 2242 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2240 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2231 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2219 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2202 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2195 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2189 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2179 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2176 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2174 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2171 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2170 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2169 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2164 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2085 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2084 for gameID 203160
+[2026-10-26 22:23:46] Removing process 2083 for gameID 203160
+[2026-10-26 22:24:04] Fossilize INFO: Setting autogroup scheduling.
+[2026-10-26 22:24:10] [2026-10-26 22:24:10] Background update loop checking for update. . .
+[2026-10-26 22:24:10] [2026-10-26 22:24:10] Checking for available updates...
+[2026-10-26 22:24:10] [2026-10-26 22:24:10] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 22:24:10] [2026-10-26 22:24:10] Manifest download: send request
+[2026-10-26 22:24:10] [2026-10-26 22:24:10] Manifest download: waiting for download to finish
+[2026-10-26 22:24:11] [2026-10-26 22:24:11] Manifest download: finished
+[2026-10-26 22:24:11] [2026-10-26 22:24:11] Download skipped by HTTP 304 Not Modified
+[2026-10-26 22:24:11] [2026-10-26 22:24:11] Nothing to do
+[2026-10-26 22:24:37] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:24:37] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:24:37] Adding process 2532 for gameID 203160
+[2026-10-26 22:24:37] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:24:37] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:24:37] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:24:37] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:24:37] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:24:37] Adding process 2533 for gameID 203160
+[2026-10-26 22:24:37] Adding process 2534 for gameID 203160
+[2026-10-26 22:24:38] pressure-vessel-wrap[2533]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:24:38] pressure-vessel-wrap[2533]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:24:38] Adding process 2613 for gameID 203160
+[2026-10-26 22:24:38] ProtonFixes[2613] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:24:38] ProtonFixes[2613] INFO: Running checks
+[2026-10-26 22:24:38] ProtonFixes[2613] INFO: All checks successful
+[2026-10-26 22:24:38] ProtonFixes[2613] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:24:38] ProtonFixes[2613] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:24:38] ProtonFixes[2613] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:24:38] ProtonFixes[2613] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:24:38] ProtonFixes[2613] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:24:38] ProtonFixes[2613] INFO: Running checks
+[2026-10-26 22:24:38] ProtonFixes[2613] INFO: All checks successful
+[2026-10-26 22:24:38] ProtonFixes[2613] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:24:38] ProtonFixes[2613] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:24:39] Adding process 2618 for gameID 203160
+[2026-10-26 22:24:39] fsync: up and running.
+[2026-10-26 22:24:39] Adding process 2619 for gameID 203160
+[2026-10-26 22:24:39] Adding process 2620 for gameID 203160
+[2026-10-26 22:24:39] Adding process 2623 for gameID 203160
+[2026-10-26 22:24:39] Adding process 2625 for gameID 203160
+[2026-10-26 22:24:39] Adding process 2628 for gameID 203160
+[2026-10-26 22:24:39] Adding process 2638 for gameID 203160
+[2026-10-26 22:24:40] Adding process 2644 for gameID 203160
+[2026-10-26 22:24:40] Adding process 2651 for gameID 203160
+[2026-10-26 22:24:41] Adding process 2668 for gameID 203160
+[2026-10-26 22:24:41] Adding process 2680 for gameID 203160
+[2026-10-26 22:24:41] Adding process 2689 for gameID 203160
+[2026-10-26 22:24:41] Adding process 2691 for gameID 203160
+[2026-10-26 22:24:42] pid 2621 != 2620, skipping destruction (fork without exec?)
+[2026-10-26 22:24:42] Game Recording - game stopped [gameid=203160]
+[2026-10-26 22:24:42] Removing process 2691 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2689 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2680 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2668 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2651 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2644 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2638 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2628 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2625 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2623 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2620 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2619 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2618 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2613 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2534 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2533 for gameID 203160
+[2026-10-26 22:24:42] Removing process 2532 for gameID 203160
+[2026-10-26 22:24:49] Fossilize INFO: Setting autogroup scheduling.
+[2026-10-26 22:24:51] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:24:51] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:24:51] Adding process 2965 for gameID 203160
+[2026-10-26 22:24:51] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:24:51] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:24:51] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:24:51] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:24:51] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:24:51] Adding process 2966 for gameID 203160
+[2026-10-26 22:24:52] Adding process 2967 for gameID 203160
+[2026-10-26 22:24:52] pressure-vessel-wrap[2966]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:24:52] pressure-vessel-wrap[2966]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:24:52] Adding process 3047 for gameID 203160
+[2026-10-26 22:24:52] ProtonFixes[3047] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:24:52] ProtonFixes[3047] INFO: Running checks
+[2026-10-26 22:24:52] ProtonFixes[3047] INFO: All checks successful
+[2026-10-26 22:24:52] ProtonFixes[3047] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:24:52] ProtonFixes[3047] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:24:53] ProtonFixes[3047] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:24:53] ProtonFixes[3047] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:24:53] ProtonFixes[3047] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:24:53] ProtonFixes[3047] INFO: Running checks
+[2026-10-26 22:24:53] ProtonFixes[3047] INFO: All checks successful
+[2026-10-26 22:24:53] ProtonFixes[3047] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:24:53] ProtonFixes[3047] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:24:53] fsync: up and running.
+[2026-10-26 22:24:53] Adding process 3052 for gameID 203160
+[2026-10-26 22:24:53] Adding process 3053 for gameID 203160
+[2026-10-26 22:24:53] Adding process 3054 for gameID 203160
+[2026-10-26 22:24:53] Adding process 3057 for gameID 203160
+[2026-10-26 22:24:53] Adding process 3059 for gameID 203160
+[2026-10-26 22:24:53] Adding process 3062 for gameID 203160
+[2026-10-26 22:24:54] Adding process 3072 for gameID 203160
+[2026-10-26 22:24:54] Adding process 3078 for gameID 203160
+[2026-10-26 22:24:54] Adding process 3085 for gameID 203160
+[2026-10-26 22:24:54] Adding process 3102 for gameID 203160
+[2026-10-26 22:24:54] Adding process 3114 for gameID 203160
+[2026-10-26 22:24:54] Adding process 3123 for gameID 203160
+[2026-10-26 22:24:55] Adding process 3125 for gameID 203160
+[2026-10-26 22:24:55] pid 3055 != 3054, skipping destruction (fork without exec?)
+[2026-10-26 22:24:55] Game Recording - game stopped [gameid=203160]
+[2026-10-26 22:24:55] Removing process 3125 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3123 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3114 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3102 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3085 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3078 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3072 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3062 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3059 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3057 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3054 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3053 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3052 for gameID 203160
+[2026-10-26 22:24:55] Removing process 3047 for gameID 203160
+[2026-10-26 22:24:55] Removing process 2967 for gameID 203160
+[2026-10-26 22:24:55] Removing process 2966 for gameID 203160
+[2026-10-26 22:24:55] Removing process 2965 for gameID 203160
+[2026-10-26 16:55:24+0000] srt-logger[317]: Log opened
+[2026-10-26 22:25:24] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 22:25:24] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 22:25:24] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 22:25:26] steam.sh[307]: Log already open
+[2026-10-26 22:25:26] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 22:25:26] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-applaunch' '203160'
+[2026-10-26 22:25:26] 10/26 22:25:26 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:25:26] 10/26 22:25:26 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 22:25:26] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 22:25:26] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Checking for update on startup
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-applaunch' '203160'
+[2026-10-26 22:25:26] 10/26 22:25:26 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Checking for available updates...
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Manifest download: send request
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Using update UI: xwin
+[2026-10-26 22:25:26] 10/26 22:25:26 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Create window
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Set percent complete: 0
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Set status message: Checking for available updates...
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Set percent complete: -1
+[2026-10-26 22:25:26] [2026-10-26 22:25:26] Manifest download: waiting for download to finish
+[2026-10-26 22:25:27] [2026-10-26 22:25:27] Manifest download: finished
+[2026-10-26 22:25:27] [2026-10-26 22:25:27] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 22:25:27] [2026-10-26 22:25:27] Nothing to do
+[2026-10-26 22:25:27] [2026-10-26 22:25:27] Verifying installation...
+[2026-10-26 22:25:27] [2026-10-26 22:25:27] Verifying all executable checksums
+[2026-10-26 22:25:27] [2026-10-26 22:25:27] Set percent complete: -1
+[2026-10-26 22:25:27] [2026-10-26 22:25:27] Set status message: Verifying installation...
+[2026-10-26 22:25:27] [2026-10-26 22:25:27] Show window
+[2026-10-26 22:25:29] [2026-10-26 22:25:29] Verification complete
+[2026-10-26 22:25:29] UpdateUI: skip show logo
+[2026-10-26 22:25:29] [2026-10-26 22:25:29] Destroy window
+[2026-10-26 22:25:29] [2026-10-26 22:25:29] Shutdown
+[2026-10-26 22:25:29] 
+[2026-10-26 22:25:29] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 22:25:29] 
+[2026-10-26 22:25:30] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 22:25:30] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5fc1ec0
+[2026-10-26 22:25:30] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5fc0590
+[2026-10-26 22:25:30] 10/26 22:25:30 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:25:30] 10/26 22:25:30 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(539)
+[2026-10-26 22:25:30] Running query: 1 - GpuTopology
+[2026-10-26 22:25:30] Response: gpu_topology {
+[2026-10-26 22:25:30]   gpus {
+[2026-10-26 22:25:30]     id: 1
+[2026-10-26 22:25:30]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 22:25:30]     vram_size_bytes: 8843689984
+[2026-10-26 22:25:30]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 22:25:30]     driver_version_major: 615
+[2026-10-26 22:25:30]     driver_version_minor: 71
+[2026-10-26 22:25:30]     driver_version_patch: 9
+[2026-10-26 22:25:30]     luid: 0
+[2026-10-26 22:25:30]   }
+[2026-10-26 22:25:30]   default_gpu_id: 1
+[2026-10-26 22:25:30] }
+[2026-10-26 22:25:30] 
+[2026-10-26 22:25:30] Exit code: 0
+[2026-10-26 22:25:30] Saving response to: /tmp/steamllpILe - 50 bytes
+[2026-10-26 22:25:31] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 22:25:31] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 661
+[2026-10-26 22:25:31] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 22:25:37] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 22:25:37] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 22:25:38] pressure-vessel-wrap[859]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:25:38] ProtonFixes[1000] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:25:38] pressure-vessel-wrap[861]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:25:38] ProtonFixes[1000] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:25:39] ProtonFixes[1029] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:25:39] ProtonFixes[1029] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:25:39] Fossilize INFO: Setting autogroup scheduling.
+[2026-10-26 22:25:39] ProtonFixes[1000] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:25:39] ProtonFixes[1000] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:25:39] fsync: up and running.
+[2026-10-26 22:25:39] ProtonFixes[1029] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:25:39] ProtonFixes[1029] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:25:41] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 22:25:41] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 22:25:41] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 22:25:42] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 22:25:42] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 22:25:42] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 22:25:43] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 22:25:44] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 22:25:59] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:26:00] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:26:00] Adding process 1435 for gameID 203160
+[2026-10-26 22:26:00] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:26:00] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:26:00] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:26:00] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:26:00] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:26:00] Adding process 1436 for gameID 203160
+[2026-10-26 22:26:00] Adding process 1437 for gameID 203160
+[2026-10-26 22:26:01] pressure-vessel-wrap[1436]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:26:01] pressure-vessel-wrap[1436]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:26:01] Adding process 1518 for gameID 203160
+[2026-10-26 22:26:01] ProtonFixes[1518] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:26:01] ProtonFixes[1518] INFO: Running checks
+[2026-10-26 22:26:01] ProtonFixes[1518] INFO: All checks successful
+[2026-10-26 22:26:01] ProtonFixes[1518] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:26:01] ProtonFixes[1518] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:26:01] ProtonFixes[1518] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:26:01] ProtonFixes[1518] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:26:01] ProtonFixes[1518] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:26:01] ProtonFixes[1518] INFO: Running checks
+[2026-10-26 22:26:01] ProtonFixes[1518] INFO: All checks successful
+[2026-10-26 22:26:01] ProtonFixes[1518] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:26:01] ProtonFixes[1518] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:26:02] fsync: up and running.
+[2026-10-26 22:26:02] Adding process 1523 for gameID 203160
+[2026-10-26 22:26:02] Adding process 1524 for gameID 203160
+[2026-10-26 22:26:02] Adding process 1525 for gameID 203160
+[2026-10-26 22:26:02] Adding process 1528 for gameID 203160
+[2026-10-26 22:26:02] Adding process 1530 for gameID 203160
+[2026-10-26 22:26:02] Adding process 1533 for gameID 203160
+[2026-10-26 22:26:02] Adding process 1543 for gameID 203160
+[2026-10-26 22:26:03] Adding process 1549 for gameID 203160
+[2026-10-26 22:26:03] Adding process 1556 for gameID 203160
+[2026-10-26 22:26:03] Adding process 1573 for gameID 203160
+[2026-10-26 22:26:03] Adding process 1585 for gameID 203160
+[2026-10-26 22:26:03] Adding process 1594 for gameID 203160
+[2026-10-26 22:26:03] Adding process 1596 for gameID 203160
+[2026-10-26 22:26:04] pid 1526 != 1525, skipping destruction (fork without exec?)
+[2026-10-26 22:26:04] Game Recording - game stopped [gameid=203160]
+[2026-10-26 22:26:04] Removing process 1596 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1594 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1585 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1573 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1556 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1549 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1543 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1533 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1530 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1528 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1525 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1524 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1523 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1518 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1437 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1436 for gameID 203160
+[2026-10-26 22:26:04] Removing process 1435 for gameID 203160
+[2026-10-26 22:26:08] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:26:08] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:26:08] Adding process 1627 for gameID 203160
+[2026-10-26 22:26:08] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:26:08] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:26:08] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:26:08] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:26:08] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:26:08] Adding process 1628 for gameID 203160
+[2026-10-26 22:26:08] Adding process 1629 for gameID 203160
+[2026-10-26 22:26:09] pressure-vessel-wrap[1628]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:26:09] pressure-vessel-wrap[1628]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:26:09] Adding process 1709 for gameID 203160
+[2026-10-26 22:26:09] ProtonFixes[1709] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:26:09] ProtonFixes[1709] INFO: Running checks
+[2026-10-26 22:26:09] ProtonFixes[1709] INFO: All checks successful
+[2026-10-26 22:26:09] ProtonFixes[1709] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:26:09] ProtonFixes[1709] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:26:09] ProtonFixes[1709] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:26:10] ProtonFixes[1709] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:26:10] ProtonFixes[1709] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:26:10] ProtonFixes[1709] INFO: Running checks
+[2026-10-26 22:26:10] ProtonFixes[1709] INFO: All checks successful
+[2026-10-26 22:26:10] ProtonFixes[1709] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:26:10] ProtonFixes[1709] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:26:10] Adding process 1714 for gameID 203160
+[2026-10-26 22:26:10] fsync: up and running.
+[2026-10-26 22:26:10] Adding process 1715 for gameID 203160
+[2026-10-26 22:26:10] Adding process 1716 for gameID 203160
+[2026-10-26 22:26:10] Adding process 1719 for gameID 203160
+[2026-10-26 22:26:10] Adding process 1721 for gameID 203160
+[2026-10-26 22:26:10] Adding process 1724 for gameID 203160
+[2026-10-26 22:26:10] Adding process 1734 for gameID 203160
+[2026-10-26 22:26:11] Adding process 1740 for gameID 203160
+[2026-10-26 22:26:11] Adding process 1747 for gameID 203160
+[2026-10-26 22:26:11] Adding process 1764 for gameID 203160
+[2026-10-26 22:26:11] Adding process 1776 for gameID 203160
+[2026-10-26 22:26:11] Adding process 1785 for gameID 203160
+[2026-10-26 22:26:11] Adding process 1787 for gameID 203160
+[2026-10-26 22:26:12] pid 1717 != 1716, skipping destruction (fork without exec?)
+[2026-10-26 22:26:12] Game Recording - game stopped [gameid=203160]
+[2026-10-26 22:26:12] Removing process 1787 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1785 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1776 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1764 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1747 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1740 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1734 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1724 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1721 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1719 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1716 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1715 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1714 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1709 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1629 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1628 for gameID 203160
+[2026-10-26 22:26:12] Removing process 1627 for gameID 203160
+[2026-10-26 22:26:16] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:26:16] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:26:16] Adding process 1812 for gameID 203160
+[2026-10-26 22:26:16] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:26:16] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:26:16] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:26:16] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:26:16] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:26:16] Adding process 1813 for gameID 203160
+[2026-10-26 22:26:16] Adding process 1814 for gameID 203160
+[2026-10-26 22:26:17] pressure-vessel-wrap[1813]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:26:17] pressure-vessel-wrap[1813]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:26:17] Adding process 1894 for gameID 203160
+[2026-10-26 22:26:17] ProtonFixes[1894] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:26:17] ProtonFixes[1894] INFO: Running checks
+[2026-10-26 22:26:17] ProtonFixes[1894] INFO: All checks successful
+[2026-10-26 22:26:17] ProtonFixes[1894] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:26:17] ProtonFixes[1894] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:26:17] ProtonFixes[1894] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:26:18] ProtonFixes[1894] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:26:18] ProtonFixes[1894] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:26:18] ProtonFixes[1894] INFO: Running checks
+[2026-10-26 22:26:18] ProtonFixes[1894] INFO: All checks successful
+[2026-10-26 22:26:18] ProtonFixes[1894] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:26:18] ProtonFixes[1894] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:26:18] fsync: up and running.
+[2026-10-26 22:26:18] Adding process 1899 for gameID 203160
+[2026-10-26 22:26:18] Adding process 1900 for gameID 203160
+[2026-10-26 22:26:18] Adding process 1901 for gameID 203160
+[2026-10-26 22:26:18] Adding process 1904 for gameID 203160
+[2026-10-26 22:26:18] Adding process 1906 for gameID 203160
+[2026-10-26 22:26:18] Adding process 1909 for gameID 203160
+[2026-10-26 22:26:18] Adding process 1919 for gameID 203160
+[2026-10-26 22:26:19] Adding process 1925 for gameID 203160
+[2026-10-26 22:26:19] Adding process 1932 for gameID 203160
+[2026-10-26 22:26:19] Adding process 1949 for gameID 203160
+[2026-10-26 22:26:19] Adding process 1962 for gameID 203160
+[2026-10-26 22:26:19] Adding process 1971 for gameID 203160
+[2026-10-26 22:26:19] Adding process 1973 for gameID 203160
+[2026-10-26 22:26:20] pid 1902 != 1901, skipping destruction (fork without exec?)
+[2026-10-26 22:26:20] Game Recording - game stopped [gameid=203160]
+[2026-10-26 22:26:20] Removing process 1973 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1971 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1962 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1949 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1932 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1925 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1919 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1909 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1906 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1904 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1901 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1900 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1899 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1894 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1814 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1813 for gameID 203160
+[2026-10-26 22:26:20] Removing process 1812 for gameID 203160
+[2026-10-26 22:27:31] [2026-10-26 22:27:31] Background update loop checking for update. . .
+[2026-10-26 22:27:31] [2026-10-26 22:27:31] Checking for available updates...
+[2026-10-26 22:27:31] [2026-10-26 22:27:31] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 22:27:31] [2026-10-26 22:27:31] Manifest download: send request
+[2026-10-26 22:27:32] [2026-10-26 22:27:32] Manifest download: waiting for download to finish
+[2026-10-26 22:27:32] [2026-10-26 22:27:32] Manifest download: finished
+[2026-10-26 22:27:32] [2026-10-26 22:27:32] Download skipped by HTTP 304 Not Modified
+[2026-10-26 22:27:32] [2026-10-26 22:27:32] Nothing to do
+[2026-10-26 22:30:18] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:30:18] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:30:18] Adding process 2059 for gameID 203160
+[2026-10-26 22:30:18] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:30:18] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:30:18] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:30:18] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:30:18] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:30:18] Adding process 2060 for gameID 203160
+[2026-10-26 22:30:18] Adding process 2061 for gameID 203160
+[2026-10-26 22:30:19] pressure-vessel-wrap[2060]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:30:19] pressure-vessel-wrap[2060]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:30:19] Adding process 2145 for gameID 203160
+[2026-10-26 22:30:19] ProtonFixes[2145] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:30:19] ProtonFixes[2145] INFO: Running checks
+[2026-10-26 22:30:19] ProtonFixes[2145] INFO: All checks successful
+[2026-10-26 22:30:19] ProtonFixes[2145] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:30:19] ProtonFixes[2145] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:30:19] ProtonFixes[2145] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:30:20] ProtonFixes[2145] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:30:20] ProtonFixes[2145] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:30:20] ProtonFixes[2145] INFO: Running checks
+[2026-10-26 22:30:20] ProtonFixes[2145] INFO: All checks successful
+[2026-10-26 22:30:20] ProtonFixes[2145] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:30:20] ProtonFixes[2145] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:30:20] Adding process 2150 for gameID 203160
+[2026-10-26 22:30:20] fsync: up and running.
+[2026-10-26 22:30:20] Adding process 2151 for gameID 203160
+[2026-10-26 22:30:20] Adding process 2152 for gameID 203160
+[2026-10-26 22:30:20] Adding process 2155 for gameID 203160
+[2026-10-26 22:30:20] Adding process 2157 for gameID 203160
+[2026-10-26 22:30:20] Adding process 2160 for gameID 203160
+[2026-10-26 22:30:20] Adding process 2170 for gameID 203160
+[2026-10-26 22:30:21] Adding process 2176 for gameID 203160
+[2026-10-26 22:30:21] Adding process 2183 for gameID 203160
+[2026-10-26 22:30:21] Adding process 2200 for gameID 203160
+[2026-10-26 22:30:21] Adding process 2212 for gameID 203160
+[2026-10-26 22:30:21] Adding process 2221 for gameID 203160
+[2026-10-26 22:30:21] Adding process 2223 for gameID 203160
+[2026-10-26 22:30:22] pid 2153 != 2152, skipping destruction (fork without exec?)
+[2026-10-26 22:30:22] Game Recording - game stopped [gameid=203160]
+[2026-10-26 22:30:22] Removing process 2223 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2221 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2212 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2200 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2183 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2176 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2170 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2160 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2157 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2155 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2152 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2151 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2150 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2145 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2061 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2060 for gameID 203160
+[2026-10-26 22:30:22] Removing process 2059 for gameID 203160
+[2026-10-26 22:30:31] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:30:31] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:30:31] Adding process 2251 for gameID 203160
+[2026-10-26 22:30:31] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:30:31] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:30:31] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:30:31] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:30:31] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:30:31] Adding process 2252 for gameID 203160
+[2026-10-26 22:30:31] Adding process 2253 for gameID 203160
+[2026-10-26 22:30:32] pressure-vessel-wrap[2252]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:30:32] pressure-vessel-wrap[2252]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:30:32] Adding process 2334 for gameID 203160
+[2026-10-26 22:30:32] ProtonFixes[2334] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:30:32] ProtonFixes[2334] INFO: Running checks
+[2026-10-26 22:30:32] ProtonFixes[2334] INFO: All checks successful
+[2026-10-26 22:30:32] ProtonFixes[2334] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:30:32] ProtonFixes[2334] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:30:33] ProtonFixes[2334] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:30:33] ProtonFixes[2334] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:30:33] ProtonFixes[2334] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:30:33] ProtonFixes[2334] INFO: Running checks
+[2026-10-26 22:30:33] ProtonFixes[2334] INFO: All checks successful
+[2026-10-26 22:30:33] ProtonFixes[2334] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:30:33] ProtonFixes[2334] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:30:33] fsync: up and running.
+[2026-10-26 22:30:33] Adding process 2339 for gameID 203160
+[2026-10-26 22:30:33] Adding process 2340 for gameID 203160
+[2026-10-26 22:30:33] Adding process 2341 for gameID 203160
+[2026-10-26 22:30:33] Adding process 2344 for gameID 203160
+[2026-10-26 22:30:33] Adding process 2346 for gameID 203160
+[2026-10-26 22:30:33] Adding process 2349 for gameID 203160
+[2026-10-26 22:30:33] Adding process 2359 for gameID 203160
+[2026-10-26 22:30:34] Adding process 2365 for gameID 203160
+[2026-10-26 22:30:34] Adding process 2372 for gameID 203160
+[2026-10-26 22:30:34] Adding process 2389 for gameID 203160
+[2026-10-26 22:30:34] Adding process 2401 for gameID 203160
+[2026-10-26 22:30:34] Adding process 2410 for gameID 203160
+[2026-10-26 22:30:34] Adding process 2412 for gameID 203160
+[2026-10-26 22:30:35] pid 2342 != 2341, skipping destruction (fork without exec?)
+[2026-10-26 22:30:35] Game Recording - game stopped [gameid=203160]
+[2026-10-26 22:30:35] Removing process 2412 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2410 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2401 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2389 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2372 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2365 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2359 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2349 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2346 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2344 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2341 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2340 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2339 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2334 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2253 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2252 for gameID 203160
+[2026-10-26 22:30:35] Removing process 2251 for gameID 203160
+[2026-10-26 22:32:06] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:32:06] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:32:06] Adding process 2440 for gameID 203160
+[2026-10-26 22:32:06] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:32:06] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:32:06] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:32:06] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:32:06] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:32:07] Adding process 2441 for gameID 203160
+[2026-10-26 22:32:07] Adding process 2442 for gameID 203160
+[2026-10-26 22:32:07] pressure-vessel-wrap[2441]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:32:07] pressure-vessel-wrap[2441]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:32:07] Adding process 2523 for gameID 203160
+[2026-10-26 22:32:08] ProtonFixes[2523] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:32:08] ProtonFixes[2523] INFO: Running checks
+[2026-10-26 22:32:08] ProtonFixes[2523] INFO: All checks successful
+[2026-10-26 22:32:08] ProtonFixes[2523] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:32:08] ProtonFixes[2523] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:32:08] ProtonFixes[2523] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:32:08] ProtonFixes[2523] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:32:08] ProtonFixes[2523] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:32:08] ProtonFixes[2523] INFO: Running checks
+[2026-10-26 22:32:08] ProtonFixes[2523] INFO: All checks successful
+[2026-10-26 22:32:08] ProtonFixes[2523] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:32:08] ProtonFixes[2523] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:32:08] Adding process 2528 for gameID 203160
+[2026-10-26 22:32:08] fsync: up and running.
+[2026-10-26 22:32:08] Adding process 2529 for gameID 203160
+[2026-10-26 22:32:08] Adding process 2530 for gameID 203160
+[2026-10-26 22:32:08] Adding process 2533 for gameID 203160
+[2026-10-26 22:32:08] Adding process 2535 for gameID 203160
+[2026-10-26 22:32:09] Adding process 2538 for gameID 203160
+[2026-10-26 22:32:09] Adding process 2548 for gameID 203160
+[2026-10-26 22:32:09] Adding process 2554 for gameID 203160
+[2026-10-26 22:32:09] Adding process 2561 for gameID 203160
+[2026-10-26 22:32:09] Adding process 2578 for gameID 203160
+[2026-10-26 22:32:10] Adding process 2590 for gameID 203160
+[2026-10-26 22:32:10] Adding process 2599 for gameID 203160
+[2026-10-26 22:32:10] Adding process 2601 for gameID 203160
+[2026-10-26 22:32:10] pid 2531 != 2530, skipping destruction (fork without exec?)
+[2026-10-26 22:32:10] Game Recording - game stopped [gameid=203160]
+[2026-10-26 22:32:10] Removing process 2601 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2599 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2590 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2578 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2561 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2554 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2548 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2538 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2535 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2533 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2530 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2529 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2528 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2523 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2442 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2441 for gameID 203160
+[2026-10-26 22:32:10] Removing process 2440 for gameID 203160
+[2026-10-26 22:32:58] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:32:58] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:32:58] Adding process 2652 for gameID 203160
+[2026-10-26 22:32:58] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:32:58] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:32:58] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:32:58] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:32:58] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:32:59] Adding process 2653 for gameID 203160
+[2026-10-26 22:32:59] Adding process 2654 for gameID 203160
+[2026-10-26 22:32:59] pressure-vessel-wrap[2653]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:32:59] pressure-vessel-wrap[2653]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:32:59] Adding process 2733 for gameID 203160
+[2026-10-26 22:33:00] ProtonFixes[2733] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:33:00] ProtonFixes[2733] INFO: Running checks
+[2026-10-26 22:33:00] ProtonFixes[2733] INFO: All checks successful
+[2026-10-26 22:33:00] ProtonFixes[2733] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:33:00] ProtonFixes[2733] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:33:00] ProtonFixes[2733] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:33:00] ProtonFixes[2733] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:33:00] ProtonFixes[2733] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:33:00] ProtonFixes[2733] INFO: Running checks
+[2026-10-26 22:33:00] ProtonFixes[2733] INFO: All checks successful
+[2026-10-26 22:33:00] ProtonFixes[2733] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:33:00] ProtonFixes[2733] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:33:00] fsync: up and running.
+[2026-10-26 22:33:00] Adding process 2738 for gameID 203160
+[2026-10-26 22:33:00] Adding process 2739 for gameID 203160
+[2026-10-26 22:33:00] Adding process 2740 for gameID 203160
+[2026-10-26 22:33:00] Adding process 2743 for gameID 203160
+[2026-10-26 22:33:00] Adding process 2745 for gameID 203160
+[2026-10-26 22:33:01] Adding process 2748 for gameID 203160
+[2026-10-26 22:33:01] Adding process 2758 for gameID 203160
+[2026-10-26 22:33:01] Adding process 2764 for gameID 203160
+[2026-10-26 22:33:01] Adding process 2771 for gameID 203160
+[2026-10-26 22:33:01] Adding process 2789 for gameID 203160
+[2026-10-26 22:33:02] Adding process 2800 for gameID 203160
+[2026-10-26 22:33:02] Adding process 2809 for gameID 203160
+[2026-10-26 22:33:02] Adding process 2811 for gameID 203160
+[2026-10-26 22:33:02] pid 2741 != 2740, skipping destruction (fork without exec?)
+[2026-10-26 22:33:02] Game Recording - game stopped [gameid=203160]
+[2026-10-26 22:33:02] Removing process 2811 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2809 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2800 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2789 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2771 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2764 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2758 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2748 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2745 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2743 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2740 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2739 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2738 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2733 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2654 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2653 for gameID 203160
+[2026-10-26 22:33:02] Removing process 2652 for gameID 203160
+[2026-10-26 17:17:14+0000] srt-logger[317]: Log opened
+[2026-10-26 22:47:14] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 22:47:14] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 22:47:14] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 22:47:14] steam.sh[307]: Log already open
+[2026-10-26 22:47:14] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 22:47:14] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 22:47:14] 10/26 22:47:14 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:47:14] 10/26 22:47:14 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 22:47:14] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 22:47:14] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 22:47:14] 10/26 22:47:14 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Using update UI: xwin
+[2026-10-26 22:47:14] 10/26 22:47:14 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Create window
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Checking for update on startup
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Checking for available updates...
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Manifest download: send request
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Set percent complete: 0
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Set status message: Checking for available updates...
+[2026-10-26 22:47:14] [2026-10-26 22:47:14] Set percent complete: -1
+[2026-10-26 22:47:15] [2026-10-26 22:47:15] Manifest download: waiting for download to finish
+[2026-10-26 22:47:15] [2026-10-26 22:47:15] Manifest download: finished
+[2026-10-26 22:47:15] [2026-10-26 22:47:15] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 22:47:15] [2026-10-26 22:47:15] Nothing to do
+[2026-10-26 22:47:15] [2026-10-26 22:47:15] Verifying installation...
+[2026-10-26 22:47:15] [2026-10-26 22:47:15] Verifying all executable checksums
+[2026-10-26 22:47:15] [2026-10-26 22:47:15] Set percent complete: -1
+[2026-10-26 22:47:15] [2026-10-26 22:47:15] Set status message: Verifying installation...
+[2026-10-26 22:47:15] [2026-10-26 22:47:15] Show window
+[2026-10-26 22:47:17] [2026-10-26 22:47:17] Verification complete
+[2026-10-26 22:47:17] UpdateUI: skip show logo
+[2026-10-26 22:47:17] [2026-10-26 22:47:17] Destroy window
+[2026-10-26 22:47:17] [2026-10-26 22:47:17] Shutdown
+[2026-10-26 22:47:17] 
+[2026-10-26 22:47:17] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 22:47:17] 
+[2026-10-26 22:47:17] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 22:47:17] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6033ec0
+[2026-10-26 22:47:17] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf6032590
+[2026-10-26 22:47:18] 10/26 22:47:18 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:47:18] 10/26 22:47:18 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(494)
+[2026-10-26 22:47:18] Running query: 1 - GpuTopology
+[2026-10-26 22:47:18] Response: gpu_topology {
+[2026-10-26 22:47:18]   gpus {
+[2026-10-26 22:47:18]     id: 1
+[2026-10-26 22:47:18]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 22:47:18]     vram_size_bytes: 8843689984
+[2026-10-26 22:47:18]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 22:47:18]     driver_version_major: 615
+[2026-10-26 22:47:18]     driver_version_minor: 71
+[2026-10-26 22:47:18]     driver_version_patch: 9
+[2026-10-26 22:47:18]     luid: 0
+[2026-10-26 22:47:18]   }
+[2026-10-26 22:47:18]   default_gpu_id: 1
+[2026-10-26 22:47:18] }
+[2026-10-26 22:47:18] 
+[2026-10-26 22:47:18] Exit code: 0
+[2026-10-26 22:47:18] Saving response to: /tmp/steamIAlAck - 50 bytes
+[2026-10-26 22:47:19] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 22:47:19] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 799
+[2026-10-26 22:47:19] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 22:47:24] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 22:47:24] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 22:47:25] pressure-vessel-wrap[859]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:47:25] ProtonFixes[1007] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:47:25] pressure-vessel-wrap[861]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:47:25] ProtonFixes[1007] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:47:25] ProtonFixes[1035] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:47:26] ProtonFixes[1035] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:47:26] ProtonFixes[1007] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:47:26] ProtonFixes[1007] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:47:26] fsync: up and running.
+[2026-10-26 22:47:26] ProtonFixes[1035] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:47:26] ProtonFixes[1035] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:47:27] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 22:47:27] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 22:47:27] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 22:47:28] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 22:47:28] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 22:48:20] [2026-10-26 22:48:20] Background update loop checking for update. . .
+[2026-10-26 22:48:20] [2026-10-26 22:48:20] Checking for available updates...
+[2026-10-26 22:48:20] [2026-10-26 22:48:20] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 22:48:20] [2026-10-26 22:48:20] Manifest download: send request
+[2026-10-26 22:48:20] [2026-10-26 22:48:20] Manifest download: waiting for download to finish
+[2026-10-26 22:48:21] [2026-10-26 22:48:21] Manifest download: finished
+[2026-10-26 22:48:21] [2026-10-26 22:48:21] Download skipped by HTTP 304 Not Modified
+[2026-10-26 22:48:21] [2026-10-26 22:48:21] Nothing to do
+[2026-10-26 22:48:37] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:48:38] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:48:38] Adding process 1180 for gameID 203160
+[2026-10-26 22:48:38] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:48:38] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:48:38] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:48:38] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:48:38] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:48:38] Adding process 1181 for gameID 203160
+[2026-10-26 22:48:38] Adding process 1182 for gameID 203160
+[2026-10-26 22:48:39] pressure-vessel-wrap[1181]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:48:39] pressure-vessel-wrap[1181]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:48:39] Adding process 1261 for gameID 203160
+[2026-10-26 22:48:39] ProtonFixes[1261] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:48:39] ProtonFixes[1261] INFO: Running checks
+[2026-10-26 22:48:39] ProtonFixes[1261] INFO: All checks successful
+[2026-10-26 22:48:39] ProtonFixes[1261] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:48:39] ProtonFixes[1261] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:48:39] ProtonFixes[1261] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:48:39] ProtonFixes[1261] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:48:39] ProtonFixes[1261] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:48:39] ProtonFixes[1261] INFO: Running checks
+[2026-10-26 22:48:39] ProtonFixes[1261] INFO: All checks successful
+[2026-10-26 22:48:39] ProtonFixes[1261] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:48:39] ProtonFixes[1261] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:48:39] fsync: up and running.
+[2026-10-26 22:48:39] Adding process 1266 for gameID 203160
+[2026-10-26 22:48:39] Adding process 1267 for gameID 203160
+[2026-10-26 22:48:40] Adding process 1268 for gameID 203160
+[2026-10-26 22:48:40] Adding process 1271 for gameID 203160
+[2026-10-26 22:48:40] Adding process 1273 for gameID 203160
+[2026-10-26 22:48:40] Adding process 1276 for gameID 203160
+[2026-10-26 22:48:40] Adding process 1286 for gameID 203160
+[2026-10-26 22:48:40] Adding process 1292 for gameID 203160
+[2026-10-26 22:48:40] Adding process 1299 for gameID 203160
+[2026-10-26 22:48:40] Adding process 1316 for gameID 203160
+[2026-10-26 22:48:41] Adding process 1328 for gameID 203160
+[2026-10-26 22:48:41] Adding process 1337 for gameID 203160
+[2026-10-26 22:48:41] Adding process 1339 for gameID 203160
+[2026-10-26 22:48:41] Adding process 1348 for gameID 203160
+[2026-10-26 22:48:42] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/steamapps/shadercache/203160/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 22:48:43] Fossilize WARN: Graphics pipeline handle 0xffffffffd3a7ba78 is not registered.
+[2026-10-26 22:48:43] It has either not been recorded, or it failed to be recorded earlier (which is expected if application uses an extension that is not recognized by Fossilize).
+[2026-10-26 22:48:43] Fossilize WARN: Graphics pipeline handle 0xffffffffd3a846a8 is not registered.
+[2026-10-26 22:48:43] It has either not been recorded, or it failed to be recorded earlier (which is expected if application uses an extension that is not recognized by Fossilize).
+[2026-10-26 22:48:43] Fossilize WARN: Pipeline library handle 0xffffffffd3a7ba78 is not registered.
+[2026-10-26 22:48:43] It has either not been recorded, or it failed to be recorded earlier (which is expected if application uses an extension that is not recognized by Fossilize).
+[2026-10-26 22:48:43] 10/26 22:48:43 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:48:43] 10/26 22:48:43 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(20261021210950)/tid(1417)
+[2026-10-26 22:48:43] 10/26 22:48:43 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(1.0)/tid(1417)
+[2026-10-26 22:48:45] Fossilize WARN:  ... warning spam detected at fossilize_errors.hpp:163, silencing.
+[2026-10-26 22:49:19] [2026-10-26 22:49:19] Background update loop checking for update. . .
+[2026-10-26 22:49:19] [2026-10-26 22:49:19] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 22:49:19] [2026-10-26 22:49:19] Manifest download: send request
+[2026-10-26 22:49:19] [2026-10-26 22:49:19] Manifest download: waiting for download to finish
+[2026-10-26 22:49:20] [2026-10-26 22:49:20] Manifest download: finished
+[2026-10-26 22:49:20] [2026-10-26 22:49:20] Download skipped by HTTP 304 Not Modified
+[2026-10-26 22:49:20] [2026-10-26 22:49:20] Nothing to do
+[2026-10-26 22:51:56] X connection to 127.0.0.1:95 broken (explicit kill or server shutdown).
+[2026-10-26 22:51:56] X connection to 127.0.0.1:95 broken (explicit kill or server shutdown).
+[2026-10-26 22:51:56] X connection to 127.0.0.1:95 broken (explicit kill or server shutdown).
+[2026-10-26 22:51:56] X connection to 127.0.0.1:95 broken (explicit kill or server shutdown).
+[2026-10-26 22:51:56] X connection to 127.0.0.1:95 broken (explicit kill or server shutdown).
+[2026-10-26 22:51:56] X connection to 127.0.0.1:95 broken (explicit kill or server shutdown).
+[2026-10-26 22:51:56] X connection to 127.0.0.1:95 broken (explicit kill or server shutdown).
+[2026-10-26 22:51:56] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:95"
+[2026-10-26 22:51:56]       after 60 requests (60 known processed) with 0 events remaining.
+[2026-10-26 22:51:56] X connection to 127.0.0.1:95 broken (explicit kill or server shutdown).
+[2026-10-26 22:51:56] ../steamnetworkingsockets/clientlib/steamnetworkingsockets_socketthread.cpp (3844) : Trying to close low level socket support, but we still have sockets open!
+[2026-10-26 22:51:56] X connection to 127.0.0.1:95 broken (explicit kill or server shutdown).
+[2026-10-26 22:51:56] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:95"
+[2026-10-26 22:51:56]       after 60 requests (60 known processed) with 0 events remaining.
+[2026-10-26 22:51:56] XIO:  fatal IO error 10 (No child processes) on X server "127.0.0.1:95"
+[2026-10-26 22:51:56]       after 270 requests (269 known processed) with 0 events remaining.
+[2026-10-26 22:51:56] 10/26 22:51:56 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:51:56] X connection to 127.0.0.1:95 broken (explicit kill or server shutdown).
+[2026-10-26 22:51:56] X connection to 127.0.0.1:95 broken (explicit kill or server shutdown).
+[2026-10-26 22:51:56] assert_20261026225156_3.dmp[1475]: Uploading dump (out-of-process)
+[2026-10-26 22:51:56] /tmp/dumps/assert_20261026225156_3.dmp
+[2026-10-26 22:51:56] XIO:  fatal IO error 22 (Invalid argument) on X server "127.0.0.1:95"
+[2026-10-26 22:51:56]       after 24 requests (24 known processed) with 0 events remaining.
+[2026-10-26 22:51:57] pid 1269 != 1268, skipping destruction (fork without exec?)
+[2026-10-26 17:22:31+0000] srt-logger[317]: Log opened
+[2026-10-26 22:52:31] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 22:52:31] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 22:52:31] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 22:52:31] steam.sh[307]: Log already open
+[2026-10-26 22:52:31] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 22:52:31] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-applaunch' '203160'
+[2026-10-26 22:52:31] 10/26 22:52:31 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:52:31] 10/26 22:52:31 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 22:52:31] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 22:52:31] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-applaunch' '203160'
+[2026-10-26 22:52:31] 10/26 22:52:31 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Using update UI: xwin
+[2026-10-26 22:52:31] 10/26 22:52:31 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Create window
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Checking for update on startup
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Checking for available updates...
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Manifest download: send request
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Set percent complete: 0
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Set status message: Checking for available updates...
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Set percent complete: -1
+[2026-10-26 22:52:31] [2026-10-26 22:52:31] Manifest download: waiting for download to finish
+[2026-10-26 22:52:32] [2026-10-26 22:52:32] Manifest download: finished
+[2026-10-26 22:52:32] [2026-10-26 22:52:32] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 22:52:32] [2026-10-26 22:52:32] Nothing to do
+[2026-10-26 22:52:32] [2026-10-26 22:52:32] Verifying installation...
+[2026-10-26 22:52:32] [2026-10-26 22:52:32] Verifying all executable checksums
+[2026-10-26 22:52:32] [2026-10-26 22:52:32] Set percent complete: -1
+[2026-10-26 22:52:32] [2026-10-26 22:52:32] Set status message: Verifying installation...
+[2026-10-26 22:52:32] [2026-10-26 22:52:32] Show window
+[2026-10-26 22:52:34] [2026-10-26 22:52:34] Verification complete
+[2026-10-26 22:52:34] UpdateUI: skip show logo
+[2026-10-26 22:52:34] [2026-10-26 22:52:34] Destroy window
+[2026-10-26 22:52:34] [2026-10-26 22:52:34] Shutdown
+[2026-10-26 22:52:34] 
+[2026-10-26 22:52:34] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 22:52:34] 
+[2026-10-26 22:52:34] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 22:52:34] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5fc1ec0
+[2026-10-26 22:52:34] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5fc0590
+[2026-10-26 22:52:34] 10/26 22:52:34 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:52:34] 10/26 22:52:34 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(495)
+[2026-10-26 22:52:34] Running query: 1 - GpuTopology
+[2026-10-26 22:52:34] Response: gpu_topology {
+[2026-10-26 22:52:34]   gpus {
+[2026-10-26 22:52:34]     id: 1
+[2026-10-26 22:52:34]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 22:52:34]     vram_size_bytes: 8843689984
+[2026-10-26 22:52:34]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 22:52:34]     driver_version_major: 615
+[2026-10-26 22:52:34]     driver_version_minor: 71
+[2026-10-26 22:52:34]     driver_version_patch: 9
+[2026-10-26 22:52:34]     luid: 0
+[2026-10-26 22:52:34]   }
+[2026-10-26 22:52:34]   default_gpu_id: 1
+[2026-10-26 22:52:34] }
+[2026-10-26 22:52:34] 
+[2026-10-26 22:52:34] Exit code: 0
+[2026-10-26 22:52:34] Saving response to: /tmp/steambnioNc - 50 bytes
+[2026-10-26 22:52:35] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 22:52:35] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 677
+[2026-10-26 22:52:35] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam

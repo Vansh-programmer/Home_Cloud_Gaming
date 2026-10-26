@@ -290,6 +290,9 @@ class EphemeralSandbox:
             "STUN_SERVER": os.environ.get("STUN_SERVER", ""),
             "TURN_SERVER": os.environ.get("TURN_SERVER", ""),
             "TURN_SERVERS": os.environ.get("TURN_SERVERS", ""),
+            "PRESSURE_VESSEL_FILESYSTEMS_RO": "/steam_shared:/game",
+            "STEAM_COMPAT_MOUNTS": "/steam_shared:/game",
+            "STEAM_COMPAT_LIBRARY_PATHS": "/home/gamer/.local/share/Steam:/steam_shared",
         }
         if env_vars:
             default_env.update(env_vars)

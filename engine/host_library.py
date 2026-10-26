@@ -144,7 +144,29 @@ def _allowed_app_ids() -> Optional[Set[str]]:
 
 
 def sanitize_manifest_text(text: str) -> str:
-    return SANITIZE_PATTERN.sub(lambda m: f"{m.group(1)}0{m.group(2)}", text)
+    """
+    Ensure the manifest represents a cleanly installed game with no pending downloads,
+    no update errors, and no auto-update triggers that would fail against read-only storage.
+    """
+    replacements = {
+        "StateFlags": "4",           # Fully Installed (bit 2)
+        "AutoUpdateBehavior": "1",   # Never auto-update (only when explicitly launched)
+        "UpdateResult": "0",         # No Error
+        "DownloadType": "0",         # No active download
+        "TargetBuildID": "0",        # No queued target build
+        "BytesToDownload": "0",
+        "BytesDownloaded": "0",
+        "BytesToStage": "0",
+        "BytesStaged": "0",
+        "StagingSize": "0",
+        "ScheduledAutoUpdate": "0",
+        "LastOwner": "0",
+        "LastPlayed": "0",
+        "LastUpdated": "0",
+    }
+    for k, val in replacements.items():
+        text = re.sub(rf'("{k}"\s+")[^"]*(")', rf'\g<1>{val}\g<2>', text)
+    return text
 
 
 def collect_host_mounts(data_root: Path) -> List[LibraryMount]:

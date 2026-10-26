@@ -317,6 +317,9 @@ class IsolatedSessionRuntime:
         env["SDL_VIDEODRIVER"] = "x11"
         env["STREAM_WIDTH"] = str(self.width)
         env["STREAM_HEIGHT"] = str(self.height)
+        env["PRESSURE_VESSEL_FILESYSTEMS_RO"] = "/steam_shared:/game"
+        env["STEAM_COMPAT_MOUNTS"] = "/steam_shared:/game"
+        env["STEAM_COMPAT_LIBRARY_PATHS"] = "/home/gamer/.local/share/Steam:/steam_shared"
         if self.audio_available:
             env["PULSE_SINK"] = "cloud_sink"
             env["SDL_AUDIODRIVER"] = "pulseaudio"
