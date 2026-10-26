@@ -178,10 +178,18 @@ class SteamLibraryManager:
         if not clean_id.isdigit():
             raise ValueError(f"Unknown or invalid Steam AppID: {app_id}")
 
+        extra_args: List[str] = []
+        # Bypass third-party pre-launchers that block headless streaming
+        if clean_id in ("1091500", "292030"):  # Cyberpunk 2077, The Witcher 3 (REDlauncher)
+            extra_args = ["--launcher-skip"]
+        elif clean_id in ("1086940",):  # Baldur's Gate 3 (Larian Launcher)
+            extra_args = ["--skip-launcher"]
+
         return [
             "/usr/bin/steam",
             "-gamepadui",
             "-applaunch",
             clean_id,
+            *extra_args,
         ]
 
