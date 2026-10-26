@@ -46,6 +46,29 @@ class LibraryMount:
     dst: str
 
 
+def _load_dotenv() -> None:
+    dotenv_path = Path(__file__).resolve().parent.parent / ".env"
+    if not dotenv_path.exists():
+        return
+    try:
+        for raw_line in dotenv_path.read_text(encoding="utf-8").splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            if line.startswith("export "):
+                line = line[len("export ") :].strip()
+            key, val = line.split("=", 1)
+            key = key.strip()
+            val = val.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = val
+    except Exception:
+        pass
+
+
+_load_dotenv()
+
+
 def host_library_setting() -> str:
     return os.environ.get("HOST_STEAM_LIBRARY", "off").strip()
 

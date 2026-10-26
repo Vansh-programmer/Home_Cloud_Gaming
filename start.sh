@@ -170,7 +170,7 @@ echo "|   Password     : ${ADMIN_PASS}                                          
 echo "+----------------------------------------------------------------------------+"
 
 if [[ "$MODE" == "background" ]]; then
-  nohup python3 "$PROJECT_DIR/engine/launch_phase6.py" \
+  setsid nohup python3 "$PROJECT_DIR/engine/launch_phase6.py" \
     --host 0.0.0.0 \
     --port "$PORT" \
     --admin-user "$ADMIN_USER" \
@@ -178,16 +178,19 @@ if [[ "$MODE" == "background" ]]; then
     --public-domain "$PUBLIC_DOMAIN" \
     > "$LOG_DIR/server.log" 2>&1 &
   SERVER_PID=$!
+  disown "$SERVER_PID" 2>/dev/null || true
   echo "[OK] Ryoku Server started in background (PID: $SERVER_PID, Log: data/logs/server.log)"
 
   if [[ "$CAN_RUN_TUNNEL" -eq 1 ]]; then
     pkill -f "cloudflared.*deploy/cloudflared-config.yml" 2>/dev/null || true
-    nohup cloudflared tunnel --config "$CF_CONFIG" run > "$LOG_DIR/tunnel.log" 2>&1 &
+    setsid nohup cloudflared tunnel --config "$CF_CONFIG" run > "$LOG_DIR/tunnel.log" 2>&1 &
     TUNNEL_PID=$!
+    disown "$TUNNEL_PID" 2>/dev/null || true
     echo "[OK] Cloudflare Tunnel started in background (PID: $TUNNEL_PID, Log: data/logs/tunnel.log)"
   else
     echo "[NOTE] Cloudflare Tunnel skipped (credentials file not yet created at $CRED_FILE)."
   fi
+  sleep 1
   exit 0
 fi
 

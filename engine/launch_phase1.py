@@ -27,6 +27,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from engine.sandbox import EphemeralSandbox, SandboxConfig  # noqa: E402
 from engine.steam_manager import SteamLibraryManager  # noqa: E402
 from engine.storage_manager import UserStorageManager, validate_user_id  # noqa: E402
+from engine.webrtc_streamer import QUALITY_PRESETS  # noqa: E402
 
 
 def main() -> int:
@@ -37,7 +38,7 @@ def main() -> int:
     parser.add_argument("--width", type=int, default=1280, help="Stream width (default: 1280)")
     parser.add_argument("--height", type=int, default=720, help="Stream height (default: 720)")
     parser.add_argument("--fps", type=int, default=60, help="Stream FPS (default: 60)")
-    parser.add_argument("--quality", default="high", choices=["low", "medium", "high", "ultra"])
+    parser.add_argument("--quality", default="high", choices=list(QUALITY_PRESETS.keys()))
     parser.add_argument("--user", default="vansh", help="User ID for isolated persistent saves & Steam profile")
     parser.add_argument(
         "--app-id",

@@ -98,7 +98,9 @@
   // Stats Overlay Elements
   const statsOverlay = document.getElementById('stream-stats-overlay');
   const stState = document.getElementById('st-state');
+  const stRoute = document.getElementById('st-route');
   const stRtt = document.getElementById('st-rtt');
+  const stJitter = document.getElementById('st-jitter');
   const stFps = document.getElementById('st-fps');
   const stBitrate = document.getElementById('st-bitrate');
   const stRes = document.getElementById('st-res');
@@ -663,6 +665,16 @@
         pc.ontrack = (event) => {
           mediaFlowing = true;
           clearTimeout(noMediaTimer);
+          try {
+            if (event.receiver && 'playoutDelayHint' in event.receiver) {
+              event.receiver.playoutDelayHint = 0;
+            }
+            if (pc && pc.getReceivers) {
+              pc.getReceivers().forEach((r) => {
+                if ('playoutDelayHint' in r) r.playoutDelayHint = 0;
+              });
+            }
+          } catch (_) {}
           if (event.streams && event.streams[0]) {
             if (videoEl.srcObject !== event.streams[0]) {
               videoEl.srcObject = event.streams[0];
@@ -1235,8 +1247,43 @@
 
     if (!pc) return;
     try {
+      if (pc.getReceivers) {
+        pc.getReceivers().forEach((r) => {
+          if ('playoutDelayHint' in r) r.playoutDelayHint = 0;
+        });
+      }
       const report = await pc.getStats();
+      const candMap = new Map();
       report.forEach((stat) => {
+        if (stat.type === 'local-candidate' || stat.type === 'remote-candidate') {
+          candMap.set(stat.id, stat);
+        }
+      });
+
+      report.forEach((stat) => {
+        if (stat.type === 'candidate-pair' && (stat.nominated || stat.state === 'succeeded')) {
+          if (stat.currentRoundTripTime !== undefined) {
+            const pairRtt = Math.round(stat.currentRoundTripTime * 1000);
+            if (pairRtt > 0) {
+              latestRttMs = pairRtt;
+              stRtt.textContent = latestRttMs + ' ms';
+            }
+          }
+          const local = candMap.get(stat.localCandidateId);
+          const remote = candMap.get(stat.remoteCandidateId);
+          if (stRoute) {
+            if ((local && local.candidateType === 'relay') || (remote && remote.candidateType === 'relay')) {
+              stRoute.textContent = 'TURN Relay (High Latency)';
+              stRoute.style.color = '#ff9800';
+            } else if ((local && local.candidateType === 'srflx') || (remote && remote.candidateType === 'srflx')) {
+              stRoute.textContent = 'Direct STUN (Fast P2P)';
+              stRoute.style.color = '#00ff88';
+            } else {
+              stRoute.textContent = 'Direct Host (Ultra Fast)';
+              stRoute.style.color = '#00ff88';
+            }
+          }
+        }
         if (stat.type === 'inbound-rtp' && stat.kind === 'video') {
           const now = performance.now();
           const dt = (now - lastStatsTs) / 1000;
@@ -1252,6 +1299,9 @@
           }
           if (stat.packetsLost !== undefined) {
             stLoss.textContent = String(stat.packetsLost);
+          }
+          if (stat.jitter !== undefined && stJitter) {
+            stJitter.textContent = Math.round(stat.jitter * 1000) + ' ms';
           }
           if (stat.frameWidth && stat.frameHeight) {
             stRes.textContent = `${stat.frameWidth}x${stat.frameHeight}`;

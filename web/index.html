@@ -122,10 +122,11 @@
                 <option value="1920x1080">1080P 60FPS</option>
               </select>
               <select class="btn" id="launch-quality" aria-label="Bitrate">
-                <option value="low">4 MBPS</option>
-                <option value="medium">8 MBPS</option>
-                <option value="high" selected>15 MBPS</option>
-                <option value="ultra">25 MBPS</option>
+                <option value="low">4 MBPS (Low Bandwidth)</option>
+                <option value="remote" selected>6 MBPS (Remote Smooth ★)</option>
+                <option value="medium">8 MBPS (Balanced)</option>
+                <option value="high">15 MBPS (High Quality)</option>
+                <option value="ultra">25 MBPS (Ultra LAN)</option>
               </select>
               <button class="btn btn-primary" id="hero-btn-play">▶ LAUNCH</button>
             </div>
@@ -273,10 +274,11 @@
         <button class="btn" id="btn-hud-lock-mouse">LOCK AIM</button>
         <button class="btn active" id="btn-hud-mute">AUDIO ON</button>
         <select class="btn" id="select-hud-quality" aria-label="Bitrate">
-          <option value="low">4 MBPS</option>
-          <option value="medium">8 MBPS</option>
-          <option value="high" selected>15 MBPS</option>
-          <option value="ultra">25 MBPS</option>
+          <option value="low">4 MBPS (Low Bandwidth)</option>
+          <option value="remote">6 MBPS (Remote Smooth ★)</option>
+          <option value="medium">8 MBPS (Balanced)</option>
+          <option value="high">15 MBPS (High Quality)</option>
+          <option value="ultra">25 MBPS (Ultra LAN)</option>
         </select>
         <button class="btn" id="btn-hud-stats">TELEMETRY</button>
         <button class="btn" id="btn-hud-touch">TOUCH</button>
@@ -290,7 +292,9 @@
       <aside class="stream-stats-overlay" id="stream-stats-overlay">
         <div class="stats-heading">TELEMETRY</div>
         <div class="stats-row"><span>STATE</span><span class="stats-val" id="st-state">READY</span></div>
+        <div class="stats-row"><span>ROUTE</span><span class="stats-val" id="st-route">DIRECT P2P</span></div>
         <div class="stats-row"><span>PING</span><span class="stats-val" id="st-rtt">-- ms</span></div>
+        <div class="stats-row"><span>JITTER</span><span class="stats-val" id="st-jitter">-- ms</span></div>
         <div class="stats-row"><span>FPS</span><span class="stats-val" id="st-fps">60</span></div>
         <div class="stats-row"><span>RATE</span><span class="stats-val" id="st-bitrate">-- Mbps</span></div>
         <div class="stats-row"><span>RES</span><span class="stats-val" id="st-res">1280x720</span></div>

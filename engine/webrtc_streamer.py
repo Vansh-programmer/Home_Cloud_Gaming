@@ -28,6 +28,7 @@ logger = logging.getLogger("webrtc_streamer")
 
 QUALITY_PRESETS: Dict[str, Dict[str, int]] = {
     "low": {"bitrate_kbps": 4000, "fps": 30, "label": "Low (4 Mbps)"},
+    "remote": {"bitrate_kbps": 6000, "fps": 60, "label": "Remote Smooth (6 Mbps)"},
     "medium": {"bitrate_kbps": 8000, "fps": 60, "label": "Medium (8 Mbps)"},
     "high": {"bitrate_kbps": 15000, "fps": 60, "label": "High (15 Mbps)"},
     "ultra": {"bitrate_kbps": 25000, "fps": 60, "label": "Ultra (25 Mbps)"},
@@ -91,6 +92,7 @@ class WebRTCPeerStream:
         bitrate_kbps = preset["bitrate_kbps"]
         target_fps = min(self.fps, preset["fps"])
         gop_size = target_fps * 2
+        vbv_kbits = max(300, bitrate_kbps // 30)
 
         stun_prop = f'stun-server="{self.stun_server}"' if self.stun_server else ""
         turn_prop = f'turn-server="{self.turn_server}"' if self.turn_server else ""
@@ -134,8 +136,7 @@ class WebRTCPeerStream:
                 "audiotestsrc wave=silence is-live=true "
                 "! audioconvert ! audioresample "
                 "! opusenc bitrate=64000 frame-size=20 "
-                "! rtpopuspay pt=97 "
-                "! application/x-rtp,media=audio,encoding-name=OPUS,payload=97 ! wb. "
+                "! rtpopuspay pt=97 ! wb. "
             )
 
         return f"webrtcbin name=wb bundle-policy=max-bundle {stun_prop} {turn_prop} {video_branch} {audio_branch}"

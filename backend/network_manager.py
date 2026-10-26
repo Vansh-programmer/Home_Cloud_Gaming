@@ -68,12 +68,19 @@ class NetworkConfigManager:
         # without opening router ports. Keys come from the Cloudflare dashboard.
         self.cf_turn_key_id: str = os.environ.get("CF_TURN_KEY_ID", "").strip()
         self.cf_turn_api_token: str = os.environ.get("CF_TURN_API_TOKEN", "").strip()
+        self.metered_api_key: str = os.environ.get("METERED_API_KEY", "").strip()
+        self.metered_app_name: str = os.environ.get("METERED_APP_NAME", "").strip()
         self.maintenance_offline_mode: bool = False
 
         self._cf_cache_lock = threading.Lock()
         self._cf_cache: Optional[Dict[str, object]] = None
         self._cf_cache_expiry: float = 0.0
         self._cf_last_error: str = ""
+
+        self._metered_cache_lock = threading.Lock()
+        self._metered_cache: Optional[List[Dict[str, object]]] = None
+        self._metered_cache_expiry: float = 0.0
+        self._metered_last_error: str = ""
 
         self._load_persisted_config()
 
@@ -128,6 +135,8 @@ class NetworkConfigManager:
                 )
                 self.cf_turn_key_id = _saved("cf_turn_key_id", self.cf_turn_key_id)
                 self.cf_turn_api_token = _saved("cf_turn_api_token", self.cf_turn_api_token)
+                self.metered_api_key = _saved("metered_api_key", self.metered_api_key)
+                self.metered_app_name = _saved("metered_app_name", self.metered_app_name)
         except Exception:
             pass
 
@@ -147,6 +156,8 @@ class NetworkConfigManager:
             "maintenance_offline_mode": self.maintenance_offline_mode,
             "cf_turn_key_id": self.cf_turn_key_id,
             "cf_turn_api_token": self.cf_turn_api_token,
+            "metered_api_key": self.metered_api_key,
+            "metered_app_name": self.metered_app_name,
         }
         self.config_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         try:
@@ -185,6 +196,12 @@ class NetworkConfigManager:
         if "cf_turn_api_token" in updates and updates["cf_turn_api_token"] is not None:
             self.cf_turn_api_token = str(updates["cf_turn_api_token"]).strip()
             self._cf_cache = None
+        if "metered_api_key" in updates and updates["metered_api_key"] is not None:
+            self.metered_api_key = str(updates["metered_api_key"]).strip()
+            self._metered_cache = None
+        if "metered_app_name" in updates and updates["metered_app_name"] is not None:
+            self.metered_app_name = str(updates["metered_app_name"]).strip()
+            self._metered_cache = None
 
         self.save_config()
         return self.get_network_status()
@@ -263,6 +280,53 @@ class NetworkConfigManager:
                 return list(self._cf_cache.get("iceServers", []))  # type: ignore[arg-type]
             return []
 
+    def fetch_metered_ice_servers(self) -> List[Dict[str, object]]:
+        """Fetch free dynamic low-latency TURN servers from Metered (closest region e.g. Mumbai, India)."""
+        if not self.metered_api_key:
+            return []
+        now = time.time()
+        with self._metered_cache_lock:
+            if self._metered_cache and now < self._metered_cache_expiry:
+                return list(self._metered_cache)
+            app_domain = (
+                f"{self.metered_app_name}.metered.live"
+                if self.metered_app_name
+                else "standard.metered.live"
+            )
+            url = f"https://{app_domain}/api/v1/turn/credentials?apiKey={self.metered_api_key}"
+            req = urllib.request.Request(url, headers={"User-Agent": "Ryoku-Cloud-Gaming/1.0"})
+            try:
+                with urllib.request.urlopen(req, timeout=6.0) as resp:
+                    servers = json.loads(resp.read().decode("utf-8"))
+                if isinstance(servers, dict):
+                    servers = [servers]
+                if not isinstance(servers, list):
+                    raise ValueError("Metered response was not a list of ICE servers")
+                self._metered_cache = servers
+                self._metered_cache_expiry = now + 1800  # 30 minutes
+                self._metered_last_error = ""
+                return list(servers)
+            except Exception as exc:  # noqa: BLE001
+                self._metered_last_error = f"Metered TURN API unreachable: {exc}"
+                if self._metered_cache:
+                    return list(self._metered_cache)
+                return []
+
+    def _metered_gstreamer_turn_uris(self) -> List[str]:
+        uris: List[str] = []
+        for server in self.fetch_metered_ice_servers():
+            username = str(server.get("username", ""))
+            credential = str(server.get("credential", ""))
+            urls = server.get("urls", [])
+            if isinstance(urls, str):
+                urls = [urls]
+            if not username or not credential or not isinstance(urls, list):
+                continue
+            for u in urls:
+                if str(u).startswith(("turn:", "turns:")):
+                    uris.append(self.format_gstreamer_turn_uri(str(u), username=username, password=credential))
+        return uris
+
     def get_client_ice_config(self, username: str = "player") -> Dict[str, object]:
         """
         Build the browser `RTCPeerConnection` ICE configuration (`iceServers` list).
@@ -282,6 +346,12 @@ class NetworkConfigManager:
             ice_servers.extend(cf_servers)
             turn_mode = "cloudflare"
             turn_expires_at = int(self._cf_cache_expiry) if self._cf_cache_expiry else None
+
+        metered_servers = self.fetch_metered_ice_servers()
+        if metered_servers:
+            ice_servers.extend(metered_servers)
+            if turn_mode == "disabled":
+                turn_mode = "metered"
 
         if self.turn_url:
             turn_urls = self.parse_turn_urls(self.turn_url)
@@ -317,7 +387,7 @@ class NetworkConfigManager:
             "iceTransportPolicy": "all",
             "turn_mode": turn_mode,
             "turn_expires_at": turn_expires_at,
-            "turn_error": self._cf_last_error,
+            "turn_error": self._cf_last_error or self._metered_last_error,
             "public_domain": self.public_domain,
         }
 
@@ -449,6 +519,13 @@ class NetworkConfigManager:
             env["TURN_SERVERS"] = ",".join(cf_turn_uris)
             return env
 
+        # Metered TURN relay (low-latency regional servers, e.g. Mumbai, India)
+        metered_turn_uris = self._metered_gstreamer_turn_uris()
+        if metered_turn_uris:
+            env["TURN_SERVER"] = metered_turn_uris[0]
+            env["TURN_SERVERS"] = ",".join(metered_turn_uris)
+            return env
+
         if self.turn_url:
             parsed_urls = self.parse_turn_urls(self.turn_url)
             all_turn_uris: List[str] = []
@@ -506,6 +583,7 @@ class NetworkConfigManager:
         turn_configured = bool(
             (self.turn_url and (self.turn_secret or self.turn_username))
             or self.cloudflare_turn_configured
+            or bool(self.metered_api_key)
         )
         return {
             "public_domain": self.public_domain,
@@ -517,6 +595,9 @@ class NetworkConfigManager:
             "turnserver_running": turnserver_running,
             "cloudflare_turn_configured": self.cloudflare_turn_configured,
             "cloudflare_turn_error": self._cf_last_error,
+            "metered_turn_configured": bool(self.metered_api_key),
+            "metered_turn_error": self._metered_last_error,
+            "metered_app_name": self.metered_app_name,
             "stun_url": self.stun_url,
             "turn_url": self.turn_url,
             "turn_configured": turn_configured,

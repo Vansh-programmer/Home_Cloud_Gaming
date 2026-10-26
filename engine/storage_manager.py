@@ -192,11 +192,44 @@ class UserStorageManager:
         try:
             from engine.host_library import collect_host_mounts, host_library_enabled
             if host_library_enabled():
+                downloading_dir = user_steamapps / "downloading"
                 for m in collect_host_mounts(self.data_root):
                     if m.dst.startswith("/steam_shared/steamapps/appmanifest_"):
-                        target_link = user_steamapps / m.src.name
-                        if not target_link.exists() and not target_link.is_symlink():
-                            os.symlink(m.dst, target_link)
+                        target_file = user_steamapps / m.src.name
+                        appid = m.src.name.removeprefix("appmanifest_").removesuffix(".acf")
+                        # Clear any stale downloading/staging directory that causes Steam to re-try updating read-only files
+                        if downloading_dir.exists():
+                            stale_dl = downloading_dir / appid
+                            if stale_dl.exists():
+                                shutil.rmtree(stale_dl, ignore_errors=True)
+
+                        # Write/sanitize the manifest directly into user_steamapps
+                        try:
+                            raw_manifest = m.src.read_text(encoding="utf-8")
+                            # Force StateFlags to 4 (Fully Installed) and AutoUpdateBehavior to 1 (Never auto-update)
+                            raw_manifest = re.sub(r'("StateFlags"\s+")[^"]*(")', r'\g<1>4\g<2>', raw_manifest)
+                            raw_manifest = re.sub(r'("AutoUpdateBehavior"\s+")[^"]*(")', r'\g<1>1\g<2>', raw_manifest)
+                            raw_manifest = re.sub(r'("UpdateResult"\s+")[^"]*(")', r'\g<1>0\g<2>', raw_manifest)
+                            raw_manifest = re.sub(r'("BytesToDownload"\s+")[^"]*(")', r'\g<1>0\g<2>', raw_manifest)
+                            raw_manifest = re.sub(r'("BytesDownloaded"\s+")[^"]*(")', r'\g<1>0\g<2>', raw_manifest)
+                            raw_manifest = re.sub(r'("BytesToStage"\s+")[^"]*(")', r'\g<1>0\g<2>', raw_manifest)
+                            raw_manifest = re.sub(r'("BytesStaged"\s+")[^"]*(")', r'\g<1>0\g<2>', raw_manifest)
+
+                            # If target_file is a broken symlink or has StateFlags != 4, write clean manifest
+                            need_write = True
+                            if target_file.is_file() and not target_file.is_symlink():
+                                cur = target_file.read_text(encoding="utf-8", errors="ignore")
+                                if ('"StateFlags"\t\t"4"' in cur or '"StateFlags" "4"' in cur) and (
+                                    '"AutoUpdateBehavior"\t\t"1"' in cur or '"AutoUpdateBehavior" "1"' in cur
+                                ):
+                                    need_write = False
+                            if need_write:
+                                if target_file.is_symlink() or target_file.exists():
+                                    target_file.unlink(missing_ok=True)
+                                target_file.write_text(raw_manifest, encoding="utf-8")
+                                os.chmod(target_file, 0o644)
+                        except Exception:
+                            pass
                     elif m.dst.startswith("/steam_shared/steamapps/common/"):
                         game_name = m.dst.removeprefix("/steam_shared/steamapps/common/")
                         target_link = user_common / game_name
