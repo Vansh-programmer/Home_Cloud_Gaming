@@ -8,12 +8,22 @@
 #   ./start.sh --install-service  # Install & enable auto-start on PC boot (systemd)
 #   ./start.sh --stop             # Stop all running Ryoku & tunnel processes
 #   ./start.sh --status           # Check live server, GPU, and tunnel status
+#   ./start.sh --check-turn       # Test the TURN relay (needed for players outside your network)
 # ==============================================================================
 
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
+
+# Optional local secrets/config (Cloudflare TURN keys, admin password, ...). See .env.example
+if [[ -f "$PROJECT_DIR/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$PROJECT_DIR/.env"
+  set +a
+fi
+export ENABLE_CONTAINER_ICE="${ENABLE_CONTAINER_ICE:-1}"
 
 PORT="${PORT:-8080}"
 ADMIN_USER="${ADMIN_USER:-vansh}"
@@ -89,6 +99,10 @@ case "${1:-}" in
     show_status
     exit 0
     ;;
+  --check-turn)
+    python3 "$PROJECT_DIR/engine/turn_check.py"
+    exit $?
+    ;;
   --install-service|--systemd)
     install_systemd_services
     exit 0
@@ -103,6 +117,12 @@ case "${1:-}" in
 esac
 
 print_banner
+
+# 0. Warn early if remote (outside-network) video cannot work
+if [[ -z "${TURN_URL:-}" && -z "${CF_TURN_KEY_ID:-}" ]] && ! grep -q '"turn_url": "[^"]' "$PROJECT_DIR/data/network_config.json" 2>/dev/null; then
+  echo "[WARN] No TURN relay configured: players OUTSIDE your home network will not get video."
+  echo "       Set TURN_URL / TURN_USERNAME / TURN_PASSWORD in .env, then run: ./start.sh --check-turn"
+fi
 
 # 1. Build or update CyberArena 3D binary if needed
 if [[ ! -x "$PROJECT_DIR/engine/test_game/arena3d" ]] || [[ "$PROJECT_DIR/engine/test_game/arena3d.c" -nt "$PROJECT_DIR/engine/test_game/arena3d" ]]; then

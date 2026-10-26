@@ -304,7 +304,26 @@ sudo systemctl status ryoku-cloud-gaming.service ryoku-cloudflare-tunnel.service
 
 ---
 
-## 8. VERIFICATION & AUTOMATED TEST SUITE
+## 8. REMOTE PLAY OUTSIDE YOUR HOME NETWORK (REQUIRED SETUP)
+
+The Cloudflare Tunnel carries only the website, login, and signaling (HTTP/WebSocket). The game video and audio travel over WebRTC (UDP), which a tunnel cannot carry. Without a relay, players on another network (mobile data, other Wi-Fi, CGNAT) see the site and the Steam/game start screen stepper but never receive video.
+
+Fix: add a TURN relay. No router port-forwarding is needed and it works behind CGNAT. A free relay that needs no credit card:
+
+1. Sign up with an email only at a free TURN provider, for example [Metered Open Relay](https://www.metered.ca/tools/openrelay/) (about 20 GB/month free) or ExpressTURN. Copy the TURN URLs, username, and password from its dashboard.
+2. Provide them using either method:
+   - File: `cp .env.example .env`, then fill `TURN_URL` (several URLs may be comma-separated), `TURN_USERNAME`, `TURN_PASSWORD`.
+   - Admin Console: **External Gateway** panel -> `TURN`, `TURN USER (STATIC)`, `TURN PASS (STATIC)` -> **SAVE**.
+3. Restart: `./start.sh` (or `sudo systemctl restart ryoku-cloud-gaming`).
+4. Admin Console status line should read `TURN: HMAC` (static credentials count as configured). Start a game from a phone on mobile data to confirm.
+
+Cloudflare Realtime TURN (`CF_TURN_KEY_ID` / `CF_TURN_API_TOKEN`) is also supported if your account allows it without a card.
+
+If the status line reads `TURN: NONE (REMOTE VIDEO BLOCKED)`, remote players will see an on-screen notice explaining that no relay is configured.
+
+---
+
+## 9. VERIFICATION & AUTOMATED TEST SUITE
 
 Every phase includes an automated end-to-end test suite that boots real isolated containers, negotiates WebRTC streams, verifies filesystem/process isolation invariants, and asserts zero orphaned processes on teardown.
 

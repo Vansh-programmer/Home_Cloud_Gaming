@@ -542,11 +542,68 @@
       } else if (msg.type === 'offer') {
         if (pc) pc.close();
         const iceServers = await fetchIceServers();
-        pc = new RTCPeerConnection({ iceServers });
+        const hasRelay = iceServers.some((s) => {
+          const urls = Array.isArray(s.urls) ? s.urls : [s.urls];
+          return urls.some((u) => String(u).startsWith('turn:') || String(u).startsWith('turns:'));
+        });
+        try {
+          pc = new RTCPeerConnection({ iceServers });
+        } catch (err) {
+          console.error('RTCPeerConnection rejected ICE servers', iceServers, err);
+          // Retry STUN-only so at least same-network play still works, and tell the user why.
+          const stunOnly = iceServers.filter((s) => {
+            const urls = Array.isArray(s.urls) ? s.urls : [s.urls];
+            return urls.every((u) => String(u).startsWith('stun:'));
+          });
+          try {
+            pc = new RTCPeerConnection({ iceServers: stunOnly });
+          } catch (_) {
+            pc = new RTCPeerConnection({});
+          }
+          setStepperState(
+            'ended',
+            `Relay server settings are invalid (${err.message || err}). Fix TURN URL in .env / Admin Console (must look like turn:host:3478).`,
+            true
+          );
+          return;
+        }
+
+        let mediaFlowing = false;
+        const noMediaTimer = setTimeout(() => {
+          if (!mediaFlowing && streamOpen) {
+            setStepperState(
+              'ended',
+              hasRelay
+                ? 'Video path could not be established. Check that the host PC has internet access and retry.'
+                : 'No relay server configured: players outside the home network cannot receive video. Ask the admin to add Cloudflare TURN keys (Admin > External Gateway).',
+              true
+            );
+          }
+        }, 20000);
+
+        pc.oniceconnectionstatechange = () => {
+          if (!pc) return;
+          const st = pc.iceConnectionState;
+          if (st === 'connected' || st === 'completed') {
+            mediaFlowing = true;
+            clearTimeout(noMediaTimer);
+          } else if (st === 'failed') {
+            clearTimeout(noMediaTimer);
+            setStepperState(
+              'ended',
+              hasRelay
+                ? 'Connection to the gaming PC failed (relay unreachable). Retry, or switch networks.'
+                : 'Connection failed: no TURN relay is configured, so video cannot cross the internet. Ask the admin to add Cloudflare TURN keys.',
+              true
+            );
+          }
+        };
 
         pc.ondatachannel = (event) => bindDataChannel(event.channel);
 
         pc.ontrack = (event) => {
+          mediaFlowing = true;
+          clearTimeout(noMediaTimer);
           if (videoEl.srcObject !== event.streams[0]) {
             videoEl.srcObject = event.streams[0];
             videoEl.play().catch(() => {});
@@ -1165,6 +1222,22 @@
       if (netTurnSecret && netTurnSecret.value.trim()) {
         payload.turn_secret = netTurnSecret.value.trim();
       }
+      const cfKeyInput = document.getElementById('net-cf-turn-key-id');
+      const turnUserInput = document.getElementById('net-turn-user');
+      const turnPassInput = document.getElementById('net-turn-pass');
+      if (turnUserInput && turnUserInput.value.trim()) {
+        payload.turn_username = turnUserInput.value.trim();
+      }
+      if (turnPassInput && turnPassInput.value.trim()) {
+        payload.turn_password = turnPassInput.value.trim();
+      }
+      const cfTokenInput = document.getElementById('net-cf-turn-token');
+      if (cfKeyInput && cfKeyInput.value.trim()) {
+        payload.cf_turn_key_id = cfKeyInput.value.trim();
+      }
+      if (cfTokenInput && cfTokenInput.value.trim()) {
+        payload.cf_turn_api_token = cfTokenInput.value.trim();
+      }
       const res = await fetch('/api/admin/network', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1172,6 +1245,9 @@
       });
       if (res.ok) {
         if (netTurnSecret) netTurnSecret.value = '';
+        const tpi = document.getElementById('net-turn-pass');
+        if (tpi) tpi.value = '';
+        if (cfTokenInput) cfTokenInput.value = '';
         await refreshAdminData();
       }
     };
@@ -1378,7 +1454,9 @@
       }
       if (adminNetSummary) {
         const cfText = net.cloudflared_running ? 'TUNNEL: UP' : 'TUNNEL: STANDBY';
-        const turnText = net.turn_configured ? 'TURN: HMAC' : 'ICE: STUN';
+        const turnText = net.cloudflare_turn_configured
+          ? (net.cloudflare_turn_error ? 'TURN: CF ERROR' : 'TURN: CLOUDFLARE')
+          : (net.turn_configured ? 'TURN: HMAC' : 'TURN: NONE (REMOTE VIDEO BLOCKED)');
         const domainText = net.public_domain || 'LOCAL';
         adminNetSummary.textContent = `${domainText} // ${cfText} // ${turnText}`;
       }

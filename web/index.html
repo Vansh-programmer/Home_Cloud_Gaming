@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>RYOKU // CLIENT</title>
-  <link rel="stylesheet" href="/assets/styles.css?v=5" />
+  <link rel="stylesheet" href="/assets/styles.css?v=8" />
 </head>
 <body>
   <!-- Left Vertical Command Rail -->
@@ -227,7 +227,23 @@
               </div>
               <div>
                 <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">SECRET</label>
-                <input type="password" id="net-turn-secret" placeholder="HMAC SECRET" style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
+                <input type="password" id="net-turn-secret" name="relay-secret-field" placeholder="HMAC SECRET" autocomplete="new-password" data-lpignore="true" data-1p-ignore style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
+              </div>
+              <div>
+                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">TURN USER (STATIC)</label>
+                <input type="text" id="net-turn-user" name="relay-user-field" placeholder="Provider username" autocomplete="off" data-lpignore="true" data-1p-ignore style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
+              </div>
+              <div>
+                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">TURN PASS (STATIC)</label>
+                <input type="password" id="net-turn-pass" name="relay-pass-field" placeholder="Provider password" autocomplete="new-password" data-lpignore="true" data-1p-ignore style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
+              </div>
+              <div>
+                <label style="font-family:var(--font-mono); font-size:10px; color:var(--volt); display:block; margin-bottom:4px;">CF TURN KEY ID</label>
+                <input type="text" id="net-cf-turn-key-id" placeholder="Cloudflare TURN Key ID" autocomplete="off" style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
+              </div>
+              <div>
+                <label style="font-family:var(--font-mono); font-size:10px; color:var(--volt); display:block; margin-bottom:4px;">CF TURN API TOKEN</label>
+                <input type="password" id="net-cf-turn-token" name="cf-token-field" placeholder="Cloudflare TURN API Token" autocomplete="new-password" data-lpignore="true" data-1p-ignore style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
               </div>
               <div>
                 <button type="submit" class="btn btn-primary" style="padding:7px 14px; width:100%;">SAVE</button>
@@ -343,6 +359,6 @@
     </div>
   </div>
 
-  <script src="/assets/app.js?v=5"></script>
+  <script src="/assets/app.js?v=8"></script>
 </body>
 </html>

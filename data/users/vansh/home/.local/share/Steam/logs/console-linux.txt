@@ -7191,3 +7191,1308 @@
 [2026-10-26 03:35:11] [2026-10-26 03:35:11] Manifest download: finished
 [2026-10-26 03:35:11] [2026-10-26 03:35:11] Download skipped by HTTP 304 Not Modified
 [2026-10-26 03:35:11] [2026-10-26 03:35:11] Nothing to do
+[2026-10-26 05:00:47+0000] srt-logger[317]: Log opened
+[2026-10-26 10:30:47] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 10:30:47] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 10:30:47] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 10:30:50] steam.sh[307]: Log already open
+[2026-10-26 10:30:50] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 10:30:50] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 10:30:50] 10/26 10:30:50 minidumps folder is set to /tmp/dumps
+[2026-10-26 10:30:50] 10/26 10:30:50 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 10:30:50] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 10:30:50] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 10:30:50] 10/26 10:30:50 minidumps folder is set to /tmp/dumps
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Using update UI: xwin
+[2026-10-26 10:30:50] 10/26 10:30:50 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Create window
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Checking for update on startup
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Checking for available updates...
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Manifest download: send request
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Manifest download: waiting for download to finish
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Set percent complete: 0
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Set status message: Checking for available updates...
+[2026-10-26 10:30:50] [2026-10-26 10:30:50] Set percent complete: -1
+[2026-10-26 10:30:51] [2026-10-26 10:30:51] Manifest download: finished
+[2026-10-26 10:30:51] [2026-10-26 10:30:51] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 10:30:51] [2026-10-26 10:30:51] Nothing to do
+[2026-10-26 10:30:51] [2026-10-26 10:30:51] Verifying installation...
+[2026-10-26 10:30:51] [2026-10-26 10:30:51] Verifying all executable checksums
+[2026-10-26 10:30:51] [2026-10-26 10:30:51] Set percent complete: -1
+[2026-10-26 10:30:51] [2026-10-26 10:30:51] Set status message: Verifying installation...
+[2026-10-26 10:30:51] [2026-10-26 10:30:51] Show window
+[2026-10-26 10:30:54] [2026-10-26 10:30:54] Verification complete
+[2026-10-26 10:30:54] UpdateUI: skip show logo
+[2026-10-26 10:30:54] [2026-10-26 10:30:54] Destroy window
+[2026-10-26 10:30:54] [2026-10-26 10:30:54] Shutdown
+[2026-10-26 10:30:54] 
+[2026-10-26 10:30:54] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 10:30:54] 
+[2026-10-26 10:30:54] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 10:30:54] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5f59ec0
+[2026-10-26 10:30:54] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5f58590
+[2026-10-26 10:30:54] 10/26 10:30:54 minidumps folder is set to /tmp/dumps
+[2026-10-26 10:30:54] 10/26 10:30:54 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(531)
+[2026-10-26 10:30:54] Running query: 1 - GpuTopology
+[2026-10-26 10:30:55] Response: gpu_topology {
+[2026-10-26 10:30:55]   gpus {
+[2026-10-26 10:30:55]     id: 1
+[2026-10-26 10:30:55]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 10:30:55]     vram_size_bytes: 8843689984
+[2026-10-26 10:30:55]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 10:30:55]     driver_version_major: 615
+[2026-10-26 10:30:55]     driver_version_minor: 71
+[2026-10-26 10:30:55]     driver_version_patch: 9
+[2026-10-26 10:30:55]     luid: 0
+[2026-10-26 10:30:55]   }
+[2026-10-26 10:30:55]   default_gpu_id: 1
+[2026-10-26 10:30:55] }
+[2026-10-26 10:30:55] 
+[2026-10-26 10:30:55] Exit code: 0
+[2026-10-26 10:30:55] Saving response to: /tmp/steamkANFOj - 50 bytes
+[2026-10-26 10:30:58] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 10:30:58] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 791
+[2026-10-26 10:30:58] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 10:31:03] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 10:31:03] Caching cursor image for , size 24x24, serial 37, cache size = 0
+[2026-10-26 10:31:04] pressure-vessel-wrap[856]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 10:31:04] pressure-vessel-wrap[854]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 10:31:05] ProtonFixes[1024] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 10:31:05] ProtonFixes[1023] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 10:31:05] ProtonFixes[1023] INFO: Setting up fsr4 version "default".
+[2026-10-26 10:31:05] ProtonFixes[1024] INFO: Setting up fsr4 version "default".
+[2026-10-26 10:31:06] ProtonFixes[1024] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 10:31:06] ProtonFixes[1024] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 10:31:06] ProtonFixes[1023] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 10:31:06] ProtonFixes[1023] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 10:31:06] fsync: up and running.
+[2026-10-26 10:31:07] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 10:31:07] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 10:31:07] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 10:31:07] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 10:31:07] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 05:17:04+0000] srt-logger[317]: Log opened
+[2026-10-26 10:47:05] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 10:47:05] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 10:47:05] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 10:47:07] steam.sh[307]: Log already open
+[2026-10-26 10:47:08] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 10:47:08] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 10:47:08] 10/26 10:47:08 minidumps folder is set to /tmp/dumps
+[2026-10-26 10:47:08] 10/26 10:47:08 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 10:47:08] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 10:47:08] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 10:47:08] 10/26 10:47:08 minidumps folder is set to /tmp/dumps
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Using update UI: xwin
+[2026-10-26 10:47:08] 10/26 10:47:08 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Create window
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Checking for update on startup
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Checking for available updates...
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Manifest download: send request
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Manifest download: waiting for download to finish
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Set percent complete: 0
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Set status message: Checking for available updates...
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Set percent complete: -1
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Manifest download: finished
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Nothing to do
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Verifying installation...
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Verifying all executable checksums
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Set percent complete: -1
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Set status message: Verifying installation...
+[2026-10-26 10:47:08] [2026-10-26 10:47:08] Show window
+[2026-10-26 10:47:12] [2026-10-26 10:47:12] Verification complete
+[2026-10-26 10:47:12] UpdateUI: skip show logo
+[2026-10-26 10:47:12] [2026-10-26 10:47:12] Destroy window
+[2026-10-26 10:47:12] [2026-10-26 10:47:12] Shutdown
+[2026-10-26 10:47:12] 
+[2026-10-26 10:47:12] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 10:47:12] 
+[2026-10-26 10:47:12] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 10:47:12] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5f49ec0
+[2026-10-26 10:47:12] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5f48590
+[2026-10-26 10:47:12] 10/26 10:47:12 minidumps folder is set to /tmp/dumps
+[2026-10-26 10:47:12] 10/26 10:47:12 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(530)
+[2026-10-26 10:47:12] Running query: 1 - GpuTopology
+[2026-10-26 10:47:12] Response: gpu_topology {
+[2026-10-26 10:47:12]   gpus {
+[2026-10-26 10:47:12]     id: 1
+[2026-10-26 10:47:12]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 10:47:12]     vram_size_bytes: 8843689984
+[2026-10-26 10:47:12]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 10:47:12]     driver_version_major: 615
+[2026-10-26 10:47:12]     driver_version_minor: 71
+[2026-10-26 10:47:12]     driver_version_patch: 9
+[2026-10-26 10:47:12]     luid: 0
+[2026-10-26 10:47:12]   }
+[2026-10-26 10:47:12]   default_gpu_id: 1
+[2026-10-26 10:47:12] }
+[2026-10-26 10:47:12] 
+[2026-10-26 10:47:12] Exit code: 0
+[2026-10-26 10:47:12] Saving response to: /tmp/steamgMHDnI - 50 bytes
+[2026-10-26 10:47:16] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 10:47:16] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 791
+[2026-10-26 10:47:16] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 10:47:20] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 10:47:20] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 10:47:21] pressure-vessel-wrap[854]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 10:47:21] pressure-vessel-wrap[856]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 10:47:22] ProtonFixes[1028] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 10:47:22] ProtonFixes[1029] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 10:47:22] ProtonFixes[1029] INFO: Setting up fsr4 version "default".
+[2026-10-26 10:47:22] ProtonFixes[1028] INFO: Setting up fsr4 version "default".
+[2026-10-26 10:47:22] ProtonFixes[1028] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 10:47:22] ProtonFixes[1028] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 10:47:22] ProtonFixes[1029] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 10:47:22] ProtonFixes[1029] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 10:47:22] fsync: up and running.
+[2026-10-26 10:47:23] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 10:47:23] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 10:47:23] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 10:47:23] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 10:47:23] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 10:47:23] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 10:47:23] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 10:47:23] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 10:47:23] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 10:47:23] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 10:47:23] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 10:47:23] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 10:47:24] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 10:47:24] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 10:47:24] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 10:47:24] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 10:47:24] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 10:47:24] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 10:47:24] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 10:47:24] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 10:47:24] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 10:47:24] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 10:47:24] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 05:19:13+0000] srt-logger[317]: Log opened
+[2026-10-26 10:49:13] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 10:49:13] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 10:49:14] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 10:49:14] steam.sh[307]: Log already open
+[2026-10-26 10:49:14] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 10:49:14] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 10:49:14] 10/26 10:49:14 minidumps folder is set to /tmp/dumps
+[2026-10-26 10:49:14] 10/26 10:49:14 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 10:49:14] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 10:49:14] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 10:49:14] 10/26 10:49:14 minidumps folder is set to /tmp/dumps
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Using update UI: xwin
+[2026-10-26 10:49:14] 10/26 10:49:14 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Create window
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Checking for update on startup
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Checking for available updates...
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Manifest download: send request
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Set percent complete: 0
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Set status message: Checking for available updates...
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Set percent complete: -1
+[2026-10-26 10:49:14] [2026-10-26 10:49:14] Manifest download: waiting for download to finish
+[2026-10-26 10:49:15] [2026-10-26 10:49:15] Manifest download: finished
+[2026-10-26 10:49:15] [2026-10-26 10:49:15] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 10:49:15] [2026-10-26 10:49:15] Nothing to do
+[2026-10-26 10:49:15] [2026-10-26 10:49:15] Verifying installation...
+[2026-10-26 10:49:15] [2026-10-26 10:49:15] Verifying all executable checksums
+[2026-10-26 10:49:15] [2026-10-26 10:49:15] Set percent complete: -1
+[2026-10-26 10:49:15] [2026-10-26 10:49:15] Set status message: Verifying installation...
+[2026-10-26 10:49:15] [2026-10-26 10:49:15] Show window
+[2026-10-26 10:49:16] [2026-10-26 10:49:16] Verification complete
+[2026-10-26 10:49:16] UpdateUI: skip show logo
+[2026-10-26 10:49:16] [2026-10-26 10:49:16] Destroy window
+[2026-10-26 10:49:16] [2026-10-26 10:49:16] ProcessNextMessage: socket disconnected
+[2026-10-26 10:49:16] [2026-10-26 10:49:16] No more messages are expected - exiting
+[2026-10-26 10:49:16] 
+[2026-10-26 10:49:16] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 10:49:16] 
+[2026-10-26 10:49:16] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 10:49:16] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6003ec0
+[2026-10-26 10:49:16] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf6002590
+[2026-10-26 10:49:16] 10/26 10:49:16 minidumps folder is set to /tmp/dumps
+[2026-10-26 10:49:16] 10/26 10:49:16 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(527)
+[2026-10-26 10:49:16] Running query: 1 - GpuTopology
+[2026-10-26 10:49:16] Response: gpu_topology {
+[2026-10-26 10:49:16]   gpus {
+[2026-10-26 10:49:16]     id: 1
+[2026-10-26 10:49:16]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 10:49:16]     vram_size_bytes: 8843689984
+[2026-10-26 10:49:16]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 10:49:16]     driver_version_major: 615
+[2026-10-26 10:49:16]     driver_version_minor: 71
+[2026-10-26 10:49:16]     driver_version_patch: 9
+[2026-10-26 10:49:16]     luid: 0
+[2026-10-26 10:49:16]   }
+[2026-10-26 10:49:16]   default_gpu_id: 1
+[2026-10-26 10:49:16] }
+[2026-10-26 10:49:16] 
+[2026-10-26 10:49:16] Exit code: 0
+[2026-10-26 10:49:16] Saving response to: /tmp/steambNGAnA - 50 bytes
+[2026-10-26 10:49:18] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 10:49:18] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 807
+[2026-10-26 10:49:18] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 10:49:22] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 10:49:22] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 10:49:23] pressure-vessel-wrap[965]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 10:49:23] ProtonFixes[1121] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 10:49:23] pressure-vessel-wrap[967]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 10:49:23] ProtonFixes[1121] INFO: Setting up fsr4 version "default".
+[2026-10-26 10:49:23] ProtonFixes[1150] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 10:49:23] ProtonFixes[1150] INFO: Setting up fsr4 version "default".
+[2026-10-26 10:49:23] ProtonFixes[1121] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 10:49:23] ProtonFixes[1121] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 10:49:23] fsync: up and running.
+[2026-10-26 10:49:24] ProtonFixes[1150] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 10:49:24] ProtonFixes[1150] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 10:49:24] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 10:49:24] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 10:49:24] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 10:49:25] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 10:49:25] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 05:36:14+0000] srt-logger[317]: Log opened
+[2026-10-26 11:06:14] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 11:06:14] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 11:06:14] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 11:06:15] steam.sh[307]: Log already open
+[2026-10-26 11:06:15] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 11:06:15] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 11:06:15] 10/26 11:06:15 minidumps folder is set to /tmp/dumps
+[2026-10-26 11:06:15] 10/26 11:06:15 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 11:06:15] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 11:06:15] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 11:06:15] 10/26 11:06:15 minidumps folder is set to /tmp/dumps
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Using update UI: xwin
+[2026-10-26 11:06:15] 10/26 11:06:15 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Create window
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Checking for update on startup
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Checking for available updates...
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Manifest download: send request
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Set percent complete: 0
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Set status message: Checking for available updates...
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Set percent complete: -1
+[2026-10-26 11:06:15] [2026-10-26 11:06:15] Manifest download: waiting for download to finish
+[2026-10-26 11:06:16] [2026-10-26 11:06:16] Manifest download: finished
+[2026-10-26 11:06:16] [2026-10-26 11:06:16] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 11:06:16] [2026-10-26 11:06:16] Nothing to do
+[2026-10-26 11:06:16] [2026-10-26 11:06:16] Verifying installation...
+[2026-10-26 11:06:16] [2026-10-26 11:06:16] Verifying all executable checksums
+[2026-10-26 11:06:16] [2026-10-26 11:06:16] Set percent complete: -1
+[2026-10-26 11:06:16] [2026-10-26 11:06:16] Set status message: Verifying installation...
+[2026-10-26 11:06:16] [2026-10-26 11:06:16] Show window
+[2026-10-26 11:06:17] [2026-10-26 11:06:17] Verification complete
+[2026-10-26 11:06:17] UpdateUI: skip show logo
+[2026-10-26 11:06:17] [2026-10-26 11:06:17] Destroy window
+[2026-10-26 11:06:17] [2026-10-26 11:06:17] Shutdown
+[2026-10-26 11:06:17] 
+[2026-10-26 11:06:17] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 11:06:17] 
+[2026-10-26 11:06:17] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 11:06:17] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5ff8ec0
+[2026-10-26 11:06:17] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5ff7590
+[2026-10-26 11:06:17] 10/26 11:06:17 minidumps folder is set to /tmp/dumps
+[2026-10-26 11:06:17] 10/26 11:06:17 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(495)
+[2026-10-26 11:06:17] Running query: 1 - GpuTopology
+[2026-10-26 11:06:17] Response: gpu_topology {
+[2026-10-26 11:06:17]   gpus {
+[2026-10-26 11:06:17]     id: 1
+[2026-10-26 11:06:17]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 11:06:17]     vram_size_bytes: 8843689984
+[2026-10-26 11:06:17]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 11:06:17]     driver_version_major: 615
+[2026-10-26 11:06:17]     driver_version_minor: 71
+[2026-10-26 11:06:17]     driver_version_patch: 9
+[2026-10-26 11:06:17]     luid: 0
+[2026-10-26 11:06:17]   }
+[2026-10-26 11:06:17]   default_gpu_id: 1
+[2026-10-26 11:06:17] }
+[2026-10-26 11:06:17] 
+[2026-10-26 11:06:17] Exit code: 0
+[2026-10-26 11:06:17] Saving response to: /tmp/steamjHikDH - 50 bytes
+[2026-10-26 11:06:19] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 11:06:19] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 755
+[2026-10-26 11:06:19] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 11:06:24] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 11:06:24] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 11:06:24] pressure-vessel-wrap[818]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 11:06:24] ProtonFixes[955] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 11:06:24] pressure-vessel-wrap[820]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 11:06:24] ProtonFixes[955] INFO: Setting up fsr4 version "default".
+[2026-10-26 11:06:24] ProtonFixes[983] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 11:06:25] ProtonFixes[983] INFO: Setting up fsr4 version "default".
+[2026-10-26 11:06:25] ProtonFixes[955] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 11:06:25] ProtonFixes[955] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 11:06:25] fsync: up and running.
+[2026-10-26 11:06:25] ProtonFixes[983] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 11:06:25] ProtonFixes[983] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 11:06:26] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 11:06:26] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 11:06:26] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 11:06:26] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 11:06:26] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 11:08:18] [2026-10-26 11:08:18] Background update loop checking for update. . .
+[2026-10-26 11:08:18] [2026-10-26 11:08:18] Checking for available updates...
+[2026-10-26 11:08:18] [2026-10-26 11:08:18] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 11:08:18] [2026-10-26 11:08:18] Manifest download: send request
+[2026-10-26 11:08:19] [2026-10-26 11:08:19] Manifest download: waiting for download to finish
+[2026-10-26 11:08:19] [2026-10-26 11:08:19] Manifest download: finished
+[2026-10-26 11:08:19] [2026-10-26 11:08:19] Download skipped by HTTP 304 Not Modified
+[2026-10-26 11:08:19] [2026-10-26 11:08:19] Nothing to do
+[2026-10-26 09:41:15+0000] srt-logger[317]: Log opened
+[2026-10-26 15:11:15] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 15:11:15] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 15:11:15] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 15:11:17] steam.sh[307]: Log already open
+[2026-10-26 15:11:18] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 15:11:18] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 15:11:18] 10/26 15:11:18 minidumps folder is set to /tmp/dumps
+[2026-10-26 15:11:18] 10/26 15:11:18 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 15:11:18] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 15:11:18] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 15:11:18] 10/26 15:11:18 minidumps folder is set to /tmp/dumps
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Using update UI: xwin
+[2026-10-26 15:11:18] 10/26 15:11:18 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Create window
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] 1. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] 2. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Checking for update on startup
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Checking for available updates...
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Manifest download: send request
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Manifest download: waiting for download to finish
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Manifest download: finished
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Nothing to do
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Verifying installation...
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Verifying all executable checksums
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Set percent complete: 0
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Set status message: Checking for available updates...
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Set percent complete: -1
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Set percent complete: -1
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Set status message: Verifying installation...
+[2026-10-26 15:11:18] [2026-10-26 15:11:18] Show window
+[2026-10-26 15:11:20] [2026-10-26 15:11:20] Verification complete
+[2026-10-26 15:11:20] UpdateUI: skip show logo
+[2026-10-26 15:11:20] [2026-10-26 15:11:20] Destroy window
+[2026-10-26 15:11:20] [2026-10-26 15:11:20] Shutdown
+[2026-10-26 15:11:20] 
+[2026-10-26 15:11:20] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 15:11:20] 
+[2026-10-26 15:11:21] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 15:11:21] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5fe7ec0
+[2026-10-26 15:11:21] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5fe6590
+[2026-10-26 15:11:21] 10/26 15:11:21 minidumps folder is set to /tmp/dumps
+[2026-10-26 15:11:21] 10/26 15:11:21 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(532)
+[2026-10-26 15:11:21] Running query: 1 - GpuTopology
+[2026-10-26 15:11:21] Response: gpu_topology {
+[2026-10-26 15:11:21]   gpus {
+[2026-10-26 15:11:21]     id: 1
+[2026-10-26 15:11:21]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 15:11:21]     vram_size_bytes: 8843689984
+[2026-10-26 15:11:21]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 15:11:21]     driver_version_major: 615
+[2026-10-26 15:11:21]     driver_version_minor: 71
+[2026-10-26 15:11:21]     driver_version_patch: 9
+[2026-10-26 15:11:21]     luid: 0
+[2026-10-26 15:11:21]   }
+[2026-10-26 15:11:21]   default_gpu_id: 1
+[2026-10-26 15:11:21] }
+[2026-10-26 15:11:21] 
+[2026-10-26 15:11:21] Exit code: 0
+[2026-10-26 15:11:21] Saving response to: /tmp/steamGeAAjk - 50 bytes
+[2026-10-26 15:11:23] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 15:11:23] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 761
+[2026-10-26 15:11:23] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 15:11:28] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 15:11:28] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 15:11:29] pressure-vessel-wrap[857]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 15:11:29] pressure-vessel-wrap[855]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 15:11:31] ProtonFixes[1027] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 15:11:31] ProtonFixes[1026] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 15:11:31] ProtonFixes[1026] INFO: Setting up fsr4 version "default".
+[2026-10-26 15:11:31] ProtonFixes[1027] INFO: Setting up fsr4 version "default".
+[2026-10-26 15:11:32] ProtonFixes[1026] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 15:11:32] ProtonFixes[1026] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 15:11:32] ProtonFixes[1027] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 15:11:32] ProtonFixes[1027] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 15:11:32] fsync: up and running.
+[2026-10-26 15:11:33] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 15:11:33] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 15:11:33] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 15:11:34] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 15:11:34] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 15:13:23] [2026-10-26 15:13:23] Background update loop checking for update. . .
+[2026-10-26 15:13:23] [2026-10-26 15:13:23] Checking for available updates...
+[2026-10-26 15:13:23] [2026-10-26 15:13:23] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 15:13:23] [2026-10-26 15:13:23] Manifest download: send request
+[2026-10-26 15:13:24] [2026-10-26 15:13:24] Manifest download: waiting for download to finish
+[2026-10-26 15:13:25] [2026-10-26 15:13:25] Manifest download: finished
+[2026-10-26 15:13:25] [2026-10-26 15:13:25] Download skipped by HTTP 304 Not Modified
+[2026-10-26 15:13:25] [2026-10-26 15:13:25] Nothing to do
+[2026-10-26 09:44:11+0000] srt-logger[317]: Log opened
+[2026-10-26 15:14:11] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 15:14:11] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 15:14:11] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 15:14:12] steam.sh[307]: Log already open
+[2026-10-26 15:14:12] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 15:14:12] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 15:14:12] 10/26 15:14:12 minidumps folder is set to /tmp/dumps
+[2026-10-26 15:14:12] 10/26 15:14:12 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 15:14:12] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 15:14:12] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 15:14:12] 10/26 15:14:12 minidumps folder is set to /tmp/dumps
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Using update UI: xwin
+[2026-10-26 15:14:12] 10/26 15:14:12 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Create window
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] 1. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] 2. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Checking for update on startup
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Checking for available updates...
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Manifest download: send request
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Set percent complete: 0
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Set status message: Checking for available updates...
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Set percent complete: -1
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Manifest download: waiting for download to finish
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Manifest download: finished
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Nothing to do
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Verifying installation...
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Verifying all executable checksums
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Set percent complete: -1
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Set status message: Verifying installation...
+[2026-10-26 15:14:12] [2026-10-26 15:14:12] Show window
+[2026-10-26 15:14:13] [2026-10-26 15:14:13] Verification complete
+[2026-10-26 15:14:13] UpdateUI: skip show logo
+[2026-10-26 15:14:13] [2026-10-26 15:14:13] Destroy window
+[2026-10-26 15:14:13] [2026-10-26 15:14:13] Shutdown
+[2026-10-26 15:14:13] 
+[2026-10-26 15:14:13] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 15:14:13] 
+[2026-10-26 15:14:13] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 15:14:13] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5fcdec0
+[2026-10-26 15:14:13] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5fcc590
+[2026-10-26 15:14:13] 10/26 15:14:13 minidumps folder is set to /tmp/dumps
+[2026-10-26 15:14:13] 10/26 15:14:13 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(494)
+[2026-10-26 15:14:13] Running query: 1 - GpuTopology
+[2026-10-26 15:14:13] Response: gpu_topology {
+[2026-10-26 15:14:13]   gpus {
+[2026-10-26 15:14:13]     id: 1
+[2026-10-26 15:14:13]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 15:14:13]     vram_size_bytes: 8843689984
+[2026-10-26 15:14:13]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 15:14:13]     driver_version_major: 615
+[2026-10-26 15:14:13]     driver_version_minor: 71
+[2026-10-26 15:14:13]     driver_version_patch: 9
+[2026-10-26 15:14:13]     luid: 0
+[2026-10-26 15:14:13]   }
+[2026-10-26 15:14:13]   default_gpu_id: 1
+[2026-10-26 15:14:13] }
+[2026-10-26 15:14:13] 
+[2026-10-26 15:14:13] Exit code: 0
+[2026-10-26 15:14:13] Saving response to: /tmp/steamjbMMpg - 50 bytes
+[2026-10-26 15:14:15] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 15:14:15] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 790
+[2026-10-26 15:14:15] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 15:14:19] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 15:14:19] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 15:14:20] pressure-vessel-wrap[853]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 15:14:20] ProtonFixes[995] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 15:14:20] pressure-vessel-wrap[855]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 15:14:20] ProtonFixes[995] INFO: Setting up fsr4 version "default".
+[2026-10-26 15:14:20] ProtonFixes[1023] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 15:14:20] ProtonFixes[1023] INFO: Setting up fsr4 version "default".
+[2026-10-26 15:14:21] ProtonFixes[995] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 15:14:21] ProtonFixes[995] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 15:14:21] fsync: up and running.
+[2026-10-26 15:14:21] ProtonFixes[1023] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 15:14:21] ProtonFixes[1023] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 15:14:22] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 15:14:22] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 15:14:22] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 15:14:22] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 15:14:23] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 11:42:22+0000] srt-logger[317]: Log opened
+[2026-10-26 17:12:22] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 17:12:22] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 17:12:22] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 17:12:25] steam.sh[307]: Log already open
+[2026-10-26 17:12:25] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 17:12:25] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:12:25] 10/26 17:12:25 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:12:25] 10/26 17:12:25 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 17:12:25] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 17:12:25] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:12:25] 10/26 17:12:25 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Using update UI: xwin
+[2026-10-26 17:12:25] 10/26 17:12:25 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Create window
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] 1. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] 2. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Checking for update on startup
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Checking for available updates...
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Manifest download: send request
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Manifest download: waiting for download to finish
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Manifest download: finished
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Nothing to do
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Verifying installation...
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Verifying all executable checksums
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Set percent complete: 0
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Set status message: Checking for available updates...
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Set percent complete: -1
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Set percent complete: -1
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Set status message: Verifying installation...
+[2026-10-26 17:12:25] [2026-10-26 17:12:25] Show window
+[2026-10-26 17:12:28] [2026-10-26 17:12:28] Verification complete
+[2026-10-26 17:12:28] UpdateUI: skip show logo
+[2026-10-26 17:12:28] [2026-10-26 17:12:28] Destroy window
+[2026-10-26 17:12:28] [2026-10-26 17:12:28] Shutdown
+[2026-10-26 17:12:28] 
+[2026-10-26 17:12:28] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 17:12:28] 
+[2026-10-26 17:12:28] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 17:12:28] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5f3eec0
+[2026-10-26 17:12:28] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5f3d590
+[2026-10-26 17:12:28] 10/26 17:12:28 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:12:28] 10/26 17:12:28 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(530)
+[2026-10-26 17:12:28] Running query: 1 - GpuTopology
+[2026-10-26 17:12:28] Response: gpu_topology {
+[2026-10-26 17:12:28]   gpus {
+[2026-10-26 17:12:28]     id: 1
+[2026-10-26 17:12:28]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 17:12:28]     vram_size_bytes: 8843689984
+[2026-10-26 17:12:28]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 17:12:28]     driver_version_major: 615
+[2026-10-26 17:12:28]     driver_version_minor: 71
+[2026-10-26 17:12:28]     driver_version_patch: 9
+[2026-10-26 17:12:28]     luid: 0
+[2026-10-26 17:12:28]   }
+[2026-10-26 17:12:28]   default_gpu_id: 1
+[2026-10-26 17:12:28] }
+[2026-10-26 17:12:28] 
+[2026-10-26 17:12:28] Exit code: 0
+[2026-10-26 17:12:28] Saving response to: /tmp/steamCJbMbB - 50 bytes
+[2026-10-26 17:12:31] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 17:12:31] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 793
+[2026-10-26 17:12:31] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 17:12:35] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 17:12:35] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 17:12:36] pressure-vessel-wrap[857]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:12:36] pressure-vessel-wrap[855]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:12:37] ProtonFixes[1023] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:12:37] ProtonFixes[1022] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:12:37] ProtonFixes[1022] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:12:37] ProtonFixes[1023] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:12:38] ProtonFixes[1023] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:12:38] ProtonFixes[1022] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:12:38] ProtonFixes[1023] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:12:38] ProtonFixes[1022] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:12:38] fsync: up and running.
+[2026-10-26 17:12:39] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 17:12:39] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 17:12:39] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 17:12:39] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:12:40] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:12:51] pressure-vessel-wrap[1162]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:12:51] fsync: up and running.
+[2026-10-26 17:12:57] Fossilize INFO: Setting autogroup scheduling.
+[2026-10-26 17:13:14] chdir "/home/gamer/.local/share/Steam/steamapps/common/Bunny Guys!"
+[2026-10-26 17:13:14] Game Recording - would start recording game 2218460, but recording for this game is disabled
+[2026-10-26 17:13:14] Adding process 1693 for gameID 2218460
+[2026-10-26 17:13:14] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 17:13:14] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 17:13:14] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 17:13:14] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 17:13:14] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 17:13:14] Adding process 1694 for gameID 2218460
+[2026-10-26 17:13:14] Adding process 1695 for gameID 2218460
+[2026-10-26 17:13:14] pressure-vessel-wrap[1694]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:13:15] Adding process 1774 for gameID 2218460
+[2026-10-26 17:13:15] Adding process 1775 for gameID 2218460
+[2026-10-26 17:13:15] fsync: up and running.
+[2026-10-26 17:13:15] Adding process 1776 for gameID 2218460
+[2026-10-26 17:13:15] Adding process 1777 for gameID 2218460
+[2026-10-26 17:13:15] Adding process 1780 for gameID 2218460
+[2026-10-26 17:13:15] Adding process 1782 for gameID 2218460
+[2026-10-26 17:13:15] Adding process 1785 for gameID 2218460
+[2026-10-26 17:13:15] Adding process 1795 for gameID 2218460
+[2026-10-26 17:13:15] Adding process 1801 for gameID 2218460
+[2026-10-26 17:13:15] Adding process 1808 for gameID 2218460
+[2026-10-26 17:13:16] Adding process 1831 for gameID 2218460
+[2026-10-26 17:13:16] Adding process 1841 for gameID 2218460
+[2026-10-26 17:13:16] Adding process 1843 for gameID 2218460
+[2026-10-26 17:13:16] Adding process 1849 for gameID 2218460
+[2026-10-26 17:13:16] Adding process 1863 for gameID 2218460
+[2026-10-26 17:13:17] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/steamapps/shadercache/2218460/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:13:18] 10/26 17:13:18 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:13:18] 10/26 17:13:18 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(20261021210950)/tid(1939)
+[2026-10-26 17:13:18] 10/26 17:13:18 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(1.0)/tid(1939)
+[2026-10-26 17:14:30] [2026-10-26 17:14:30] Background update loop checking for update. . .
+[2026-10-26 17:14:30] [2026-10-26 17:14:30] Checking for available updates...
+[2026-10-26 17:14:30] [2026-10-26 17:14:30] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 17:14:30] [2026-10-26 17:14:30] Manifest download: send request
+[2026-10-26 17:14:31] [2026-10-26 17:14:31] Manifest download: waiting for download to finish
+[2026-10-26 17:14:31] [2026-10-26 17:14:31] Manifest download: finished
+[2026-10-26 17:14:31] [2026-10-26 17:14:31] Download skipped by HTTP 304 Not Modified
+[2026-10-26 17:14:31] [2026-10-26 17:14:31] Nothing to do
+[2026-10-26 12:04:15+0000] srt-logger[317]: Log opened
+[2026-10-26 17:34:16] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 17:34:16] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 17:34:16] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 17:34:18] steam.sh[307]: Log already open
+[2026-10-26 17:34:18] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 17:34:18] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:34:18] 10/26 17:34:18 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:34:18] 10/26 17:34:18 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 17:34:18] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 17:34:18] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:34:18] 10/26 17:34:18 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Using update UI: xwin
+[2026-10-26 17:34:18] 10/26 17:34:18 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Create window
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Checking for update on startup
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Checking for available updates...
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Manifest download: send request
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Manifest download: waiting for download to finish
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Set percent complete: 0
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Set status message: Checking for available updates...
+[2026-10-26 17:34:18] [2026-10-26 17:34:18] Set percent complete: -1
+[2026-10-26 17:34:19] [2026-10-26 17:34:19] Manifest download: finished
+[2026-10-26 17:34:19] [2026-10-26 17:34:19] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 17:34:19] [2026-10-26 17:34:19] Nothing to do
+[2026-10-26 17:34:19] [2026-10-26 17:34:19] Verifying installation...
+[2026-10-26 17:34:19] [2026-10-26 17:34:19] Verifying all executable checksums
+[2026-10-26 17:34:19] [2026-10-26 17:34:19] Set percent complete: -1
+[2026-10-26 17:34:19] [2026-10-26 17:34:19] Set status message: Verifying installation...
+[2026-10-26 17:34:19] [2026-10-26 17:34:19] Show window
+[2026-10-26 17:34:22] [2026-10-26 17:34:22] Verification complete
+[2026-10-26 17:34:22] UpdateUI: skip show logo
+[2026-10-26 17:34:22] [2026-10-26 17:34:22] Destroy window
+[2026-10-26 17:34:22] [2026-10-26 17:34:22] Shutdown
+[2026-10-26 17:34:22] 
+[2026-10-26 17:34:22] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 17:34:22] 
+[2026-10-26 17:34:22] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 17:34:22] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5f59ec0
+[2026-10-26 17:34:22] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5f58590
+[2026-10-26 17:34:22] 10/26 17:34:22 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:34:22] 10/26 17:34:22 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(531)
+[2026-10-26 17:34:22] Running query: 1 - GpuTopology
+[2026-10-26 17:34:22] Response: gpu_topology {
+[2026-10-26 17:34:22]   gpus {
+[2026-10-26 17:34:22]     id: 1
+[2026-10-26 17:34:22]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 17:34:22]     vram_size_bytes: 8843689984
+[2026-10-26 17:34:22]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 17:34:22]     driver_version_major: 615
+[2026-10-26 17:34:22]     driver_version_minor: 71
+[2026-10-26 17:34:22]     driver_version_patch: 9
+[2026-10-26 17:34:22]     luid: 0
+[2026-10-26 17:34:22]   }
+[2026-10-26 17:34:22]   default_gpu_id: 1
+[2026-10-26 17:34:22] }
+[2026-10-26 17:34:22] 
+[2026-10-26 17:34:22] Exit code: 0
+[2026-10-26 17:34:22] Saving response to: /tmp/steamdPMFIG - 50 bytes
+[2026-10-26 17:34:25] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 17:34:25] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 790
+[2026-10-26 17:34:25] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 17:34:30] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 17:34:30] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 17:34:30] pressure-vessel-wrap[852]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:34:30] pressure-vessel-wrap[854]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:34:31] ProtonFixes[1023] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:34:31] ProtonFixes[1022] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:34:31] ProtonFixes[1023] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:34:31] ProtonFixes[1022] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:34:32] ProtonFixes[1022] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:34:32] ProtonFixes[1023] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:34:32] ProtonFixes[1022] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:34:32] ProtonFixes[1023] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:34:32] fsync: up and running.
+[2026-10-26 17:34:33] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 17:34:33] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 17:34:33] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 17:34:33] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:34:34] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 12:07:07+0000] srt-logger[317]: Log opened
+[2026-10-26 17:37:07] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 17:37:07] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 17:37:07] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 17:37:07] steam.sh[307]: Log already open
+[2026-10-26 17:37:07] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 17:37:07] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:37:07] [2026-10-26 17:37:07] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 17:37:07] [2026-10-26 17:37:07] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:37:07] 10/26 17:37:07 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:37:07] 10/26 17:37:07 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 17:37:07] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 17:37:07] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:37:07] [2026-10-26 17:37:07] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:37:07] 10/26 17:37:07 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:37:07] [2026-10-26 17:37:07] Using update UI: xwin
+[2026-10-26 17:37:07] 10/26 17:37:07 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 17:37:07] [2026-10-26 17:37:07] Create window
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] Checking for update on startup
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] Checking for available updates...
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] Manifest download: send request
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] Set percent complete: 0
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] Set status message: Checking for available updates...
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] Set percent complete: -1
+[2026-10-26 17:37:08] [2026-10-26 17:37:08] Manifest download: waiting for download to finish
+[2026-10-26 17:37:09] [2026-10-26 17:37:09] Manifest download: finished
+[2026-10-26 17:37:09] [2026-10-26 17:37:09] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 17:37:09] [2026-10-26 17:37:09] Nothing to do
+[2026-10-26 17:37:09] [2026-10-26 17:37:09] Verifying installation...
+[2026-10-26 17:37:09] [2026-10-26 17:37:09] Verifying all executable checksums
+[2026-10-26 17:37:09] [2026-10-26 17:37:09] Set percent complete: -1
+[2026-10-26 17:37:09] [2026-10-26 17:37:09] Set status message: Verifying installation...
+[2026-10-26 17:37:09] [2026-10-26 17:37:09] Show window
+[2026-10-26 17:37:09] [2026-10-26 17:37:09] Verification complete
+[2026-10-26 17:37:09] UpdateUI: skip show logo
+[2026-10-26 17:37:09] [2026-10-26 17:37:09] Destroy window
+[2026-10-26 17:37:10] [2026-10-26 17:37:10] Shutdown
+[2026-10-26 17:37:10] 
+[2026-10-26 17:37:10] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 17:37:10] 
+[2026-10-26 17:37:10] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 17:37:10] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5fa5ec0
+[2026-10-26 17:37:10] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5fa4590
+[2026-10-26 17:37:10] 10/26 17:37:10 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:37:10] 10/26 17:37:10 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(496)
+[2026-10-26 17:37:10] Running query: 1 - GpuTopology
+[2026-10-26 17:37:10] Response: gpu_topology {
+[2026-10-26 17:37:10]   gpus {
+[2026-10-26 17:37:10]     id: 1
+[2026-10-26 17:37:10]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 17:37:10]     vram_size_bytes: 8843689984
+[2026-10-26 17:37:10]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 17:37:10]     driver_version_major: 615
+[2026-10-26 17:37:10]     driver_version_minor: 71
+[2026-10-26 17:37:10]     driver_version_patch: 9
+[2026-10-26 17:37:10]     luid: 0
+[2026-10-26 17:37:10]   }
+[2026-10-26 17:37:10]   default_gpu_id: 1
+[2026-10-26 17:37:10] }
+[2026-10-26 17:37:10] 
+[2026-10-26 17:37:10] Exit code: 0
+[2026-10-26 17:37:10] Saving response to: /tmp/steamgDCPmj - 50 bytes
+[2026-10-26 17:37:11] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 17:37:11] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 763
+[2026-10-26 17:37:11] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 17:37:16] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 17:37:16] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 17:37:16] pressure-vessel-wrap[856]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:37:16] ProtonFixes[995] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:37:16] pressure-vessel-wrap[858]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:37:16] ProtonFixes[995] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:37:16] ProtonFixes[1023] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:37:17] ProtonFixes[1023] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:37:17] ProtonFixes[995] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:37:17] ProtonFixes[995] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:37:17] fsync: up and running.
+[2026-10-26 17:37:17] ProtonFixes[1023] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:37:17] ProtonFixes[1023] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:37:18] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 17:37:18] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 17:37:18] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 17:37:18] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:37:18] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:39:11] [2026-10-26 17:39:11] Background update loop checking for update. . .
+[2026-10-26 17:39:11] [2026-10-26 17:39:11] Checking for available updates...
+[2026-10-26 17:39:11] [2026-10-26 17:39:11] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 17:39:11] [2026-10-26 17:39:11] Manifest download: send request
+[2026-10-26 17:39:11] [2026-10-26 17:39:11] Manifest download: waiting for download to finish
+[2026-10-26 17:39:12] [2026-10-26 17:39:12] Manifest download: finished
+[2026-10-26 17:39:12] [2026-10-26 17:39:12] Download skipped by HTTP 304 Not Modified
+[2026-10-26 17:39:12] [2026-10-26 17:39:12] Nothing to do
+[2026-10-26 12:16:25+0000] srt-logger[317]: Log opened
+[2026-10-26 17:46:25] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 17:46:25] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 17:46:25] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 17:46:25] steam.sh[307]: Log already open
+[2026-10-26 17:46:25] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 17:46:25] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:46:25] 10/26 17:46:25 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:46:25] 10/26 17:46:25 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 17:46:25] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 17:46:25] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:46:25] 10/26 17:46:25 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Using update UI: xwin
+[2026-10-26 17:46:25] 10/26 17:46:25 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Create window
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] 1. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] 2. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Checking for update on startup
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Checking for available updates...
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Manifest download: send request
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Set percent complete: 0
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Set status message: Checking for available updates...
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Set percent complete: -1
+[2026-10-26 17:46:25] [2026-10-26 17:46:25] Manifest download: waiting for download to finish
+[2026-10-26 17:46:26] [2026-10-26 17:46:26] Manifest download: finished
+[2026-10-26 17:46:26] [2026-10-26 17:46:26] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 17:46:26] [2026-10-26 17:46:26] Nothing to do
+[2026-10-26 17:46:26] [2026-10-26 17:46:26] Verifying installation...
+[2026-10-26 17:46:26] [2026-10-26 17:46:26] Verifying all executable checksums
+[2026-10-26 17:46:26] [2026-10-26 17:46:26] Set percent complete: -1
+[2026-10-26 17:46:26] [2026-10-26 17:46:26] Set status message: Verifying installation...
+[2026-10-26 17:46:26] [2026-10-26 17:46:26] Show window
+[2026-10-26 17:46:27] [2026-10-26 17:46:27] Verification complete
+[2026-10-26 17:46:27] UpdateUI: skip show logo
+[2026-10-26 17:46:27] [2026-10-26 17:46:27] Destroy window
+[2026-10-26 17:46:27] [2026-10-26 17:46:27] Shutdown
+[2026-10-26 17:46:27] 
+[2026-10-26 17:46:27] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 17:46:27] 
+[2026-10-26 17:46:27] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 17:46:27] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5fc1ec0
+[2026-10-26 17:46:27] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5fc0590
+[2026-10-26 17:46:27] 10/26 17:46:27 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:46:27] 10/26 17:46:27 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(495)
+[2026-10-26 17:46:27] Running query: 1 - GpuTopology
+[2026-10-26 17:46:27] Response: gpu_topology {
+[2026-10-26 17:46:27]   gpus {
+[2026-10-26 17:46:27]     id: 1
+[2026-10-26 17:46:27]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 17:46:27]     vram_size_bytes: 8843689984
+[2026-10-26 17:46:27]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 17:46:27]     driver_version_major: 615
+[2026-10-26 17:46:27]     driver_version_minor: 71
+[2026-10-26 17:46:27]     driver_version_patch: 9
+[2026-10-26 17:46:27]     luid: 0
+[2026-10-26 17:46:27]   }
+[2026-10-26 17:46:27]   default_gpu_id: 1
+[2026-10-26 17:46:27] }
+[2026-10-26 17:46:27] 
+[2026-10-26 17:46:27] Exit code: 0
+[2026-10-26 17:46:27] Saving response to: /tmp/steamGAFIFb - 50 bytes
+[2026-10-26 17:46:28] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 17:46:28] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 705
+[2026-10-26 17:46:29] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 17:46:34] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 17:46:34] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 17:46:35] pressure-vessel-wrap[854]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:46:35] ProtonFixes[996] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:46:35] pressure-vessel-wrap[856]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:46:35] ProtonFixes[996] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:46:35] ProtonFixes[1024] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:46:35] ProtonFixes[1024] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:46:35] ProtonFixes[996] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:46:35] ProtonFixes[996] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:46:35] fsync: up and running.
+[2026-10-26 17:46:35] ProtonFixes[1024] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:46:35] ProtonFixes[1024] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:46:36] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 17:46:36] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 17:46:36] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 17:46:37] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:46:37] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:48:29] [2026-10-26 17:48:29] Background update loop checking for update. . .
+[2026-10-26 17:48:29] [2026-10-26 17:48:29] Checking for available updates...
+[2026-10-26 17:48:29] [2026-10-26 17:48:29] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 17:48:29] [2026-10-26 17:48:29] Manifest download: send request
+[2026-10-26 17:48:29] [2026-10-26 17:48:29] Manifest download: waiting for download to finish
+[2026-10-26 17:48:29] [2026-10-26 17:48:29] Manifest download: finished
+[2026-10-26 17:48:29] [2026-10-26 17:48:29] Download skipped by HTTP 304 Not Modified
+[2026-10-26 17:48:29] [2026-10-26 17:48:29] Nothing to do
+[2026-10-26 12:23:34+0000] srt-logger[317]: Log opened
+[2026-10-26 17:53:34] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 17:53:34] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 17:53:34] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 17:53:34] steam.sh[307]: Log already open
+[2026-10-26 17:53:34] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 17:53:34] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:53:34] 10/26 17:53:34 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:53:34] 10/26 17:53:34 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 17:53:34] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 17:53:34] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:53:34] 10/26 17:53:34 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Using update UI: xwin
+[2026-10-26 17:53:34] 10/26 17:53:34 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Create window
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Checking for update on startup
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Checking for available updates...
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Manifest download: send request
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Set percent complete: 0
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Set status message: Checking for available updates...
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Set percent complete: -1
+[2026-10-26 17:53:34] [2026-10-26 17:53:34] Manifest download: waiting for download to finish
+[2026-10-26 17:53:35] [2026-10-26 17:53:35] Manifest download: finished
+[2026-10-26 17:53:35] [2026-10-26 17:53:35] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 17:53:35] [2026-10-26 17:53:35] Nothing to do
+[2026-10-26 17:53:35] [2026-10-26 17:53:35] Verifying installation...
+[2026-10-26 17:53:35] [2026-10-26 17:53:35] Verifying all executable checksums
+[2026-10-26 17:53:35] [2026-10-26 17:53:35] Set percent complete: -1
+[2026-10-26 17:53:35] [2026-10-26 17:53:35] Set status message: Verifying installation...
+[2026-10-26 17:53:35] [2026-10-26 17:53:35] Show window
+[2026-10-26 17:53:36] [2026-10-26 17:53:36] Verification complete
+[2026-10-26 17:53:36] UpdateUI: skip show logo
+[2026-10-26 17:53:36] [2026-10-26 17:53:36] Destroy window
+[2026-10-26 17:53:36] [2026-10-26 17:53:36] Shutdown
+[2026-10-26 17:53:36] 
+[2026-10-26 17:53:36] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 17:53:36] 
+[2026-10-26 17:53:36] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 17:53:36] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5f2dec0
+[2026-10-26 17:53:36] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5f2c590
+[2026-10-26 17:53:37] 10/26 17:53:37 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:53:37] 10/26 17:53:37 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(494)
+[2026-10-26 17:53:37] Running query: 1 - GpuTopology
+[2026-10-26 17:53:37] Response: gpu_topology {
+[2026-10-26 17:53:37]   gpus {
+[2026-10-26 17:53:37]     id: 1
+[2026-10-26 17:53:37]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 17:53:37]     vram_size_bytes: 8843689984
+[2026-10-26 17:53:37]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 17:53:37]     driver_version_major: 615
+[2026-10-26 17:53:37]     driver_version_minor: 71
+[2026-10-26 17:53:37]     driver_version_patch: 9
+[2026-10-26 17:53:37]     luid: 0
+[2026-10-26 17:53:37]   }
+[2026-10-26 17:53:37]   default_gpu_id: 1
+[2026-10-26 17:53:37] }
+[2026-10-26 17:53:37] 
+[2026-10-26 17:53:37] Exit code: 0
+[2026-10-26 17:53:37] Saving response to: /tmp/steamcNOjmm - 50 bytes
+[2026-10-26 17:53:38] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 17:53:38] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 790
+[2026-10-26 17:53:38] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 17:53:43] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 17:53:43] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 17:53:44] pressure-vessel-wrap[856]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:53:44] ProtonFixes[995] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:53:44] pressure-vessel-wrap[858]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:53:44] ProtonFixes[995] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:53:44] ProtonFixes[1024] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:53:44] ProtonFixes[1024] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:53:44] ProtonFixes[995] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:53:44] ProtonFixes[995] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:53:44] fsync: up and running.
+[2026-10-26 17:53:44] ProtonFixes[1024] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:53:44] ProtonFixes[1024] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:53:45] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 17:53:45] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 17:53:45] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 17:53:46] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:53:46] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 12:26:21+0000] srt-logger[317]: Log opened
+[2026-10-26 17:56:21] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 17:56:21] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 17:56:21] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 17:56:21] steam.sh[307]: Log already open
+[2026-10-26 17:56:21] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 17:56:21] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:56:21] 10/26 17:56:21 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:56:21] 10/26 17:56:21 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 17:56:21] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 17:56:21] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:56:21] 10/26 17:56:21 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Using update UI: xwin
+[2026-10-26 17:56:21] 10/26 17:56:21 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Create window
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Checking for update on startup
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Checking for available updates...
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Manifest download: send request
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Set percent complete: 0
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Set status message: Checking for available updates...
+[2026-10-26 17:56:21] [2026-10-26 17:56:21] Set percent complete: -1
+[2026-10-26 17:56:22] [2026-10-26 17:56:22] Manifest download: waiting for download to finish
+[2026-10-26 17:56:22] [2026-10-26 17:56:22] Manifest download: finished
+[2026-10-26 17:56:22] [2026-10-26 17:56:22] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 17:56:22] [2026-10-26 17:56:22] Nothing to do
+[2026-10-26 17:56:22] [2026-10-26 17:56:22] Verifying installation...
+[2026-10-26 17:56:22] [2026-10-26 17:56:22] Verifying all executable checksums
+[2026-10-26 17:56:22] [2026-10-26 17:56:22] Set percent complete: -1
+[2026-10-26 17:56:22] [2026-10-26 17:56:22] Set status message: Verifying installation...
+[2026-10-26 17:56:22] [2026-10-26 17:56:22] Show window
+[2026-10-26 17:56:23] [2026-10-26 17:56:23] Verification complete
+[2026-10-26 17:56:23] UpdateUI: skip show logo
+[2026-10-26 17:56:23] [2026-10-26 17:56:23] Destroy window
+[2026-10-26 17:56:23] [2026-10-26 17:56:23] Shutdown
+[2026-10-26 17:56:23] 
+[2026-10-26 17:56:23] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 17:56:23] 
+[2026-10-26 17:56:23] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 17:56:23] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5f49ec0
+[2026-10-26 17:56:23] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5f48590
+[2026-10-26 17:56:23] 10/26 17:56:23 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:56:23] 10/26 17:56:23 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(494)
+[2026-10-26 17:56:23] Running query: 1 - GpuTopology
+[2026-10-26 17:56:23] Response: gpu_topology {
+[2026-10-26 17:56:23]   gpus {
+[2026-10-26 17:56:23]     id: 1
+[2026-10-26 17:56:23]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 17:56:23]     vram_size_bytes: 8843689984
+[2026-10-26 17:56:23]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 17:56:23]     driver_version_major: 615
+[2026-10-26 17:56:23]     driver_version_minor: 71
+[2026-10-26 17:56:23]     driver_version_patch: 9
+[2026-10-26 17:56:23]     luid: 0
+[2026-10-26 17:56:23]   }
+[2026-10-26 17:56:23]   default_gpu_id: 1
+[2026-10-26 17:56:23] }
+[2026-10-26 17:56:23] 
+[2026-10-26 17:56:23] Exit code: 0
+[2026-10-26 17:56:23] Saving response to: /tmp/steamcMpABl - 50 bytes
+[2026-10-26 17:56:25] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 17:56:25] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 753
+[2026-10-26 17:56:25] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 17:56:30] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 17:56:30] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 17:56:30] pressure-vessel-wrap[856]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:56:30] ProtonFixes[995] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:56:30] pressure-vessel-wrap[858]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:56:30] ProtonFixes[995] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:56:30] ProtonFixes[1023] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:56:31] ProtonFixes[1023] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:56:31] ProtonFixes[995] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:56:31] ProtonFixes[995] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:56:31] fsync: up and running.
+[2026-10-26 17:56:31] ProtonFixes[1023] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:56:31] ProtonFixes[1023] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:56:32] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 17:56:32] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 17:56:32] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 17:56:32] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:56:32] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:56:42] pressure-vessel-wrap[1157]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:56:42] fsync: up and running.
+[2026-10-26 17:56:45] chdir "/home/gamer/.local/share/Steam/steamapps/common/Bunny Guys!"
+[2026-10-26 17:56:45] Game Recording - would start recording game 2218460, but recording for this game is disabled
+[2026-10-26 17:56:45] Adding process 1329 for gameID 2218460
+[2026-10-26 17:56:45] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 17:56:45] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 17:56:45] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 17:56:45] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 17:56:45] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 17:56:45] Adding process 1330 for gameID 2218460
+[2026-10-26 17:56:45] Adding process 1331 for gameID 2218460
+[2026-10-26 17:56:46] pressure-vessel-wrap[1330]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:56:46] Adding process 1411 for gameID 2218460
+[2026-10-26 17:56:46] Adding process 1412 for gameID 2218460
+[2026-10-26 17:56:46] fsync: up and running.
+[2026-10-26 17:56:46] Adding process 1413 for gameID 2218460
+[2026-10-26 17:56:46] Adding process 1414 for gameID 2218460
+[2026-10-26 17:56:46] Adding process 1417 for gameID 2218460
+[2026-10-26 17:56:46] Adding process 1419 for gameID 2218460
+[2026-10-26 17:56:46] Adding process 1422 for gameID 2218460
+[2026-10-26 17:56:46] Adding process 1432 for gameID 2218460
+[2026-10-26 17:56:46] Adding process 1438 for gameID 2218460
+[2026-10-26 17:56:46] Adding process 1445 for gameID 2218460
+[2026-10-26 17:56:47] Adding process 1467 for gameID 2218460
+[2026-10-26 17:56:47] Adding process 1477 for gameID 2218460
+[2026-10-26 17:56:47] Adding process 1479 for gameID 2218460
+[2026-10-26 17:56:47] Adding process 1485 for gameID 2218460
+[2026-10-26 17:56:47] Adding process 1499 for gameID 2218460
+[2026-10-26 17:56:48] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/steamapps/shadercache/2218460/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:56:48] 10/26 17:56:48 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:56:48] 10/26 17:56:48 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(20261021210950)/tid(1575)
+[2026-10-26 17:56:48] 10/26 17:56:48 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(1.0)/tid(1575)
+[2026-10-26 17:56:53] X connection to 127.0.0.1:103 broken (explicit kill or server shutdown).
+[2026-10-26 17:56:53] X connection to 127.0.0.1:103 broken (explicit kill or server shutdown).
+[2026-10-26 17:56:53] X connection to 127.0.0.1:103 broken (explicit kill or server shutdown).
+[2026-10-26 17:56:53] X connection to 127.0.0.1:103 broken (explicit kill or server shutdown).
+[2026-10-26 17:56:53] X connection to 127.0.0.1:103 broken (explicit kill or server shutdown).
+[2026-10-26 17:56:53] X connection to 127.0.0.1:103 broken (explicit kill or server shutdown).
+[2026-10-26 17:56:53] X connection to 127.0.0.1:103 broken (explicit kill or server shutdown).
+[2026-10-26 17:56:53] X connection to 127.0.0.1:103 broken (explicit kill or server shutdown).
+[2026-10-26 17:56:53] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:103"
+[2026-10-26 17:56:53]       after 60 requests (60 known processed) with 0 events remaining.
+[2026-10-26 17:56:53] X connection to 127.0.0.1:103 broken (explicit kill or server shutdown).
+[2026-10-26 17:56:53] ../steamnetworkingsockets/clientlib/steamnetworkingsockets_socketthread.cpp (3844) : Trying to close low level socket support, but we still have sockets open!
+[2026-10-26 17:56:53] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:103"
+[2026-10-26 17:56:53]       after 60 requests (60 known processed) with 0 events remaining.
+[2026-10-26 17:56:53] X connection to 127.0.0.1:103 broken (explicit kill or server shutdown).
+[2026-10-26 17:56:53] 10/26 17:56:53 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:56:53] X connection to 127.0.0.1:103 broken (explicit kill or server shutdown).
+[2026-10-26 17:56:53] X connection to 127.0.0.1:103 broken (explicit kill or server shutdown).
+[2026-10-26 17:56:53] XIO:  fatal IO error 2 (No such file or directory) on X server "127.0.0.1:103"
+[2026-10-26 17:56:53]       after 258 requests (255 known processed) with 0 events remaining.
+[2026-10-26 17:56:53] assert_20261026175653_3.dmp[1602]: Uploading dump (out-of-process)
+[2026-10-26 17:56:53] /tmp/dumps/assert_20261026175653_3.dmp
+[2026-10-26 12:27:00+0000] srt-logger[317]: Log opened
+[2026-10-26 17:57:00] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 17:57:00] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 17:57:00] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 17:57:00] steam.sh[307]: Log already open
+[2026-10-26 17:57:01] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 17:57:01] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:57:01] 10/26 17:57:01 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:57:01] 10/26 17:57:01 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 17:57:01] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 17:57:01] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:57:01] 10/26 17:57:01 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Using update UI: xwin
+[2026-10-26 17:57:01] 10/26 17:57:01 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Create window
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Checking for update on startup
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Checking for available updates...
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Manifest download: send request
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Set percent complete: 0
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Set status message: Checking for available updates...
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Set percent complete: -1
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Manifest download: waiting for download to finish
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Manifest download: finished
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Nothing to do
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Verifying installation...
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Verifying all executable checksums
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Set percent complete: -1
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Set status message: Verifying installation...
+[2026-10-26 17:57:01] [2026-10-26 17:57:01] Show window
+[2026-10-26 17:57:03] [2026-10-26 17:57:03] Verification complete
+[2026-10-26 17:57:03] UpdateUI: skip show logo
+[2026-10-26 17:57:03] [2026-10-26 17:57:03] Destroy window
+[2026-10-26 17:57:03] [2026-10-26 17:57:03] Shutdown
+[2026-10-26 17:57:03] 
+[2026-10-26 17:57:03] Steam logging initialized: directory: /home/gamer/.local/share/Steam/logs
+[2026-10-26 17:57:03] 
+[2026-10-26 17:57:03] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-26 17:57:03] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf5f83ec0
+[2026-10-26 17:57:03] XRRGetCrtcInfo Workaround: initialized with override: 0 real: 0xf5f82590
+[2026-10-26 17:57:04] 10/26 17:57:04 minidumps folder is set to /tmp/dumps
+[2026-10-26 17:57:04] 10/26 17:57:04 Init: Installing breakpad exception handler for appid(steamsysinfo)/version(1792618285)/tid(531)
+[2026-10-26 17:57:04] Running query: 1 - GpuTopology
+[2026-10-26 17:57:04] Response: gpu_topology {
+[2026-10-26 17:57:04]   gpus {
+[2026-10-26 17:57:04]     id: 1
+[2026-10-26 17:57:04]     name: "NVIDIA GeForce RTX 4060"
+[2026-10-26 17:57:04]     vram_size_bytes: 8843689984
+[2026-10-26 17:57:04]     driver_id: k_EGpuDriverId_NvidiaProprietary
+[2026-10-26 17:57:04]     driver_version_major: 615
+[2026-10-26 17:57:04]     driver_version_minor: 71
+[2026-10-26 17:57:04]     driver_version_patch: 9
+[2026-10-26 17:57:04]     luid: 0
+[2026-10-26 17:57:04]   }
+[2026-10-26 17:57:04]   default_gpu_id: 1
+[2026-10-26 17:57:04] }
+[2026-10-26 17:57:04] 
+[2026-10-26 17:57:04] Exit code: 0
+[2026-10-26 17:57:04] Saving response to: /tmp/steamKOpmhi - 50 bytes
+[2026-10-26 17:57:05] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-26 17:57:05] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 791
+[2026-10-26 17:57:05] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 17:57:09] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 17:57:09] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 17:57:10] pressure-vessel-wrap[856]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:57:10] ProtonFixes[992] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:57:10] pressure-vessel-wrap[858]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 17:57:10] ProtonFixes[992] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:57:10] ProtonFixes[1020] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:57:10] ProtonFixes[1020] INFO: Setting up fsr4 version "default".
+[2026-10-26 17:57:10] ProtonFixes[992] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:57:10] ProtonFixes[992] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:57:10] fsync: up and running.
+[2026-10-26 17:57:10] ProtonFixes[1020] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 17:57:10] ProtonFixes[1020] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 17:57:11] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 17:57:11] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 17:57:11] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 17:57:12] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 17:57:12] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".

@@ -21,10 +21,15 @@ import json
 import os
 import shutil
 import subprocess
+import threading
 import time
+import urllib.error
 import urllib.parse
+import urllib.request
 from pathlib import Path
 from typing import Dict, List, Optional
+
+CLOUDFLARE_TURN_API = "https://rtc.live.cloudflare.com/v1/turn/keys/{key_id}/credentials/generate-ice-servers"
 
 
 class NetworkConfigManager:
@@ -54,7 +59,17 @@ class NetworkConfigManager:
             # establish the UDP media path (black screen while the website still works).
             os.environ.get("ENABLE_CONTAINER_ICE", "1").strip() == "1"
         )
+        # Cloudflare Realtime TURN (free managed relay): lets players on ANY outside
+        # network (mobile data, CGNAT, strict firewalls) receive the UDP/TCP media stream
+        # without opening router ports. Keys come from the Cloudflare dashboard.
+        self.cf_turn_key_id: str = os.environ.get("CF_TURN_KEY_ID", "").strip()
+        self.cf_turn_api_token: str = os.environ.get("CF_TURN_API_TOKEN", "").strip()
         self.maintenance_offline_mode: bool = False
+
+        self._cf_cache_lock = threading.Lock()
+        self._cf_cache: Optional[Dict[str, object]] = None
+        self._cf_cache_expiry: float = 0.0
+        self._cf_last_error: str = ""
 
         self._load_persisted_config()
 
@@ -69,10 +84,16 @@ class NetworkConfigManager:
                     raw.get("cloudflare_tunnel_name", self.cloudflare_tunnel_name)
                 ).strip()
                 self.stun_url = str(raw.get("stun_url", self.stun_url)).strip()
-                self.turn_url = str(raw.get("turn_url", self.turn_url)).strip()
-                self.turn_secret = str(raw.get("turn_secret", self.turn_secret)).strip()
-                self.turn_username = str(raw.get("turn_username", self.turn_username)).strip()
-                self.turn_password = str(raw.get("turn_password", self.turn_password)).strip()
+
+                # Empty saved values must never override real values from .env / environment
+                def _saved(key: str, current: str) -> str:
+                    val = str(raw.get(key, "") or "").strip()
+                    return val if val else current
+
+                self.turn_url = _saved("turn_url", self.turn_url)
+                self.turn_secret = _saved("turn_secret", self.turn_secret)
+                self.turn_username = _saved("turn_username", self.turn_username)
+                self.turn_password = _saved("turn_password", self.turn_password)
                 self.turn_realm = str(raw.get("turn_realm", self.turn_realm)).strip()
                 self.turn_ttl_sec = int(raw.get("turn_ttl_sec", self.turn_ttl_sec))
                 self.enable_container_ice = bool(
@@ -81,6 +102,8 @@ class NetworkConfigManager:
                 self.maintenance_offline_mode = bool(
                     raw.get("maintenance_offline_mode", self.maintenance_offline_mode)
                 )
+                self.cf_turn_key_id = _saved("cf_turn_key_id", self.cf_turn_key_id)
+                self.cf_turn_api_token = _saved("cf_turn_api_token", self.cf_turn_api_token)
         except Exception:
             pass
 
@@ -98,8 +121,14 @@ class NetworkConfigManager:
             "turn_ttl_sec": self.turn_ttl_sec,
             "enable_container_ice": self.enable_container_ice,
             "maintenance_offline_mode": self.maintenance_offline_mode,
+            "cf_turn_key_id": self.cf_turn_key_id,
+            "cf_turn_api_token": self.cf_turn_api_token,
         }
         self.config_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        try:
+            os.chmod(self.config_path, 0o600)
+        except OSError:
+            pass
 
     def update_config(self, updates: Dict[str, object]) -> Dict[str, object]:
         if "public_domain" in updates and updates["public_domain"] is not None:
@@ -126,6 +155,12 @@ class NetworkConfigManager:
             self.enable_container_ice = bool(updates["enable_container_ice"])
         if "maintenance_offline_mode" in updates and updates["maintenance_offline_mode"] is not None:
             self.maintenance_offline_mode = bool(updates["maintenance_offline_mode"])
+        if "cf_turn_key_id" in updates and updates["cf_turn_key_id"] is not None:
+            self.cf_turn_key_id = str(updates["cf_turn_key_id"]).strip()
+            self._cf_cache = None
+        if "cf_turn_api_token" in updates and updates["cf_turn_api_token"] is not None:
+            self.cf_turn_api_token = str(updates["cf_turn_api_token"]).strip()
+            self._cf_cache = None
 
         self.save_config()
         return self.get_network_status()
@@ -150,6 +185,56 @@ class NetworkConfigManager:
             "expires_at": expires_at,
         }
 
+    @property
+    def cloudflare_turn_configured(self) -> bool:
+        return bool(self.cf_turn_key_id and self.cf_turn_api_token)
+
+    def fetch_cloudflare_ice_servers(self, force: bool = False) -> List[Dict[str, object]]:
+        """
+        Fetch short-lived STUN/TURN credentials from Cloudflare Realtime TURN
+        (`generate-ice-servers`). Results are cached for ~1h less than their TTL so every
+        browser ICE request and every new game session reuses a valid credential.
+        Returns an empty list (and records `_cf_last_error`) if the API is unreachable.
+        """
+        if not self.cloudflare_turn_configured:
+            return []
+        with self._cf_cache_lock:
+            now = time.time()
+            if not force and self._cf_cache and now < self._cf_cache_expiry:
+                return list(self._cf_cache.get("iceServers", []))  # type: ignore[arg-type]
+
+            ttl = max(3600, int(self.turn_ttl_sec))
+            url = CLOUDFLARE_TURN_API.format(key_id=urllib.parse.quote(self.cf_turn_key_id, safe=""))
+            req = urllib.request.Request(
+                url,
+                data=json.dumps({"ttl": ttl}).encode("utf-8"),
+                headers={
+                    "Authorization": f"Bearer {self.cf_turn_api_token}",
+                    "Content-Type": "application/json",
+                },
+                method="POST",
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=6.0) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                servers = data.get("iceServers")
+                if isinstance(servers, dict):
+                    servers = [servers]
+                if not isinstance(servers, list) or not servers:
+                    raise ValueError("Cloudflare TURN response did not contain iceServers")
+                self._cf_cache = {"iceServers": servers}
+                self._cf_cache_expiry = now + max(300, ttl - 3600)
+                self._cf_last_error = ""
+                return list(servers)
+            except urllib.error.HTTPError as exc:
+                self._cf_last_error = f"Cloudflare TURN API HTTP {exc.code} (check Key ID / API Token)"
+            except Exception as exc:  # noqa: BLE001
+                self._cf_last_error = f"Cloudflare TURN API unreachable: {exc}"
+            # Serve a stale-but-possibly-valid cache rather than nothing
+            if self._cf_cache:
+                return list(self._cf_cache.get("iceServers", []))  # type: ignore[arg-type]
+            return []
+
     def get_client_ice_config(self, username: str = "player") -> Dict[str, object]:
         """
         Build the browser `RTCPeerConnection` ICE configuration (`iceServers` list).
@@ -164,36 +249,39 @@ class NetworkConfigManager:
         turn_mode = "disabled"
         turn_expires_at: Optional[int] = None
 
-        if self.turn_url:
-            turn_formatted = self.turn_url
-            if turn_formatted.startswith("turn://"):
-                turn_formatted = "turn:" + turn_formatted[len("turn://") :]
-            elif turn_formatted.startswith("turns://"):
-                turn_formatted = "turns:" + turn_formatted[len("turns://") :]
+        cf_servers = self.fetch_cloudflare_ice_servers()
+        if cf_servers:
+            ice_servers.extend(cf_servers)
+            turn_mode = "cloudflare"
+            turn_expires_at = int(self._cf_cache_expiry) if self._cf_cache_expiry else None
 
-            if self.turn_secret:
+        if self.turn_url:
+            turn_urls = self.parse_turn_urls(self.turn_url)
+
+            if self.turn_username and self.turn_password:
+                # Static provider credentials (Metered / ExpressTURN) always win
+                turn_mode = "static"
+                ice_servers.append(
+                    {
+                        "urls": turn_urls,
+                        "username": self.turn_username,
+                        "credential": self.turn_password,
+                    }
+                )
+            elif self.turn_secret:
                 creds = self.generate_turn_rest_credentials(username)
                 turn_mode = "hmac_rest"
                 turn_expires_at = int(creds["expires_at"])
                 ice_servers.append(
                     {
-                        "urls": [turn_formatted],
+                        "urls": turn_urls,
                         "username": creds["username"],
                         "credential": creds["credential"],
                     }
                 )
-            elif self.turn_username and self.turn_password:
-                turn_mode = "static"
-                ice_servers.append(
-                    {
-                        "urls": [turn_formatted],
-                        "username": self.turn_username,
-                        "credential": self.turn_password,
-                    }
-                )
             else:
                 turn_mode = "unauthenticated"
-                ice_servers.append({"urls": [turn_formatted]})
+                ice_servers.append({"urls": turn_urls})
 
         return {
             "ok": True,
@@ -201,6 +289,7 @@ class NetworkConfigManager:
             "iceTransportPolicy": "all",
             "turn_mode": turn_mode,
             "turn_expires_at": turn_expires_at,
+            "turn_error": self._cf_last_error,
             "public_domain": self.public_domain,
         }
 
@@ -215,6 +304,50 @@ class NetworkConfigManager:
         if clean.startswith("stun:"):
             return "stun://" + clean[len("stun:") :]
         return f"stun://{clean}"
+
+    @staticmethod
+    def parse_turn_urls(raw: str) -> List[str]:
+        """
+        Split a comma/space/newline separated list of TURN URLs and normalise
+        `turn://host` -> `turn:host` (W3C form). Free providers (Metered, ExpressTURN, ...)
+        give several URLs (udp 3478, tcp 80, tls 443) that should all be offered.
+
+        A bare `host:port` (no scheme, as copied from many provider dashboards) is
+        auto-fixed to `turn:host:port` (UDP) plus a `?transport=tcp` twin so strict
+        networks that block UDP can still reach the relay. Without a scheme the browser
+        rejects the ICE server and no video connection can start at all.
+        """
+        urls: List[str] = []
+        for part in raw.replace(",", " ").split():
+            clean = part.strip()
+            if not clean:
+                continue
+            if clean.startswith("turn://"):
+                clean = "turn:" + clean[len("turn://") :]
+            elif clean.startswith("turns://"):
+                clean = "turns:" + clean[len("turns://") :]
+            elif not clean.startswith(("turn:", "turns:", "stun:", "stuns:")):
+                bare = clean.removeprefix("//")
+                urls.append(f"turn:{bare}")
+                if "transport=" not in bare:
+                    sep = "&" if "?" in bare else "?"
+                    urls.append(f"turn:{bare}{sep}transport=tcp")
+                continue
+            urls.append(clean)
+        return urls
+
+    @staticmethod
+    def pick_preferred_turn_url(urls: List[str]) -> str:
+        """Pick the lowest-latency relay URL for GStreamer (single URI): UDP, then TCP, then TLS."""
+        if not urls:
+            return ""
+        for u in urls:
+            if u.startswith("turn:") and "transport=tcp" not in u:
+                return u
+        for u in urls:
+            if u.startswith("turn:"):
+                return u
+        return urls[0]
 
     @staticmethod
     def format_gstreamer_turn_uri(
@@ -240,6 +373,27 @@ class NetworkConfigManager:
             return f"{scheme}://{enc_u}:{enc_p}@{host_part}"
         return f"{scheme}://{host_part}"
 
+    def _cloudflare_gstreamer_turn_uri(self) -> str:
+        """Build a GStreamer `turn://user:pass@host:port?transport=udp` URI from Cloudflare creds."""
+        for server in self.fetch_cloudflare_ice_servers():
+            username = str(server.get("username", ""))
+            credential = str(server.get("credential", ""))
+            urls = server.get("urls", [])
+            if isinstance(urls, str):
+                urls = [urls]
+            if not username or not credential or not isinstance(urls, list):
+                continue
+            # Prefer UDP relay for lowest latency; fall back to first TURN url
+            turn_urls = [str(u) for u in urls if str(u).startswith(("turn:", "turns:"))]
+            if not turn_urls:
+                continue
+            chosen = next(
+                (u for u in turn_urls if u.startswith("turn:") and "transport=udp" in u),
+                turn_urls[0],
+            )
+            return self.format_gstreamer_turn_uri(chosen, username=username, password=credential)
+        return ""
+
     def get_gstreamer_ice_env(self, username: str = "player") -> Dict[str, str]:
         """
         Return environment variables (`STUN_SERVER`, `TURN_SERVER`) to pass into the
@@ -252,22 +406,29 @@ class NetworkConfigManager:
         if self.stun_url:
             env["STUN_SERVER"] = self.format_gstreamer_stun_uri(self.stun_url)
 
+        # Preferred: Cloudflare Realtime TURN relay (works behind CGNAT / no port-forwarding)
+        cf_turn_uri = self._cloudflare_gstreamer_turn_uri()
+        if cf_turn_uri:
+            env["TURN_SERVER"] = cf_turn_uri
+            return env
+
         if self.turn_url:
-            if self.turn_secret:
-                creds = self.generate_turn_rest_credentials(username)
+            chosen_url = self.pick_preferred_turn_url(self.parse_turn_urls(self.turn_url))
+            if self.turn_username and self.turn_password:
                 env["TURN_SERVER"] = self.format_gstreamer_turn_uri(
-                    self.turn_url,
-                    username=str(creds["username"]),
-                    password=str(creds["credential"]),
-                )
-            elif self.turn_username and self.turn_password:
-                env["TURN_SERVER"] = self.format_gstreamer_turn_uri(
-                    self.turn_url,
+                    chosen_url,
                     username=self.turn_username,
                     password=self.turn_password,
                 )
+            elif self.turn_secret:
+                creds = self.generate_turn_rest_credentials(username)
+                env["TURN_SERVER"] = self.format_gstreamer_turn_uri(
+                    chosen_url,
+                    username=str(creds["username"]),
+                    password=str(creds["credential"]),
+                )
             else:
-                env["TURN_SERVER"] = self.format_gstreamer_turn_uri(self.turn_url)
+                env["TURN_SERVER"] = self.format_gstreamer_turn_uri(chosen_url)
         return env
 
     @staticmethod
@@ -290,7 +451,10 @@ class NetworkConfigManager:
         cloudflared_running = self._is_process_running("cloudflared")
         turnserver_running = self._is_process_running("turnserver")
 
-        turn_configured = bool(self.turn_url and (self.turn_secret or self.turn_username))
+        turn_configured = bool(
+            (self.turn_url and (self.turn_secret or self.turn_username))
+            or self.cloudflare_turn_configured
+        )
         return {
             "public_domain": self.public_domain,
             "https_url": f"https://{self.public_domain}" if self.public_domain else "",
@@ -299,6 +463,8 @@ class NetworkConfigManager:
             "cloudflared_running": cloudflared_running,
             "turnserver_installed": turnserver_bin is not None,
             "turnserver_running": turnserver_running,
+            "cloudflare_turn_configured": self.cloudflare_turn_configured,
+            "cloudflare_turn_error": self._cf_last_error,
             "stun_url": self.stun_url,
             "turn_url": self.turn_url,
             "turn_configured": turn_configured,

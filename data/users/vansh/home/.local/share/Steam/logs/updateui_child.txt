@@ -4060,3 +4060,175 @@
 [2026-10-26 03:33:07] Set status message: Verifying installation...
 [2026-10-26 03:33:07] Show window
 [2026-10-26 03:33:09] Destroy window
+
+
+[2026-10-26 10:30:50] Client version: 0
+[2026-10-26 10:30:50] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 10:30:50] Using update UI: xwin
+[2026-10-26 10:30:50] Create window
+[2026-10-26 10:30:50] Set percent complete: 0
+[2026-10-26 10:30:50] Set status message: Checking for available updates...
+[2026-10-26 10:30:50] Set percent complete: -1
+[2026-10-26 10:30:51] Set percent complete: -1
+[2026-10-26 10:30:51] Set status message: Verifying installation...
+[2026-10-26 10:30:51] Show window
+[2026-10-26 10:30:54] Destroy window
+
+
+[2026-10-26 10:47:08] Client version: 0
+[2026-10-26 10:47:08] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 10:47:08] Using update UI: xwin
+[2026-10-26 10:47:08] Create window
+[2026-10-26 10:47:08] Set percent complete: 0
+[2026-10-26 10:47:08] Set status message: Checking for available updates...
+[2026-10-26 10:47:08] Set percent complete: -1
+[2026-10-26 10:47:08] Set percent complete: -1
+[2026-10-26 10:47:08] Set status message: Verifying installation...
+[2026-10-26 10:47:08] Show window
+[2026-10-26 10:47:12] Destroy window
+
+
+[2026-10-26 10:49:14] Client version: 0
+[2026-10-26 10:49:14] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 10:49:14] Using update UI: xwin
+[2026-10-26 10:49:14] Create window
+[2026-10-26 10:49:14] Set percent complete: 0
+[2026-10-26 10:49:14] Set status message: Checking for available updates...
+[2026-10-26 10:49:14] Set percent complete: -1
+[2026-10-26 10:49:15] Set percent complete: -1
+[2026-10-26 10:49:15] Set status message: Verifying installation...
+[2026-10-26 10:49:15] Show window
+[2026-10-26 10:49:16] Destroy window
+[2026-10-26 10:49:16] ProcessNextMessage: socket disconnected
+
+
+[2026-10-26 11:06:15] Client version: 0
+[2026-10-26 11:06:15] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 11:06:15] Using update UI: xwin
+[2026-10-26 11:06:15] Create window
+[2026-10-26 11:06:15] Set percent complete: 0
+[2026-10-26 11:06:15] Set status message: Checking for available updates...
+[2026-10-26 11:06:15] Set percent complete: -1
+[2026-10-26 11:06:16] Set percent complete: -1
+[2026-10-26 11:06:16] Set status message: Verifying installation...
+[2026-10-26 11:06:16] Show window
+[2026-10-26 11:06:17] Destroy window
+
+
+[2026-10-26 15:11:18] Client version: 0
+[2026-10-26 15:11:18] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 15:11:18] Using update UI: xwin
+[2026-10-26 15:11:18] Create window
+[2026-10-26 15:11:18] Set percent complete: 0
+[2026-10-26 15:11:18] Set status message: Checking for available updates...
+[2026-10-26 15:11:18] Set percent complete: -1
+[2026-10-26 15:11:18] Set percent complete: -1
+[2026-10-26 15:11:18] Set status message: Verifying installation...
+[2026-10-26 15:11:18] Show window
+[2026-10-26 15:11:20] Destroy window
+
+
+[2026-10-26 15:14:12] Client version: 0
+[2026-10-26 15:14:12] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 15:14:12] Using update UI: xwin
+[2026-10-26 15:14:12] Create window
+[2026-10-26 15:14:12] Set percent complete: 0
+[2026-10-26 15:14:12] Set status message: Checking for available updates...
+[2026-10-26 15:14:12] Set percent complete: -1
+[2026-10-26 15:14:12] Set percent complete: -1
+[2026-10-26 15:14:12] Set status message: Verifying installation...
+[2026-10-26 15:14:12] Show window
+[2026-10-26 15:14:13] Destroy window
+[2026-10-26 15:14:13] Shutdown
+
+
+[2026-10-26 17:12:25] Client version: 0
+[2026-10-26 17:12:25] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:12:25] Using update UI: xwin
+[2026-10-26 17:12:25] Create window
+[2026-10-26 17:12:25] Set percent complete: 0
+[2026-10-26 17:12:25] Set status message: Checking for available updates...
+[2026-10-26 17:12:25] Set percent complete: -1
+[2026-10-26 17:12:25] Set percent complete: -1
+[2026-10-26 17:12:25] Set status message: Verifying installation...
+[2026-10-26 17:12:25] Show window
+[2026-10-26 17:12:28] Destroy window
+
+
+[2026-10-26 17:34:18] Client version: 0
+[2026-10-26 17:34:18] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:34:18] Using update UI: xwin
+[2026-10-26 17:34:18] Create window
+[2026-10-26 17:34:18] Set percent complete: 0
+[2026-10-26 17:34:18] Set status message: Checking for available updates...
+[2026-10-26 17:34:18] Set percent complete: -1
+[2026-10-26 17:34:19] Set percent complete: -1
+[2026-10-26 17:34:19] Set status message: Verifying installation...
+[2026-10-26 17:34:19] Show window
+[2026-10-26 17:34:22] Destroy window
+
+
+[2026-10-26 17:37:07] Client version: 0
+[2026-10-26 17:37:07] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:37:07] Using update UI: xwin
+[2026-10-26 17:37:07] Create window
+[2026-10-26 17:37:08] Set percent complete: 0
+[2026-10-26 17:37:08] Set status message: Checking for available updates...
+[2026-10-26 17:37:08] Set percent complete: -1
+[2026-10-26 17:37:09] Set percent complete: -1
+[2026-10-26 17:37:09] Set status message: Verifying installation...
+[2026-10-26 17:37:09] Show window
+[2026-10-26 17:37:09] Destroy window
+
+
+[2026-10-26 17:46:25] Client version: 0
+[2026-10-26 17:46:25] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:46:25] Using update UI: xwin
+[2026-10-26 17:46:25] Create window
+[2026-10-26 17:46:25] Set percent complete: 0
+[2026-10-26 17:46:25] Set status message: Checking for available updates...
+[2026-10-26 17:46:25] Set percent complete: -1
+[2026-10-26 17:46:26] Set percent complete: -1
+[2026-10-26 17:46:26] Set status message: Verifying installation...
+[2026-10-26 17:46:26] Show window
+[2026-10-26 17:46:27] Destroy window
+
+
+[2026-10-26 17:53:34] Client version: 0
+[2026-10-26 17:53:34] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:53:34] Using update UI: xwin
+[2026-10-26 17:53:34] Create window
+[2026-10-26 17:53:34] Set percent complete: 0
+[2026-10-26 17:53:34] Set status message: Checking for available updates...
+[2026-10-26 17:53:34] Set percent complete: -1
+[2026-10-26 17:53:35] Set percent complete: -1
+[2026-10-26 17:53:35] Set status message: Verifying installation...
+[2026-10-26 17:53:35] Show window
+[2026-10-26 17:53:36] Destroy window
+
+
+[2026-10-26 17:56:21] Client version: 0
+[2026-10-26 17:56:21] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:56:21] Using update UI: xwin
+[2026-10-26 17:56:21] Create window
+[2026-10-26 17:56:21] Set percent complete: 0
+[2026-10-26 17:56:21] Set status message: Checking for available updates...
+[2026-10-26 17:56:21] Set percent complete: -1
+[2026-10-26 17:56:22] Set percent complete: -1
+[2026-10-26 17:56:22] Set status message: Verifying installation...
+[2026-10-26 17:56:22] Show window
+[2026-10-26 17:56:23] Destroy window
+
+
+[2026-10-26 17:57:01] Client version: 0
+[2026-10-26 17:57:01] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 17:57:01] Using update UI: xwin
+[2026-10-26 17:57:01] Create window
+[2026-10-26 17:57:01] Set percent complete: 0
+[2026-10-26 17:57:01] Set status message: Checking for available updates...
+[2026-10-26 17:57:01] Set percent complete: -1
+[2026-10-26 17:57:01] Set percent complete: -1
+[2026-10-26 17:57:01] Set status message: Verifying installation...
+[2026-10-26 17:57:01] Show window
+[2026-10-26 17:57:03] Destroy window
+[2026-10-26 17:57:03] Shutdown

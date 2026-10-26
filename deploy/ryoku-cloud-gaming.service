@@ -8,6 +8,8 @@ Type=simple
 User=vansh
 WorkingDirectory=/home/vansh/Projects/Home_Cloud_Gaming
 Environment="PYTHONUNBUFFERED=1"
+Environment="ENABLE_CONTAINER_ICE=1"
+EnvironmentFile=-/home/vansh/Projects/Home_Cloud_Gaming/.env
 ExecStart=/usr/bin/python3 /home/vansh/Projects/Home_Cloud_Gaming/engine/launch_phase6.py --host 0.0.0.0 --port 8080 --public-domain vanshdev.online/cloudgaming
 Restart=on-failure
 RestartSec=3
