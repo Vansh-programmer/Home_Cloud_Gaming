@@ -9170,3 +9170,42 @@
 [2026-10-26 18:59:47] [2026-10-26 18:59:47] Manifest download: finished
 [2026-10-26 18:59:47] [2026-10-26 18:59:47] Download skipped by HTTP 304 Not Modified
 [2026-10-26 18:59:47] [2026-10-26 18:59:47] Nothing to do
+[2026-10-26 14:25:00+0000] srt-logger[317]: Log opened
+[2026-10-26 19:55:00] steam.sh[307]: Running Steam on Linux 7.2.7-1-cachyos 64-bit
+[2026-10-26 19:55:00] steam.sh[307]: STEAM_RUNTIME is enabled automatically
+[2026-10-26 19:55:00] setup.sh[356]: Steam runtime environment up-to-date!
+[2026-10-26 19:55:00] steam.sh[307]: Log already open
+[2026-10-26 19:55:00] steam.sh[307]: Steam client's requirements are satisfied
+[2026-10-26 19:55:00] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 19:55:00] 10/26 19:55:00 minidumps folder is set to /tmp/dumps
+[2026-10-26 19:55:00] 10/26 19:55:00 Init: Installing breakpad exception handler for appid(steam)/version(1792618285)/tid(410)
+[2026-10-26 19:55:00] Looks like steam didn't shutdown cleanly, scheduling immediate update check
+[2026-10-26 19:55:00] CProcessEnvironmentManager is ready, 5 preallocated environment variables.
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 19:55:00] 10/26 19:55:00 minidumps folder is set to /tmp/dumps
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Using update UI: xwin
+[2026-10-26 19:55:00] 10/26 19:55:00 Init: Installing breakpad exception handler for appid(steam)/version(0)/tid(411)
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Create window
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Checking for update on startup
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Checking for available updates...
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Manifest download: send request
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Set percent complete: 0
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Set status message: Checking for available updates...
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Set percent complete: -1
+[2026-10-26 19:55:00] [2026-10-26 19:55:00] Manifest download: waiting for download to finish
+[2026-10-26 19:55:01] [2026-10-26 19:55:01] Manifest download: finished
+[2026-10-26 19:55:01] [2026-10-26 19:55:01] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 19:55:01] [2026-10-26 19:55:01] Nothing to do
+[2026-10-26 19:55:01] [2026-10-26 19:55:01] Verifying installation...
+[2026-10-26 19:55:01] [2026-10-26 19:55:01] Verifying all executable checksums
+[2026-10-26 19:55:01] [2026-10-26 19:55:01] Set percent complete: -1
+[2026-10-26 19:55:01] [2026-10-26 19:55:01] Set status message: Verifying installation...
+[2026-10-26 19:55:01] [2026-10-26 19:55:01] Show window

@@ -433,7 +433,7 @@ class SessionOrchestrator:
                     pass
 
         log_path = self.storage_mgr.data_root / f"session-{s.session_id}.log"
-        if log_path.exists():
+        if log_path.exists() and reason in ("user_quit", "server_shutdown"):
             try:
                 log_path.unlink()
             except OSError:

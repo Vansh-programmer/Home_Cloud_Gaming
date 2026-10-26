@@ -223,7 +223,31 @@ class EphemeralSandbox:
             cmd.extend(["--ro-bind", str(self.config.game_dir), "/game"])
 
         # Mount shared Steam library strictly READ-ONLY at /steam_shared
-        if self.config.shared_steam_dir and self.config.shared_steam_dir.exists():
+        has_extra_steam_binds = any(
+            dst.startswith("/steam_shared") for dst in self.config.extra_ro_binds.values()
+        )
+        if has_extra_steam_binds:
+            # When host library games are bound inside /steam_shared, mount /steam_shared as a tmpfs,
+            # bind individual items, and remount-ro so bwrap does not fail with "Read-only file system".
+            cmd.extend([
+                "--tmpfs", "/steam_shared",
+                "--dir", "/steam_shared/steamapps",
+                "--dir", "/steam_shared/steamapps/common",
+            ])
+            if self.config.shared_steam_dir and self.config.shared_steam_dir.exists():
+                shared_steamapps = self.config.shared_steam_dir / "steamapps"
+                if shared_steamapps.exists():
+                    for item in shared_steamapps.iterdir():
+                        if item.name == "common" and item.is_dir():
+                            for c_item in item.iterdir():
+                                cmd.extend(["--ro-bind", str(c_item), f"/steam_shared/steamapps/common/{c_item.name}"])
+                        else:
+                            cmd.extend(["--ro-bind", str(item), f"/steam_shared/steamapps/{item.name}"])
+            for src, dst in self.config.extra_ro_binds.items():
+                if dst.startswith("/steam_shared") and os.path.exists(src):
+                    cmd.extend(["--ro-bind", src, dst])
+            cmd.extend(["--remount-ro", "/steam_shared"])
+        elif self.config.shared_steam_dir and self.config.shared_steam_dir.exists():
             cmd.extend(["--ro-bind", str(self.config.shared_steam_dir), "/steam_shared"])
 
         # Mount optional per-user persistent directories (Phase 2+: Steam login tokens, Proton prefixes, saves)
@@ -239,7 +263,7 @@ class EphemeralSandbox:
             cmd.extend(["--bind", str(self.config.user_config_dir), "/home/gamer/.config"])
 
         for src, dst in self.config.extra_ro_binds.items():
-            if os.path.exists(src):
+            if not dst.startswith("/steam_shared") and os.path.exists(src):
                 cmd.extend(["--ro-bind", src, dst])
 
         # Set strict, clean environment variables inside the container

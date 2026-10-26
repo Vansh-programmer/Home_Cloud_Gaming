@@ -4323,3 +4323,15 @@
 [2026-10-26 18:57:43] Set status message: Verifying installation...
 [2026-10-26 18:57:43] Show window
 [2026-10-26 18:57:45] Destroy window
+
+
+[2026-10-26 19:55:00] Client version: 0
+[2026-10-26 19:55:00] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 19:55:00] Using update UI: xwin
+[2026-10-26 19:55:00] Create window
+[2026-10-26 19:55:00] Set percent complete: 0
+[2026-10-26 19:55:00] Set status message: Checking for available updates...
+[2026-10-26 19:55:00] Set percent complete: -1
+[2026-10-26 19:55:01] Set percent complete: -1
+[2026-10-26 19:55:01] Set status message: Verifying installation...
+[2026-10-26 19:55:01] Show window
