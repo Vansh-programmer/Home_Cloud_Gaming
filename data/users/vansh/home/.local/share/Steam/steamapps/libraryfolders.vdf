@@ -10,22 +10,9 @@
 		"time_last_update_verified"		"1792963633"
 		"apps"
 		{
-			"228980"		"329931729"
+			"228980"		"0"
 			"1493710"		"1537142909"
-			"2218460"		"4295307606"
 			"4183110"		"711197025"
-		}
-	}
-	"1"
-	{
-		"path"		"/steam_shared"
-		"label"		"SharedReadOnlyLibrary"
-		"contentid"		"7841763490920199713"
-		"totalsize"		"235760779264"
-		"update_clean_bytes_tally"		"0"
-		"time_last_update_verified"		"0"
-		"apps"
-		{
 		}
 	}
 }

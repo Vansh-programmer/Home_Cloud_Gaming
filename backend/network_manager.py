@@ -37,8 +37,12 @@ class NetworkConfigManager:
 
     def __init__(self, data_root: Optional[Path] = None) -> None:
         project_root = Path(__file__).resolve().parent.parent
-        self.data_root = (data_root or (project_root / "data")).resolve()
+        default_data_root = (project_root / "data").resolve()
+        self.data_root = (data_root or default_data_root).resolve()
         self.config_path = self.data_root / "network_config.json"
+
+        if self.data_root == default_data_root:
+            self._load_dotenv(project_root / ".env")
 
         self.public_domain: str = os.environ.get("PUBLIC_DOMAIN", "").strip()
         self.cloudflare_tunnel_name: str = os.environ.get(
@@ -72,6 +76,26 @@ class NetworkConfigManager:
         self._cf_last_error: str = ""
 
         self._load_persisted_config()
+
+    @staticmethod
+    def _load_dotenv(dotenv_path: Path) -> None:
+        """Load key=value pairs from .env into os.environ if not already set."""
+        if not dotenv_path.exists():
+            return
+        try:
+            for raw_line in dotenv_path.read_text(encoding="utf-8").splitlines():
+                line = raw_line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                if line.startswith("export "):
+                    line = line[len("export ") :].strip()
+                key, val = line.split("=", 1)
+                key = key.strip()
+                val = val.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = val
+        except Exception:
+            pass
 
     def _load_persisted_config(self) -> None:
         if not self.config_path.exists():
@@ -171,13 +195,17 @@ class NetworkConfigManager:
         (`use-auth-secret` / `static-auth-secret`).
         """
         expires_at = int(time.time()) + self.turn_ttl_sec
-        turn_user = f"{expires_at}:{username}"
-        digest = hmac.new(
-            self.turn_secret.encode("utf-8"),
-            turn_user.encode("utf-8"),
-            hashlib.sha1,
-        ).digest()
-        credential = base64.b64encode(digest).decode("ascii")
+        for _ in range(16):
+            turn_user = f"{expires_at}:{username}"
+            digest = hmac.new(
+                self.turn_secret.encode("utf-8"),
+                turn_user.encode("utf-8"),
+                hashlib.sha1,
+            ).digest()
+            credential = base64.b64encode(digest).decode("ascii")
+            if "/" not in credential:
+                break
+            expires_at += 1
         return {
             "username": turn_user,
             "credential": credential,
@@ -368,13 +396,18 @@ class NetworkConfigManager:
             .removeprefix("turn:")
         )
         if username and password:
-            enc_u = urllib.parse.quote(username, safe="")
-            enc_p = urllib.parse.quote(password, safe="")
+            # GStreamer webrtcbin parses turn-server via gst_uri_from_string_escaped,
+            # which escapes '%' into '%25'. Therefore '=', '+', and ':' in passwords
+            # or base64 keys MUST NOT be percent-encoded here, otherwise '%3D' becomes
+            # '%253D', breaking authentication on providers like ExpressTURN / coturn.
+            enc_u = urllib.parse.quote(username, safe="=+:!$&'()*+,;-._~")
+            enc_p = urllib.parse.quote(password, safe="=+:!$&'()*+,;-._~")
             return f"{scheme}://{enc_u}:{enc_p}@{host_part}"
         return f"{scheme}://{host_part}"
 
-    def _cloudflare_gstreamer_turn_uri(self) -> str:
-        """Build a GStreamer `turn://user:pass@host:port?transport=udp` URI from Cloudflare creds."""
+    def _cloudflare_gstreamer_turn_uris(self) -> List[str]:
+        """Build GStreamer turn URIs from Cloudflare credentials (both UDP and TCP)."""
+        uris: List[str] = []
         for server in self.fetch_cloudflare_ice_servers():
             username = str(server.get("username", ""))
             credential = str(server.get("credential", ""))
@@ -383,21 +416,24 @@ class NetworkConfigManager:
                 urls = [urls]
             if not username or not credential or not isinstance(urls, list):
                 continue
-            # Prefer UDP relay for lowest latency; fall back to first TURN url
-            turn_urls = [str(u) for u in urls if str(u).startswith(("turn:", "turns:"))]
-            if not turn_urls:
-                continue
-            chosen = next(
-                (u for u in turn_urls if u.startswith("turn:") and "transport=udp" in u),
-                turn_urls[0],
-            )
-            return self.format_gstreamer_turn_uri(chosen, username=username, password=credential)
-        return ""
+            for u in urls:
+                if str(u).startswith(("turn:", "turns:")):
+                    uris.append(self.format_gstreamer_turn_uri(str(u), username=username, password=credential))
+        return uris
+
+    def _cloudflare_gstreamer_turn_uri(self) -> str:
+        """Build a primary GStreamer turn URI from Cloudflare creds."""
+        uris = self._cloudflare_gstreamer_turn_uris()
+        if not uris:
+            return ""
+        # Prefer UDP relay for lowest latency
+        return next((u for u in uris if "transport=udp" in u or "transport=" not in u), uris[0])
 
     def get_gstreamer_ice_env(self, username: str = "player") -> Dict[str, str]:
         """
-        Return environment variables (`STUN_SERVER`, `TURN_SERVER`) to pass into the
-        isolated game container when container-side STUN/TURN traversal is enabled.
+        Return environment variables (`STUN_SERVER`, `TURN_SERVER`, `TURN_SERVERS`) to pass
+        into the isolated game container when container-side STUN/TURN traversal is enabled.
+        `TURN_SERVERS` is a comma-separated list of all available relays (UDP + TCP).
         """
         env: Dict[str, str] = {}
         if not self.enable_container_ice:
@@ -407,28 +443,44 @@ class NetworkConfigManager:
             env["STUN_SERVER"] = self.format_gstreamer_stun_uri(self.stun_url)
 
         # Preferred: Cloudflare Realtime TURN relay (works behind CGNAT / no port-forwarding)
-        cf_turn_uri = self._cloudflare_gstreamer_turn_uri()
-        if cf_turn_uri:
-            env["TURN_SERVER"] = cf_turn_uri
+        cf_turn_uris = self._cloudflare_gstreamer_turn_uris()
+        if cf_turn_uris:
+            env["TURN_SERVER"] = self._cloudflare_gstreamer_turn_uri()
+            env["TURN_SERVERS"] = ",".join(cf_turn_uris)
             return env
 
         if self.turn_url:
-            chosen_url = self.pick_preferred_turn_url(self.parse_turn_urls(self.turn_url))
+            parsed_urls = self.parse_turn_urls(self.turn_url)
+            all_turn_uris: List[str] = []
             if self.turn_username and self.turn_password:
-                env["TURN_SERVER"] = self.format_gstreamer_turn_uri(
-                    chosen_url,
-                    username=self.turn_username,
-                    password=self.turn_password,
-                )
+                for u in parsed_urls:
+                    all_turn_uris.append(
+                        self.format_gstreamer_turn_uri(
+                            u, username=self.turn_username, password=self.turn_password
+                        )
+                    )
             elif self.turn_secret:
                 creds = self.generate_turn_rest_credentials(username)
-                env["TURN_SERVER"] = self.format_gstreamer_turn_uri(
-                    chosen_url,
-                    username=str(creds["username"]),
-                    password=str(creds["credential"]),
-                )
+                for u in parsed_urls:
+                    all_turn_uris.append(
+                        self.format_gstreamer_turn_uri(
+                            u,
+                            username=str(creds["username"]),
+                            password=str(creds["credential"]),
+                        )
+                    )
             else:
-                env["TURN_SERVER"] = self.format_gstreamer_turn_uri(chosen_url)
+                for u in parsed_urls:
+                    all_turn_uris.append(self.format_gstreamer_turn_uri(u))
+
+            if all_turn_uris:
+                chosen_url = self.pick_preferred_turn_url(parsed_urls)
+                # Primary single URI
+                primary_uri = next(
+                    (u for u in all_turn_uris if chosen_url in u), all_turn_uris[0]
+                )
+                env["TURN_SERVER"] = primary_uri
+                env["TURN_SERVERS"] = ",".join(all_turn_uris)
         return env
 
     @staticmethod

@@ -188,6 +188,23 @@ class UserStorageManager:
                             parents=True, exist_ok=True
                         )
 
+        # Wire zero-duplication host Steam library games if enabled (HOST_STEAM_LIBRARY=auto)
+        try:
+            from engine.host_library import collect_host_mounts, host_library_enabled
+            if host_library_enabled():
+                for m in collect_host_mounts(self.data_root):
+                    if m.dst.startswith("/steam_shared/steamapps/appmanifest_"):
+                        target_link = user_steamapps / m.src.name
+                        if not target_link.exists() and not target_link.is_symlink():
+                            os.symlink(m.dst, target_link)
+                    elif m.dst.startswith("/steam_shared/steamapps/common/"):
+                        game_name = m.dst.removeprefix("/steam_shared/steamapps/common/")
+                        target_link = user_common / game_name
+                        if not target_link.exists() and not target_link.is_symlink():
+                            os.symlink(m.dst, target_link)
+        except Exception:
+            pass
+
     def get_user_steam_status(self, user_id: str) -> Dict[str, object]:
         """
         Check whether the user has a remembered Steam login session and persistent saves.

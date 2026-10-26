@@ -137,6 +137,7 @@ if pgrep -f "engine/launch_phase6.py" >/dev/null 2>&1; then
   pkill -f "engine/launch_phase6.py" 2>/dev/null || true
   sleep 1
 fi
+rm -f "$LOG_DIR/tunnel.log" "$LOG_DIR/server.log" 2>/dev/null || true
 
 LAN_IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}' | head -n 1)
 [[ -z "$LAN_IP" ]] && LAN_IP="127.0.0.1"

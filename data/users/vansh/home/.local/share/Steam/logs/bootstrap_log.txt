@@ -2665,3 +2665,191 @@
 [2026-10-26 17:57:01] Verifying installation...
 [2026-10-26 17:57:01] Verifying all executable checksums
 [2026-10-26 17:57:03] Verification complete
+
+
+[2026-10-26 18:09:10] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 18:09:10] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 18:09:10] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 18:09:10] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 18:09:10] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:09:10] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:09:10] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 18:09:10] Checking for update on startup
+[2026-10-26 18:09:10] Checking for available updates...
+[2026-10-26 18:09:10] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:09:10] Manifest download: send request
+[2026-10-26 18:09:10] Manifest download: waiting for download to finish
+[2026-10-26 18:09:11] Manifest download: finished
+[2026-10-26 18:09:11] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 18:09:11] Nothing to do
+[2026-10-26 18:09:11] Verifying installation...
+[2026-10-26 18:09:11] Verifying all executable checksums
+[2026-10-26 18:09:13] Verification complete
+[2026-10-26 18:11:14] Background update loop checking for update. . .
+[2026-10-26 18:11:14] Checking for available updates...
+[2026-10-26 18:11:14] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:11:14] Manifest download: send request
+[2026-10-26 18:11:14] Manifest download: waiting for download to finish
+[2026-10-26 18:11:15] Manifest download: finished
+[2026-10-26 18:11:15] Download skipped by HTTP 304 Not Modified
+[2026-10-26 18:11:15] Nothing to do
+
+
+[2026-10-26 18:19:42] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 18:19:42] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 18:19:42] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 18:19:42] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 18:19:42] 1. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:19:42] 2. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:19:42] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 18:19:42] Checking for update on startup
+[2026-10-26 18:19:42] Checking for available updates...
+[2026-10-26 18:19:42] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:19:42] Manifest download: send request
+[2026-10-26 18:19:42] Manifest download: waiting for download to finish
+[2026-10-26 18:19:43] Manifest download: finished
+[2026-10-26 18:19:43] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 18:19:43] Nothing to do
+[2026-10-26 18:19:43] Verifying installation...
+[2026-10-26 18:19:43] Verifying all executable checksums
+[2026-10-26 18:19:45] Verification complete
+[2026-10-26 18:21:47] Background update loop checking for update. . .
+[2026-10-26 18:21:47] Checking for available updates...
+[2026-10-26 18:21:47] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:21:47] Manifest download: send request
+[2026-10-26 18:21:47] Manifest download: waiting for download to finish
+[2026-10-26 18:21:48] Manifest download: finished
+[2026-10-26 18:21:48] Download skipped by HTTP 304 Not Modified
+[2026-10-26 18:21:48] Nothing to do
+
+
+[2026-10-26 18:23:17] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 18:23:17] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 18:23:17] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 18:23:17] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 18:23:17] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:23:17] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:23:17] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 18:23:17] Checking for update on startup
+[2026-10-26 18:23:17] Checking for available updates...
+[2026-10-26 18:23:17] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:23:17] Manifest download: send request
+[2026-10-26 18:23:18] Manifest download: waiting for download to finish
+[2026-10-26 18:23:18] Manifest download: finished
+[2026-10-26 18:23:18] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 18:23:18] Nothing to do
+[2026-10-26 18:23:18] Verifying installation...
+[2026-10-26 18:23:18] Verifying all executable checksums
+[2026-10-26 18:23:20] Verification complete
+
+
+[2026-10-26 18:24:11] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 18:24:11] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 18:24:11] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 18:24:11] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 18:24:11] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:24:11] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:24:11] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 18:24:11] Checking for update on startup
+[2026-10-26 18:24:11] Checking for available updates...
+[2026-10-26 18:24:11] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:24:11] Manifest download: send request
+[2026-10-26 18:24:12] Manifest download: waiting for download to finish
+[2026-10-26 18:24:12] Manifest download: finished
+[2026-10-26 18:24:12] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 18:24:12] Nothing to do
+[2026-10-26 18:24:12] Verifying installation...
+[2026-10-26 18:24:12] Verifying all executable checksums
+[2026-10-26 18:24:14] Verification complete
+[2026-10-26 18:26:15] Background update loop checking for update. . .
+[2026-10-26 18:26:15] Checking for available updates...
+[2026-10-26 18:26:15] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:26:16] Manifest download: send request
+[2026-10-26 18:26:16] Manifest download: waiting for download to finish
+[2026-10-26 18:26:16] Manifest download: finished
+[2026-10-26 18:26:16] Download skipped by HTTP 304 Not Modified
+[2026-10-26 18:26:16] Nothing to do
+
+
+[2026-10-26 18:28:46] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 18:28:46] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 18:28:46] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 18:28:46] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 18:28:46] 1. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:28:46] 2. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:28:46] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 18:28:46] Checking for update on startup
+[2026-10-26 18:28:46] Checking for available updates...
+[2026-10-26 18:28:46] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:28:46] Manifest download: send request
+[2026-10-26 18:28:46] Manifest download: waiting for download to finish
+[2026-10-26 18:28:46] Manifest download: finished
+[2026-10-26 18:28:46] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 18:28:46] Nothing to do
+[2026-10-26 18:28:46] Verifying installation...
+[2026-10-26 18:28:46] Verifying all executable checksums
+[2026-10-26 18:28:47] Verification complete
+[2026-10-26 18:30:49] Background update loop checking for update. . .
+[2026-10-26 18:30:49] Checking for available updates...
+[2026-10-26 18:30:49] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:30:49] Manifest download: send request
+[2026-10-26 18:30:49] Manifest download: waiting for download to finish
+[2026-10-26 18:30:50] Manifest download: finished
+[2026-10-26 18:30:50] Download skipped by HTTP 304 Not Modified
+[2026-10-26 18:30:50] Nothing to do
+
+
+[2026-10-26 18:34:48] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 18:34:48] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 18:34:48] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 18:34:48] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 18:34:48] 1. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:34:48] 2. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:34:48] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 18:34:48] Checking for update on startup
+[2026-10-26 18:34:48] Checking for available updates...
+[2026-10-26 18:34:48] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:34:48] Manifest download: send request
+[2026-10-26 18:34:48] Manifest download: waiting for download to finish
+[2026-10-26 18:34:48] Manifest download: finished
+[2026-10-26 18:34:48] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 18:34:48] Nothing to do
+[2026-10-26 18:34:48] Verifying installation...
+[2026-10-26 18:34:48] Verifying all executable checksums
+[2026-10-26 18:34:50] Verification complete
+[2026-10-26 18:36:51] Background update loop checking for update. . .
+[2026-10-26 18:36:51] Checking for available updates...
+[2026-10-26 18:36:51] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:36:51] Manifest download: send request
+[2026-10-26 18:36:51] Manifest download: waiting for download to finish
+[2026-10-26 18:36:52] Manifest download: finished
+[2026-10-26 18:36:52] Download skipped by HTTP 304 Not Modified
+[2026-10-26 18:36:52] Nothing to do
+
+
+[2026-10-26 18:57:43] Startup - updater built Oct 21 2026 21:09:45
+[2026-10-26 18:57:43] Startup - Steam Client launched with: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-srt-logger-opened' '-gamepadui' '-nochatui' '-nofriendsui'
+[2026-10-26 18:57:43] Loading cached metrics from disk (/home/gamer/.local/share/Steam/package/steam_client_metrics.bin)
+[2026-10-26 18:57:43] Using the following download hosts for Public, Realm steamglobal
+[2026-10-26 18:57:43] 1. https://client-update.akamai.steamstatic.com, /, Realm 'steamglobal', weight was 400, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:57:43] 2. https://client-update.fastly.steamstatic.com, /, Realm 'steamglobal', weight was 900, source = 'update_hosts_cached.vdf'
+[2026-10-26 18:57:43] 3. https://client-update.steamstatic.com, /, Realm 'steamglobal', weight was 1, source = 'baked in'
+[2026-10-26 18:57:43] Checking for update on startup
+[2026-10-26 18:57:43] Checking for available updates...
+[2026-10-26 18:57:43] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:57:43] Manifest download: send request
+[2026-10-26 18:57:43] Manifest download: waiting for download to finish
+[2026-10-26 18:57:43] Manifest download: finished
+[2026-10-26 18:57:43] Download skipped: /steam_client_steamrt64 version 1792618285, installed version 1792618285, existing pending version 0
+[2026-10-26 18:57:43] Nothing to do
+[2026-10-26 18:57:43] Verifying installation...
+[2026-10-26 18:57:43] Verifying all executable checksums
+[2026-10-26 18:57:45] Verification complete
+[2026-10-26 18:59:46] Background update loop checking for update. . .
+[2026-10-26 18:59:46] Checking for available updates...
+[2026-10-26 18:59:46] Downloading manifest: https://client-update.akamai.steamstatic.com/steam_client_steamrt64
+[2026-10-26 18:59:46] Manifest download: send request
+[2026-10-26 18:59:46] Manifest download: waiting for download to finish
+[2026-10-26 18:59:47] Manifest download: finished
+[2026-10-26 18:59:47] Download skipped by HTTP 304 Not Modified
+[2026-10-26 18:59:47] Nothing to do

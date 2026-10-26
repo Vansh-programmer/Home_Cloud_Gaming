@@ -6,8 +6,24 @@
   const BASE_PREFIX = window.location.pathname.startsWith('/cloudgaming') ? '/cloudgaming' : '';
   const _origFetch = window.fetch.bind(window);
   window.fetch = (input, init) => {
+    init = init || {};
     if (typeof input === 'string' && input.startsWith('/api/')) {
       input = BASE_PREFIX + input;
+    }
+    const token = localStorage.getItem('ryoku_auth_token');
+    if (token) {
+      init.headers = init.headers || {};
+      if (init.headers instanceof Headers) {
+        if (!init.headers.has('Authorization')) {
+          init.headers.set('Authorization', `Bearer ${token}`);
+        }
+      } else if (Array.isArray(init.headers)) {
+        if (!init.headers.some(([k]) => k.toLowerCase() === 'authorization')) {
+          init.headers.push(['Authorization', `Bearer ${token}`]);
+        }
+      } else if (typeof init.headers === 'object' && !init.headers['Authorization']) {
+        init.headers['Authorization'] = `Bearer ${token}`;
+      }
     }
     return _origFetch(input, init);
   };
@@ -119,6 +135,7 @@
 
   let activeSessionId = null;
   let streamOpen = false;
+  let streamReplaced = false;
   let ws = null;
   let pc = null;
   let dc = null;
@@ -208,6 +225,9 @@
       showAuthError(data.error || 'Invalid credentials');
       return;
     }
+    if (data.token) {
+      localStorage.setItem('ryoku_auth_token', data.token);
+    }
     await bootstrapAuthenticatedApp();
   };
 
@@ -228,11 +248,15 @@
       showAuthError(data.error || 'Could not redeem invite');
       return;
     }
+    if (data.token) {
+      localStorage.setItem('ryoku_auth_token', data.token);
+    }
     await bootstrapAuthenticatedApp();
   };
 
   document.getElementById('btn-logout').onclick = async () => {
     closeStreamViewport();
+    localStorage.removeItem('ryoku_auth_token');
     await fetch('/api/auth/logout', { method: 'POST' });
     currentUser = null;
     authView.style.display = 'block';
@@ -390,7 +414,10 @@
     selectHudQuality.value = quality;
 
     streamOpen = true;
+    streamReplaced = false;
     streamViewport.classList.add('visible');
+    // Pre-unlock video playback on mobile/safari browsers during direct click gesture
+    videoEl.play().catch(() => {});
     setStepperState('starting', `Launching ${title || 'game'} in isolated sandbox...`);
 
     const res = await fetch('/api/sessions/start', {
@@ -430,7 +457,7 @@
       stIsoBox.innerHTML = '<strong>ISOLATION VERIFIED ✓</strong><br/>Host Home, Host Desktop, Physical Inputs &amp; Host Audio Blocked';
     }
 
-    if (!streamOpen) return;
+    if (!streamOpen || streamReplaced) return;
 
     if (s.state === 'starting') {
       setStepperState('starting', s.stage_message);
@@ -478,7 +505,7 @@
   }
 
   function sendInputPacket(payload) {
-    if (!streamOpen) return;
+    if (!streamOpen || streamReplaced) return;
     const raw = JSON.stringify(payload);
     if (dc && dc.readyState === 'open') {
       dc.send(raw);
@@ -522,14 +549,32 @@
     teardownWebRTC();
     wsConnectingForSession = sessionId;
 
+    // Start prefetching ICE servers in parallel with WebSocket connection
+    const iceServersPromise = fetchIceServers();
+    let pendingRemoteCandidates = [];
+    let remoteDescReady = false;
+
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    ws = new WebSocket(`${proto}//${location.host}${BASE_PREFIX}/api/sessions/current/ws`);
+    const authToken = localStorage.getItem('ryoku_auth_token') || '';
+    const tokenQuery = authToken ? `?token=${encodeURIComponent(authToken)}` : '';
+    ws = new WebSocket(`${proto}//${location.host}${BASE_PREFIX}/api/sessions/current/ws${tokenQuery}`);
 
     ws.onmessage = async (ev) => {
       let msg;
       try {
         msg = JSON.parse(ev.data);
       } catch (_) {
+        return;
+      }
+
+      if (msg.type === 'replaced') {
+        streamReplaced = true;
+        teardownWebRTC();
+        setStepperState(
+          'ended',
+          msg.message || 'Stream was transferred to another device or browser tab.',
+          true
+        );
         return;
       }
 
@@ -540,8 +585,11 @@
           return;
         }
       } else if (msg.type === 'offer') {
-        if (pc) pc.close();
-        const iceServers = await fetchIceServers();
+        if (pc) {
+          try { pc.close(); } catch (_) {}
+          pc = null;
+        }
+        const iceServers = await iceServersPromise;
         const hasRelay = iceServers.some((s) => {
           const urls = Array.isArray(s.urls) ? s.urls : [s.urls];
           return urls.some((u) => String(u).startsWith('turn:') || String(u).startsWith('turns:'));
@@ -550,7 +598,6 @@
           pc = new RTCPeerConnection({ iceServers });
         } catch (err) {
           console.error('RTCPeerConnection rejected ICE servers', iceServers, err);
-          // Retry STUN-only so at least same-network play still works, and tell the user why.
           const stunOnly = iceServers.filter((s) => {
             const urls = Array.isArray(s.urls) ? s.urls : [s.urls];
             return urls.every((u) => String(u).startsWith('stun:'));
@@ -570,7 +617,7 @@
 
         let mediaFlowing = false;
         const noMediaTimer = setTimeout(() => {
-          if (!mediaFlowing && streamOpen) {
+          if (!mediaFlowing && streamOpen && !streamReplaced) {
             setStepperState(
               'ended',
               hasRelay
@@ -581,12 +628,13 @@
           }
         }, 20000);
 
-        pc.oniceconnectionstatechange = () => {
+        const checkConnectedState = () => {
           if (!pc) return;
           const st = pc.iceConnectionState;
           if (st === 'connected' || st === 'completed') {
             mediaFlowing = true;
             clearTimeout(noMediaTimer);
+            setStepperState('playing');
           } else if (st === 'failed') {
             clearTimeout(noMediaTimer);
             setStepperState(
@@ -599,35 +647,40 @@
           }
         };
 
+        pc.oniceconnectionstatechange = checkConnectedState;
+        if ('onconnectionstatechange' in pc) {
+          pc.onconnectionstatechange = () => {
+            if (pc && (pc.connectionState === 'connected')) {
+              mediaFlowing = true;
+              clearTimeout(noMediaTimer);
+              setStepperState('playing');
+            }
+          };
+        }
+
         pc.ondatachannel = (event) => bindDataChannel(event.channel);
 
         pc.ontrack = (event) => {
           mediaFlowing = true;
           clearTimeout(noMediaTimer);
-          if (videoEl.srcObject !== event.streams[0]) {
-            videoEl.srcObject = event.streams[0];
+          if (event.streams && event.streams[0]) {
+            if (videoEl.srcObject !== event.streams[0]) {
+              videoEl.srcObject = event.streams[0];
+            }
+          } else if (event.track) {
+            if (!videoEl.srcObject || !(videoEl.srcObject instanceof MediaStream)) {
+              videoEl.srcObject = new MediaStream();
+            }
+            videoEl.srcObject.addTrack(event.track);
+          }
+          videoEl.play().catch(() => {
+            // Autoplay with audio was blocked by browser policy; mute and retry automatically
+            videoEl.muted = true;
+            btnHudMute.textContent = 'UNMUTE';
+            btnHudMute.classList.remove('active');
             videoEl.play().catch(() => {});
-          }
-          // Only hide the connecting modal once media can actually flow.
-          if (pc && (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed')) {
-            setStepperState('playing');
-          }
-        };
-
-        pc.oniceconnectionstatechange = () => {
-          if (!pc) return;
-          const st = pc.iceConnectionState;
-          if (st === 'connected' || st === 'completed') {
-            setStepperState('playing');
-          } else if (st === 'failed') {
-            setStepperState(
-              'ended',
-              'Could not open the video/audio path to the host PC (WebRTC ICE failed). ' +
-              'The website works over the Cloudflare tunnel, but game media needs direct UDP or a TURN relay. ' +
-              'Ask the admin to configure a TURN server in Admin → External Access & TURN.',
-              true
-            );
-          }
+          });
+          setStepperState('playing');
         };
 
         pc.onicecandidate = (event) => {
@@ -641,16 +694,35 @@
         };
 
         await pc.setRemoteDescription({ type: 'offer', sdp: msg.sdp });
+        remoteDescReady = true;
+
+        // Flush all remote ICE candidates that arrived while setRemoteDescription was pending
+        if (pendingRemoteCandidates.length > 0) {
+          for (const cand of pendingRemoteCandidates) {
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(cand));
+            } catch (_) {}
+          }
+          pendingRemoteCandidates = [];
+        }
+
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        ws.send(JSON.stringify({ type: 'answer', sdp: answer.sdp }));
-      } else if (msg.type === 'ice' && msg.candidate && pc) {
-        try {
-          await pc.addIceCandidate(new RTCIceCandidate({
-            candidate: msg.candidate,
-            sdpMLineIndex: msg.sdpMLineIndex || 0,
-          }));
-        } catch (_) {}
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'answer', sdp: answer.sdp }));
+        }
+      } else if (msg.type === 'ice' && msg.candidate) {
+        const candData = {
+          candidate: msg.candidate,
+          sdpMLineIndex: msg.sdpMLineIndex || 0,
+        };
+        if (!pc || !remoteDescReady) {
+          pendingRemoteCandidates.push(candData);
+        } else {
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(candData));
+          } catch (_) {}
+        }
       } else if (msg.type === 'pong' && msg.client_ts) {
         latestRttMs = Math.max(1, Math.round(performance.now() - msg.client_ts));
         stRtt.textContent = latestRttMs + ' ms';
@@ -658,11 +730,11 @@
       }
     };
 
-    ws.onclose = () => {
-      if (!streamOpen) return;
+    ws.onclose = (ev) => {
+      if (!streamOpen || streamReplaced || (ev && ev.code === 4001)) return;
       wsConnectingForSession = null;
       reconnectTimer = setTimeout(async () => {
-        if (!streamOpen) return;
+        if (!streamOpen || streamReplaced) return;
         const r = await fetch('/api/sessions/current');
         if (!r.ok) return;
         const d = await r.json();
@@ -787,7 +859,7 @@
   ]);
 
   window.addEventListener('keydown', (e) => {
-    if (!streamOpen) return;
+    if (!streamOpen || streamReplaced) return;
     const tag = document.activeElement ? document.activeElement.tagName : '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
@@ -809,7 +881,7 @@
   });
 
   window.addEventListener('keyup', (e) => {
-    if (!streamOpen) return;
+    if (!streamOpen || streamReplaced) return;
     if (e.code === 'Escape' || e.code === 'Tab') return;
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
       e.preventDefault();
@@ -833,7 +905,7 @@
   let lastClientY = null;
 
   videoEl.addEventListener('mousemove', (e) => {
-    if (!streamOpen) return;
+    if (!streamOpen || streamReplaced) return;
     if (document.pointerLockElement === videoEl) {
       if (e.movementX !== 0 || e.movementY !== 0) {
         sendInputPacket({ type: 'mousemove', dx: e.movementX, dy: e.movementY });
@@ -870,7 +942,7 @@
   });
 
   videoEl.addEventListener('mousedown', (e) => {
-    if (!streamOpen) return;
+    if (!streamOpen || streamReplaced) return;
     if (document.activeElement && document.activeElement !== document.body) {
       document.activeElement.blur();
     }
@@ -897,14 +969,14 @@
   });
 
   window.addEventListener('mouseup', (e) => {
-    if (!streamOpen) return;
+    if (!streamOpen || streamReplaced) return;
     sendInputPacket({ type: 'mouseup', button: e.button });
   });
 
   videoEl.addEventListener('contextmenu', (e) => e.preventDefault());
 
   videoEl.addEventListener('wheel', (e) => {
-    if (!streamOpen) return;
+    if (!streamOpen || streamReplaced) return;
     e.preventDefault();
     sendInputPacket({ type: 'wheel', dy: e.deltaY < 0 ? 1 : -1 });
   }, { passive: false });
@@ -1158,7 +1230,7 @@
 
   // Real-time WebRTC Stats & RTT Ping Loop
   setInterval(async () => {
-    if (!streamOpen) return;
+    if (!streamOpen || streamReplaced) return;
     sendInputPacket({ type: 'ping', client_ts: performance.now() });
 
     if (!pc) return;
@@ -1613,6 +1685,8 @@
       btnResumeNav.style.display = 'inline-flex';
       btnResumeNav.onclick = () => {
         streamOpen = true;
+        streamReplaced = false;
+        videoEl.play().catch(() => {});
         streamViewport.classList.add('visible');
         handleSessionStateUpdate(data.my_session);
       };

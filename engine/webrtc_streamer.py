@@ -69,13 +69,21 @@ class WebRTCPeerStream:
         self.turn_server = (
             turn_server if turn_server is not None else (os.environ.get("TURN_SERVER", "") or None)
         )
+        self.turn_servers: List[str] = []
+        raw_servers = os.environ.get("TURN_SERVERS", "").strip()
+        if raw_servers:
+            self.turn_servers = [s.strip() for s in raw_servers.split(",") if s.strip()]
+        elif self.turn_server:
+            self.turn_servers = [self.turn_server]
         self.audio_enabled = audio_enabled
 
         self.pipe: Optional[Gst.Pipeline] = None
         self.webrtc: Optional[Gst.Element] = None
         self.venc: Optional[Gst.Element] = None
-        self.data_channel: Optional[ object] = None
+        self.data_channel: Optional[object] = None
         self._negotiated = False
+        self._remote_desc_set = False
+        self._pending_ice: List[tuple[int, str]] = []
         self._lock = threading.Lock()
 
     def build_pipeline_description(self) -> str:
@@ -143,6 +151,16 @@ class WebRTCPeerStream:
             self.webrtc = self.pipe.get_by_name("wb")
             self.venc = self.pipe.get_by_name("venc")
             self._negotiated = False
+            self._remote_desc_set = False
+            self._pending_ice = []
+
+            # Register any additional TURN servers (e.g. TCP transport relays)
+            if self.turn_servers and self.webrtc is not None:
+                for uri in self.turn_servers:
+                    try:
+                        self.webrtc.emit("add-turn-server", uri)
+                    except Exception as exc:
+                        logger.warning("add-turn-server failed for %s: %s", uri, exc)
 
             self.webrtc.connect("on-negotiation-needed", self._on_negotiation_needed)
             self.webrtc.connect("on-ice-candidate", self._on_ice_candidate)
@@ -170,6 +188,8 @@ class WebRTCPeerStream:
             self.venc = None
             self.data_channel = None
             self._negotiated = False
+            self._remote_desc_set = False
+            self._pending_ice = []
 
     def set_quality(self, quality: str) -> Dict[str, object]:
         """Dynamically update NVENC encoder bitrate without restarting the stream."""
@@ -269,6 +289,11 @@ class WebRTCPeerStream:
         self.on_signaling_message({"type": "offer", "sdp": sdp_text})
 
     def _on_ice_candidate(self, _element: Gst.Element, mlineindex: int, candidate: str) -> None:
+        cand_str = str(candidate)
+        ctype = "unknown"
+        if " typ " in cand_str:
+            ctype = cand_str.split(" typ ")[1].split()[0]
+        logger.debug("Emitted local ICE candidate (mline=%d, typ=%s): %s", mlineindex, ctype, cand_str)
         self.on_signaling_message(
             {
                 "type": "ice",
@@ -277,6 +302,21 @@ class WebRTCPeerStream:
             }
         )
 
+    def _on_remote_desc_set(self, promise: Gst.Promise, _element: Gst.Element, _user_data: object) -> None:
+        with self._lock:
+            self._remote_desc_set = True
+            logger.info(
+                "Remote SDP Answer set on webrtcbin; flushing %d buffered client ICE candidates",
+                len(self._pending_ice),
+            )
+            if self.webrtc is not None:
+                for mline, cand in self._pending_ice:
+                    try:
+                        self.webrtc.emit("add-ice-candidate", int(mline), str(cand))
+                    except Exception as exc:
+                        logger.warning("Error flushing buffered ICE candidate: %s", exc)
+            self._pending_ice = []
+
     def handle_sdp_answer(self, sdp_text: str) -> None:
         with self._lock:
             if not self.webrtc:
@@ -284,10 +324,15 @@ class WebRTCPeerStream:
             res, sdpmsg = GstSdp.SDPMessage.new()
             GstSdp.sdp_message_parse_buffer(bytes(sdp_text.encode("utf-8")), sdpmsg)
             answer = GstWebRTC.WebRTCSessionDescription.new(GstWebRTC.WebRTCSDPType.ANSWER, sdpmsg)
-            self.webrtc.emit("set-remote-description", answer, None)
+            promise = Gst.Promise.new_with_change_func(self._on_remote_desc_set, self.webrtc, None)
+            self.webrtc.emit("set-remote-description", answer, promise)
 
     def handle_ice_candidate(self, mlineindex: int, candidate: str) -> None:
         with self._lock:
             if not self.webrtc or not candidate:
+                return
+            if not self._remote_desc_set:
+                # Buffer until remote description answer promise completes
+                self._pending_ice.append((int(mlineindex), str(candidate)))
                 return
             self.webrtc.emit("add-ice-candidate", int(mlineindex), candidate)

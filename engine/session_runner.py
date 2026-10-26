@@ -481,7 +481,16 @@ def create_web_app(runtime: IsolatedSessionRuntime) -> web.Application:
             runtime.active_peer.stop()
             runtime.active_peer = None
         if runtime.active_ws is not None and not runtime.active_ws.closed:
-            await runtime.active_ws.close()
+            try:
+                await runtime.active_ws.send_json(
+                    {
+                        "type": "replaced",
+                        "message": "Stream connected on another device or browser tab.",
+                    }
+                )
+                await runtime.active_ws.close(code=4001, message=b"replaced_by_new_client")
+            except Exception:
+                pass
 
         runtime.active_ws = ws
         runtime.state = "playing"

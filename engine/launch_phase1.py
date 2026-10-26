@@ -72,6 +72,15 @@ def main() -> int:
 
     user_paths = storage_mgr.prepare_user_storage(user_id)
 
+    extra_binds = {}
+    try:
+        from engine.host_library import collect_host_mounts, host_library_enabled
+        if host_library_enabled():
+            for m in collect_host_mounts(storage_mgr.data_root):
+                extra_binds[str(m.src)] = m.dst
+    except Exception:
+        pass
+
     session_id = args.session_id.strip() if args.session_id.strip() else f"cg-{user_id}-{uuid.uuid4().hex[:6]}"
     cfg = SandboxConfig(
         session_id=session_id,
@@ -84,6 +93,7 @@ def main() -> int:
         user_steam_dot_dir=user_paths.steam_dot_dir,
         user_local_share_dir=user_paths.local_share_dir,
         user_config_dir=user_paths.config_dir,
+        extra_ro_binds=extra_binds,
     )
     sandbox = EphemeralSandbox(cfg)
     sandbox.prepare_directories()
@@ -141,6 +151,7 @@ def main() -> int:
             "SANDBOX_MODE=pre-sandboxed-env",
             f"STUN_SERVER={os.environ.get('STUN_SERVER', '')}",
             f"TURN_SERVER={os.environ.get('TURN_SERVER', '')}",
+            f"TURN_SERVERS={os.environ.get('TURN_SERVERS', '')}",
             sys.executable,
             runner_script,
             "--session-id",

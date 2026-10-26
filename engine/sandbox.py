@@ -189,6 +189,10 @@ class EphemeralSandbox:
             if os.path.exists(etc_path):
                 cmd.extend(["--ro-bind-try", etc_path, etc_path])
 
+        # Bind systemd DNS resolver directory read-only if present for systemd-resolved hosts
+        if os.path.exists("/run/systemd/resolve"):
+            cmd.extend(["--ro-bind-try", "/run/systemd/resolve", "/run/systemd/resolve"])
+
         # Bind ONLY GPU device nodes (/dev/dri and /dev/nvidia*) - NEVER /dev/input or /dev/snd
         gpu_dev_paths = [
             "/dev/dri",
@@ -261,6 +265,7 @@ class EphemeralSandbox:
             "SANDBOX_MODE": "bwrap-strict",
             "STUN_SERVER": os.environ.get("STUN_SERVER", ""),
             "TURN_SERVER": os.environ.get("TURN_SERVER", ""),
+            "TURN_SERVERS": os.environ.get("TURN_SERVERS", ""),
         }
         if env_vars:
             default_env.update(env_vars)

@@ -113,6 +113,17 @@ class SteamLibraryManager:
         seen_ids = {"0", "7"}
         search_dirs = [self.shared_steam_dir / "steamapps"] + self.extra_steamapps_dirs
 
+        try:
+            from engine.host_library import collect_host_mounts, host_library_enabled, host_manifest_dir
+            if host_library_enabled():
+                # Prepare sanitized manifests and include in discovery search
+                collect_host_mounts(self.shared_steam_dir.parent)
+                h_dir = host_manifest_dir(self.shared_steam_dir.parent)
+                if h_dir.exists() and h_dir not in search_dirs:
+                    search_dirs.append(h_dir)
+        except Exception:
+            pass
+
         for steamapps in search_dirs:
             if not steamapps.exists():
                 continue

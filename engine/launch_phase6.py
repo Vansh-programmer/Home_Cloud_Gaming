@@ -10,6 +10,8 @@ import argparse
 import json
 import logging
 import os
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -137,6 +139,52 @@ def main() -> int:
         steam_mgr=steam_mgr,
         orchestrator=orchestrator,
     )
+
+    # Cloudflare Tunnel Auto-Supervision
+    cf_proc = None
+    cf_config = PROJECT_ROOT / "deploy" / "cloudflared-config.yml"
+    disable_tunnel = os.environ.get("DISABLE_AUTO_TUNNEL", "0").strip() == "1"
+    if not disable_tunnel and cf_config.exists() and shutil.which("cloudflared"):
+        if not network_mgr._is_process_running("cloudflared"):
+            cred_file = None
+            try:
+                for line in cf_config.read_text(encoding="utf-8").splitlines():
+                    if line.strip().startswith("credentials-file:"):
+                        cred_file = Path(line.split(":", 1)[1].strip().strip('"').strip("'"))
+                        break
+            except Exception:
+                pass
+            if cred_file and cred_file.exists():
+                logger.info("Auto-starting Cloudflare Tunnel daemon for vansh-cloud-gaming...")
+                log_dir = data_root / "logs"
+                log_dir.mkdir(parents=True, exist_ok=True)
+                tunnel_log = log_dir / "tunnel.log"
+                try:
+                    tunnel_log.unlink(missing_ok=True)
+                except OSError:
+                    pass
+                try:
+                    tfh = open(tunnel_log, "a", encoding="utf-8")
+                    cf_proc = subprocess.Popen(
+                        ["cloudflared", "tunnel", "--config", str(cf_config), "run"],
+                        stdout=tfh,
+                        stderr=subprocess.STDOUT,
+                    )
+                    tfh.close()
+                    logger.info("Cloudflare Tunnel running (PID: %d, log: %s)", cf_proc.pid, tunnel_log)
+                except Exception as exc:
+                    logger.warning("Could not auto-start cloudflared: %s", exc)
+
+    async def _cleanup_tunnel(_app: web.Application) -> None:
+        if cf_proc and cf_proc.poll() is None:
+            logger.info("Terminating auto-managed cloudflared tunnel...")
+            cf_proc.terminate()
+            try:
+                cf_proc.wait(timeout=2)
+            except Exception:
+                cf_proc.kill()
+
+    app.on_cleanup.append(_cleanup_tunnel)
 
     logger.info(
         "Ryoku Cloud Gaming Server listening on http://%s:%d (domain=%s)",
