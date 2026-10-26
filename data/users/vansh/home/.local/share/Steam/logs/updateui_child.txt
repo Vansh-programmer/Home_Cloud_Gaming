@@ -4454,3 +4454,43 @@
 [2026-10-26 22:52:32] Set status message: Verifying installation...
 [2026-10-26 22:52:32] Show window
 [2026-10-26 22:52:34] Destroy window
+
+
+[2026-10-26 23:13:35] Client version: 0
+[2026-10-26 23:13:35] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-applaunch' '203160'
+[2026-10-26 23:13:35] Using update UI: xwin
+[2026-10-26 23:13:35] Create window
+[2026-10-26 23:13:36] Set percent complete: 0
+[2026-10-26 23:13:36] Set status message: Checking for available updates...
+[2026-10-26 23:13:36] Set percent complete: -1
+[2026-10-26 23:13:38] Show window
+[2026-10-26 23:13:38] Set percent complete: -1
+[2026-10-26 23:13:38] Set status message: Verifying installation...
+[2026-10-26 23:13:43] Destroy window
+[2026-10-26 23:13:43] Shutdown
+
+
+[2026-10-26 23:29:04] Client version: 0
+[2026-10-26 23:29:04] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-applaunch' '203160'
+[2026-10-26 23:29:04] Using update UI: xwin
+[2026-10-26 23:29:04] Create window
+[2026-10-26 23:29:04] Set percent complete: 0
+[2026-10-26 23:29:04] Set status message: Checking for available updates...
+[2026-10-26 23:29:04] Set percent complete: -1
+[2026-10-26 23:29:06] Show window
+[2026-10-26 23:29:06] Set percent complete: -1
+[2026-10-26 23:29:06] Set status message: Verifying installation...
+[2026-10-26 23:29:08] Destroy window
+
+
+[2026-10-26 23:29:37] Client version: 0
+[2026-10-26 23:29:37] Process started with command-line: '/home/gamer/.local/share/Steam/ubuntu12_32/steam' '-child-update-ui' '-child-update-ui-socket' '8' '-srt-logger-opened' '-gamepadui' '-applaunch' '203160'
+[2026-10-26 23:29:37] Using update UI: xwin
+[2026-10-26 23:29:37] Create window
+[2026-10-26 23:29:37] Set percent complete: 0
+[2026-10-26 23:29:37] Set status message: Checking for available updates...
+[2026-10-26 23:29:37] Set percent complete: -1
+[2026-10-26 23:29:39] Show window
+[2026-10-26 23:29:39] Set percent complete: -1
+[2026-10-26 23:29:39] Set status message: Verifying installation...
+[2026-10-26 23:29:41] Destroy window
