@@ -551,7 +551,26 @@
             videoEl.srcObject = event.streams[0];
             videoEl.play().catch(() => {});
           }
-          setStepperState('playing');
+          // Only hide the connecting modal once media can actually flow.
+          if (pc && (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed')) {
+            setStepperState('playing');
+          }
+        };
+
+        pc.oniceconnectionstatechange = () => {
+          if (!pc) return;
+          const st = pc.iceConnectionState;
+          if (st === 'connected' || st === 'completed') {
+            setStepperState('playing');
+          } else if (st === 'failed') {
+            setStepperState(
+              'ended',
+              'Could not open the video/audio path to the host PC (WebRTC ICE failed). ' +
+              'The website works over the Cloudflare tunnel, but game media needs direct UDP or a TURN relay. ' +
+              'Ask the admin to configure a TURN server in Admin → External Access & TURN.',
+              true
+            );
+          }
         };
 
         pc.onicecandidate = (event) => {

@@ -49,7 +49,10 @@ class NetworkConfigManager:
         self.turn_realm: str = os.environ.get("TURN_REALM", "ryoku.local").strip()
         self.turn_ttl_sec: int = int(os.environ.get("TURN_TTL_SEC", "86400"))
         self.enable_container_ice: bool = (
-            os.environ.get("ENABLE_CONTAINER_ICE", "0").strip() == "1"
+            # Default ON: without a STUN server the host-side GStreamer webrtcbin only
+            # advertises private LAN candidates, so remote (internet) browsers can never
+            # establish the UDP media path (black screen while the website still works).
+            os.environ.get("ENABLE_CONTAINER_ICE", "1").strip() == "1"
         )
         self.maintenance_offline_mode: bool = False
 
