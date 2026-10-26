@@ -499,6 +499,7 @@
 
   function closeStreamViewport() {
     streamOpen = false;
+    pointerLockPreferred = true;
     teardownWebRTC();
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
@@ -775,13 +776,17 @@
     updateHudPillSummary();
   };
 
+  let pointerLockPreferred = true;
+
   btnHudLockMouse.onclick = (e) => {
     e.currentTarget.blur();
     videoEl.muted = false;
     videoEl.play().catch(() => {});
     if (document.pointerLockElement === videoEl) {
+      pointerLockPreferred = false;
       document.exitPointerLock();
     } else if (videoEl.requestPointerLock) {
+      pointerLockPreferred = true;
       videoEl.requestPointerLock();
     }
   };
@@ -916,22 +921,42 @@
   let lastClientX = null;
   let lastClientY = null;
 
+  // Global Pointer Lock motion handler to capture all mouse movement smoothly
+  document.addEventListener('mousemove', (e) => {
+    if (!streamOpen || streamReplaced || document.pointerLockElement !== videoEl) return;
+    const dx = e.movementX || 0;
+    const dy = e.movementY || 0;
+    // Filter out OS screen-edge wrap spikes from browser Pointer Lock (> 250px)
+    if (Math.abs(dx) > 250 || Math.abs(dy) > 250) {
+      return;
+    }
+    if (dx !== 0 || dy !== 0) {
+      const stepX = Math.max(-100, Math.min(100, dx));
+      const stepY = Math.max(-100, Math.min(100, dy));
+      sendInputPacket({ type: 'mousemove', dx: stepX, dy: stepY });
+    }
+  });
+
   videoEl.addEventListener('mousemove', (e) => {
     if (!streamOpen || streamReplaced) return;
     if (document.pointerLockElement === videoEl) {
-      if (e.movementX !== 0 || e.movementY !== 0) {
-        sendInputPacket({ type: 'mousemove', dx: e.movementX, dy: e.movementY });
-      }
+      // Handled by document listener above
       return;
     }
 
     const rect = videoEl.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
 
+    // Do not clamp and send edge coords when pointer wanders outside video element (avoids 180 snap)
+    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+      lastClientX = null;
+      lastClientY = null;
+      return;
+    }
+
     const nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const ny = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
 
-    // In 3D Arena (app_id '0') or when dragging, also send relative delta so 3D look works immediately
     let dx = e.movementX || 0;
     let dy = e.movementY || 0;
     if (dx === 0 && dy === 0 && lastClientX !== null && lastClientY !== null) {
@@ -941,8 +966,14 @@
     lastClientX = e.clientX;
     lastClientY = e.clientY;
 
-    if (currentSessionAppId === '0' && (dx !== 0 || dy !== 0)) {
-      sendInputPacket({ type: 'mousemove', dx, dy });
+    if ((e.buttons > 0 || currentSessionAppId === '0') && (dx !== 0 || dy !== 0)) {
+      if (Math.abs(dx) <= 250 && Math.abs(dy) <= 250) {
+        sendInputPacket({
+          type: 'mousemove',
+          dx: Math.max(-100, Math.min(100, dx)),
+          dy: Math.max(-100, Math.min(100, dy)),
+        });
+      }
     } else {
       sendInputPacket({ type: 'mousemove', x: nx, y: ny });
     }
@@ -964,17 +995,24 @@
     videoEl.play().catch(() => {});
 
     if (document.pointerLockElement !== videoEl) {
-      const rect = videoEl.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0 && currentSessionAppId !== '0') {
-        sendInputPacket({
-          type: 'mousemove',
-          x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
-          y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
-        });
-      }
-      // Automatically engage 3D Pointer Lock when clicking into CyberArena 3D
-      if (currentSessionAppId === '0' && !touchOverlay.classList.contains('visible') && videoEl.requestPointerLock) {
+      if (pointerLockPreferred && !touchOverlay.classList.contains('visible') && videoEl.requestPointerLock) {
         try { videoEl.requestPointerLock(); } catch (_) {}
+      } else {
+        const rect = videoEl.getBoundingClientRect();
+        if (
+          rect.width > 0 &&
+          rect.height > 0 &&
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom
+        ) {
+          sendInputPacket({
+            type: 'mousemove',
+            x: (e.clientX - rect.left) / rect.width,
+            y: (e.clientY - rect.top) / rect.height,
+          });
+        }
       }
     }
     sendInputPacket({ type: 'mousedown', button: e.button });

@@ -3107,3 +3107,11 @@
 [2026-10-26 22:52:32] Verifying installation...
 [2026-10-26 22:52:32] Verifying all executable checksums
 [2026-10-26 22:52:34] Verification complete
+[2026-10-26 22:54:35] Background update loop checking for update. . .
+[2026-10-26 22:54:35] Checking for available updates...
+[2026-10-26 22:54:35] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 22:54:35] Manifest download: send request
+[2026-10-26 22:54:36] Manifest download: waiting for download to finish
+[2026-10-26 22:54:36] Manifest download: finished
+[2026-10-26 22:54:36] Download skipped by HTTP 304 Not Modified
+[2026-10-26 22:54:36] Nothing to do

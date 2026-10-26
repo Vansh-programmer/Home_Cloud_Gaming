@@ -11030,3 +11030,103 @@
 [2026-10-26 22:52:35] Steam Runtime Launch Service: starting steam-runtime-launcher-service
 [2026-10-26 22:52:35] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 677
 [2026-10-26 22:52:35] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+[2026-10-26 22:52:41] Desktop state changed: desktop: { pos:    0,   0 size: 1280, 720 } primary: { pos:    0,   0 size: 1280, 720 }
+[2026-10-26 22:52:41] Caching cursor image for , size 24x24, serial 36, cache size = 0
+[2026-10-26 22:52:42] pressure-vessel-wrap[860]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:52:42] ProtonFixes[1005] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:52:42] pressure-vessel-wrap[862]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:52:42] ProtonFixes[1005] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:52:42] ProtonFixes[1033] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:52:43] ProtonFixes[1005] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:52:43] ProtonFixes[1005] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:52:43] ProtonFixes[1033] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:52:43] fsync: up and running.
+[2026-10-26 22:52:43] chdir "/home/gamer/.local/share/Steam/steamapps/common/Tomb Raider"
+[2026-10-26 22:52:43] Game Recording - would start recording game 203160, but recording for this game is disabled
+[2026-10-26 22:52:43] Adding process 1039 for gameID 203160
+[2026-10-26 22:52:43] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:52:43] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:52:43] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_64/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS64): ignored.
+[2026-10-26 22:52:43] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:52:43] ERROR: ld.so: object '/home/gamer/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[2026-10-26 22:52:43] Adding process 1057 for gameID 203160
+[2026-10-26 22:52:43] Adding process 1058 for gameID 203160
+[2026-10-26 22:52:43] ProtonFixes[1033] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:52:43] ProtonFixes[1033] WARN: Skipping fix execution. We are probably running a unit test.
+[2026-10-26 22:52:44] pressure-vessel-wrap[1057]: W: Not sharing path STEAM_COMPAT_TOOL_PATHS="...:/usr/share/steam/compatibilitytools.d/proton-cachyos-slr:..." with container because "/usr" is reserved by the container framework
+[2026-10-26 22:52:44] pressure-vessel-wrap[1057]: W: Extra environment variable WAYLAND_DISPLAY set during container setup but not in known_vars; check logic
+[2026-10-26 22:52:44] Adding process 1175 for gameID 203160
+[2026-10-26 22:52:44] ProtonFixes[1175] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:52:44] ProtonFixes[1175] INFO: Running checks
+[2026-10-26 22:52:44] ProtonFixes[1175] INFO: All checks successful
+[2026-10-26 22:52:44] ProtonFixes[1175] INFO: Using early stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:52:44] ProtonFixes[1175] INFO: No early stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:52:44] ProtonFixes[1175] INFO: Setting up fsr4 version "default".
+[2026-10-26 22:52:44] Fontconfig error: "/etc/fonts/fonts.conf", line 86: out of memory
+[2026-10-26 22:52:44] Fontconfig error: "/etc/fonts/fonts.conf", line 91: out of memory
+[2026-10-26 22:52:44] Fontconfig error: Cannot load config file from /etc/fonts/fonts.conf
+[2026-10-26 22:52:45] ProtonFixes[1175] INFO: Automatic fsr4 upgrade enabled.
+[2026-10-26 22:52:45] ProtonFixes[1175] INFO: Running protonfixes on "cachyos-11.0-20261015-slr", build at 2026-10-20 21:08:17+00:00.
+[2026-10-26 22:52:45] ProtonFixes[1175] INFO: Running checks
+[2026-10-26 22:52:45] ProtonFixes[1175] INFO: All checks successful
+[2026-10-26 22:52:45] ProtonFixes[1175] INFO: Using main stage global defaults for "Tomb Raider" (203160)
+[2026-10-26 22:52:45] ProtonFixes[1175] INFO: No main stage global protonfix found for "Tomb Raider" (203160)
+[2026-10-26 22:52:45] Adding process 1217 for gameID 203160
+[2026-10-26 22:52:45] fsync: up and running.
+[2026-10-26 22:52:45] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d11_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 22:52:45] Adding process 1223 for gameID 203160
+[2026-10-26 22:52:45] Adding process 1224 for gameID 203160
+[2026-10-26 22:52:45] Adding process 1236 for gameID 203160
+[2026-10-26 22:52:45] Adding process 1240 for gameID 203160
+[2026-10-26 22:52:45] Adding process 1245 for gameID 203160
+[2026-10-26 22:52:45] Adding process 1255 for gameID 203160
+[2026-10-26 22:52:45] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/shader_cache_temp_dir_d3d12_64/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 22:52:46] Adding process 1266 for gameID 203160
+[2026-10-26 22:52:46] Adding process 1273 for gameID 203160
+[2026-10-26 22:52:46] Adding process 1291 for gameID 203160
+[2026-10-26 22:52:46] Adding process 1307 for gameID 203160
+[2026-10-26 22:52:46] Adding process 1316 for gameID 203160
+[2026-10-26 22:52:46] Adding process 1318 for gameID 203160
+[2026-10-26 22:52:47] Adding process 1326 for gameID 203160
+[2026-10-26 22:52:48] Fossilize INFO: Overriding serialization path: "/home/gamer/.local/share/Steam/steamapps/shadercache/203160/fozpipelinesv6/steamapprun_pipeline_cache".
+[2026-10-26 22:52:48] 10/26 22:52:48 minidumps folder is set to /tmp/dumps
+[2026-10-26 22:52:48] 10/26 22:52:48 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(20261021210950)/tid(1396)
+[2026-10-26 22:52:48] 10/26 22:52:48 Init: Installing breakpad exception handler for appid(gameoverlayui)/version(1.0)/tid(1396)
+[2026-10-26 22:52:48] Fossilize WARN: Graphics pipeline handle 0xffffffffd3286ff8 is not registered.
+[2026-10-26 22:52:48] It has either not been recorded, or it failed to be recorded earlier (which is expected if application uses an extension that is not recognized by Fossilize).
+[2026-10-26 22:52:48] Fossilize WARN: Graphics pipeline handle 0xffffffffd3288eb8 is not registered.
+[2026-10-26 22:52:48] It has either not been recorded, or it failed to be recorded earlier (which is expected if application uses an extension that is not recognized by Fossilize).
+[2026-10-26 22:52:48] Fossilize WARN: Pipeline library handle 0xffffffffd3286ff8 is not registered.
+[2026-10-26 22:52:48] It has either not been recorded, or it failed to be recorded earlier (which is expected if application uses an extension that is not recognized by Fossilize).
+[2026-10-26 22:52:51] Fossilize WARN:  ... warning spam detected at fossilize_errors.hpp:163, silencing.
+[2026-10-26 22:54:35] [2026-10-26 22:54:35] Background update loop checking for update. . .
+[2026-10-26 22:54:35] [2026-10-26 22:54:35] Checking for available updates...
+[2026-10-26 22:54:35] [2026-10-26 22:54:35] Downloading manifest: https://client-update.fastly.steamstatic.com/steam_client_steamrt64
+[2026-10-26 22:54:35] [2026-10-26 22:54:35] Manifest download: send request
+[2026-10-26 22:54:36] [2026-10-26 22:54:36] Manifest download: waiting for download to finish
+[2026-10-26 22:54:36] [2026-10-26 22:54:36] Manifest download: finished
+[2026-10-26 22:54:36] [2026-10-26 22:54:36] Download skipped by HTTP 304 Not Modified
+[2026-10-26 22:54:36] [2026-10-26 22:54:36] Nothing to do
+[2026-10-26 23:01:58] X connection to 127.0.0.1:121 broken (explicit kill or server shutdown).
+[2026-10-26 23:01:58] X connection to 127.0.0.1:121 broken (explicit kill or server shutdown).
+[2026-10-26 23:01:58] XIO:  fatal IO error 61 (No data available) on X server "127.0.0.1:121"
+[2026-10-26 23:01:58]       after 186 requests (186 known processed) with 2 events remaining.
+[2026-10-26 23:01:58] X connection to 127.0.0.1:121 broken (explicit kill or server shutdown).
+[2026-10-26 23:01:58] X connection to 127.0.0.1:121 broken (explicit kill or server shutdown).
+[2026-10-26 23:01:58] X connection to 127.0.0.1:121 broken (explicit kill or server shutdown).
+[2026-10-26 23:01:58] X connection to 127.0.0.1:121 broken (explicit kill or server shutdown).
+[2026-10-26 23:01:58] X connection to 127.0.0.1:121 broken (explicit kill or server shutdown).
+[2026-10-26 23:01:58] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:121"
+[2026-10-26 23:01:58]       after 60 requests (60 known processed) with 0 events remaining.
+[2026-10-26 23:01:58] ../steamnetworkingsockets/clientlib/steamnetworkingsockets_socketthread.cpp (3844) : Trying to close low level socket support, but we still have sockets open!
+[2026-10-26 23:01:58] XIO:  fatal IO error 10 (No child processes) on X server "127.0.0.1:121"
+[2026-10-26 23:01:58]       after 282 requests (272 known processed) with 0 events remaining.
+[2026-10-26 23:01:58] X connection to 127.0.0.1:121 broken (explicit kill or server shutdown).
+[2026-10-26 23:01:58] 10/26 23:01:58 minidumps folder is set to /tmp/dumps
+[2026-10-26 23:01:58] XIO:  fatal IO error 110 (Connection timed out) on X server "127.0.0.1:121"
+[2026-10-26 23:01:58]       after 60 requests (60 known processed) with 0 events remaining.
+[2026-10-26 23:01:58] X connection to 127.0.0.1:121 broken (explicit kill or server shutdown).
+[2026-10-26 23:01:58] XIO:  fatal IO error 61 (No data available) on X server "127.0.0.1:121"
+[2026-10-26 23:01:58]       after 24 requests (21 known processed) with 0 events remaining.
+[2026-10-26 23:01:58] assert_20261026230158_3.dmp[1462]: Uploading dump (out-of-process)
+[2026-10-26 23:01:58] /tmp/dumps/assert_20261026230158_3.dmp

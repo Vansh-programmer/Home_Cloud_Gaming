@@ -368,24 +368,8 @@ class IsolatedInputManager:
                 self._libXtst.XTestFakeRelativeMotionEvent(
                     self._dpy, step_x, step_y, CurrentTime
                 )
-                self._libX11.XFlush(self._dpy)
                 self._ptr_x = max(0, min(self.width - 1, self._ptr_x + step_x))
                 self._ptr_y = max(0, min(self.height - 1, self._ptr_y + step_y))
-
-                margin_x = 140
-                margin_y = 110
-                if (
-                    self._ptr_x < margin_x
-                    or self._ptr_x > self.width - margin_x
-                    or self._ptr_y < margin_y
-                    or self._ptr_y > self.height - margin_y
-                ):
-                    cx = self.width // 2
-                    cy = self.height // 2
-                    self._libXtst.XTestFakeMotionEvent(self._dpy, -1, cx, cy, CurrentTime)
-                    self._libX11.XFlush(self._dpy)
-                    self._ptr_x = cx
-                    self._ptr_y = cy
             elif abs_x is not None and abs_y is not None:
                 px = max(0, min(self.width - 1, int(abs_x * self.width)))
                 py = max(0, min(self.height - 1, int(abs_y * self.height)))
