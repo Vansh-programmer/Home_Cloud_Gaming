@@ -103,8 +103,20 @@ class WebRTCPeerStream:
                 f"aud=true repeat-sequence-header=true bitrate={bitrate_kbps} gop-size={gop_size} bframes=0 "
                 f"vbv-buffer-size={vbv_kbits} "
             )
+        elif Gst.ElementFactory.find("vaapih264enc") is not None:
+            logger.info("Using VA-API Hardware H.264 Encoder (Intel/AMD)")
+            encoder_elem = (
+                f"vaapih264enc name=venc rate-control=cbr tune=low-power "
+                f"bitrate={bitrate_kbps} keyframe-period={gop_size} b-frames=0 "
+            )
+        elif Gst.ElementFactory.find("vah264enc") is not None:
+            logger.info("Using Modern VA-API H.264 Encoder (Intel/AMD)")
+            encoder_elem = (
+                f"vah264enc name=venc rate-control=cbr "
+                f"bitrate={bitrate_kbps} gop-size={gop_size} b-frames=0 "
+            )
         else:
-            logger.warning("nvh264enc not found in GStreamer registry; falling back to x264enc")
+            logger.warning("No hardware H.264 encoder found (nvh264enc/vaapi); falling back to CPU x264enc")
             encoder_elem = (
                 f"x264enc name=venc tune=zerolatency speed-preset=ultrafast "
                 f"bitrate={bitrate_kbps} key-int-max={gop_size} bframes=0 "
