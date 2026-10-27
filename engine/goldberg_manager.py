@@ -60,7 +60,7 @@ def provision_goldberg_lan_profile(
             (settings_dir / "language.txt").write_text("english", encoding="utf-8")
             # Enable LAN discovery / local save broadcast
             (settings_dir / "broadcast_net.txt").write_text("1", encoding="utf-8")
-            logger.info("Provisioned Goldberg LAN profile in %s (User: %s, SteamID: %s)", settings_dir, player_name, steam_id)
+            logger.debug("Provisioned Goldberg LAN profile in %s (User: %s, SteamID: %s)", settings_dir, player_name, steam_id)
         except Exception as exc:
             logger.warning("Could not write Goldberg profile to %s: %s", settings_dir, exc)
 

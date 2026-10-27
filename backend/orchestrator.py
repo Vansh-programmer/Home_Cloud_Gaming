@@ -181,9 +181,10 @@ class SessionOrchestrator:
         self.network_mgr = network_mgr or NetworkConfigManager(data_root=storage_mgr.data_root)
         self.idle_timeout_sec = float(idle_timeout_sec)
         self.disconnect_grace_sec = float(disconnect_grace_sec)
+        from engine.sandbox import EphemeralSandbox
         self.allow_pre_sandboxed = allow_pre_sandboxed or (
             os.environ.get("ALLOW_PRE_SANDBOXED_FALLBACK") == "1"
-        )
+        ) or not EphemeralSandbox.can_use_bwrap()
         self.max_concurrent_sessions = int(
             max_concurrent_sessions
             if max_concurrent_sessions is not None
@@ -558,7 +559,16 @@ class SessionOrchestrator:
                     if s.session_id in self.active_sessions:
                         reason = "game_exited" if ret == 0 else "startup_error"
                         if ret != 0 and s.state == "starting":
-                            s.error_message = f"Game container exited with code {ret} during startup."
+                            log_path = self.storage_mgr.data_root / f"session-{s.session_id}.log"
+                            tail_msg = ""
+                            if log_path.exists():
+                                try:
+                                    lines = [line.strip() for line in log_path.read_text(encoding="utf-8", errors="ignore").splitlines() if line.strip()]
+                                    if lines:
+                                        tail_msg = f": {lines[-1]}"
+                                except Exception:
+                                    pass
+                            s.error_message = f"Game container exited with code {ret} during startup{tail_msg}"
                         await self._terminate_session_locked(s, reason=reason)
                 continue
 

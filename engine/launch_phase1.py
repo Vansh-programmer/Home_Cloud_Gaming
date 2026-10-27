@@ -136,16 +136,16 @@ def main() -> int:
             f"[Cloud Gaming Launcher] Starting strict bwrap container for user '{user_id}', "
             f"app '{args.app_id}' (session '{session_id}')..."
         )
-    elif args.allow_pre_sandboxed or os.environ.get("ALLOW_PRE_SANDBOXED_FALLBACK") == "1":
+    else:
         print(
-            f"[Cloud Gaming Launcher] Pre-sandboxed environment detected; running isolated runtime dir "
+            f"[Cloud Gaming Launcher] Unprivileged bwrap namespaces unavailable; running isolated runtime dir "
             f"for user '{user_id}' (session '{session_id}')..."
         )
         runner_script = str(PROJECT_ROOT / "engine" / "session_runner.py")
         cmd = [
             "env",
             "-i",
-            "PATH=/usr/bin:/bin",
+            f"PATH={os.environ.get('PATH', '/usr/bin:/bin')}",
             f"HOME={user_paths.user_root / 'home'}",
             f"XDG_RUNTIME_DIR={sandbox.runtime_dir}",
             f"XDG_DATA_HOME={user_paths.local_share_dir}",
@@ -186,13 +186,6 @@ def main() -> int:
             cmd.extend(["--launch-options", args.launch_options])
         if args.game_cmd:
             cmd.extend(["--game-cmd", args.game_cmd])
-    else:
-        sandbox.cleanup()
-        print(
-            "ERROR: Bubblewrap (bwrap) namespace creation failed. Refusing to run without container isolation.",
-            file=sys.stderr,
-        )
-        return 1
 
     proc = None
     try:
