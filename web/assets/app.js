@@ -275,16 +275,31 @@
     if (!game) return;
     heroTitle.textContent = game.title;
     if (game.app_id === '0') {
-      heroTag.textContent = 'Native • 60 FPS';
-      heroDesc.textContent = 'Direct NVENC H.264 stream • Low-latency input • Cloud saves';
+      heroTag.textContent = 'Native 3D • 60 FPS';
+      heroDesc.textContent = 'Hardware accelerated OpenGL game with persistent cloud saves and low-latency input.';
     } else if (game.app_id === '7') {
       heroTag.textContent = 'Steam Desktop Client';
-      heroDesc.textContent = 'Direct in-stream Steam client • Persistent session token';
+      heroDesc.textContent = 'Direct in-stream Steam client interface with persistent session token and library access.';
     } else {
       heroTag.textContent = `Steam App #${game.app_id}`;
-      heroDesc.textContent = `${formatBytes(game.size_bytes)} • Proton GE acceleration • Private save profile`;
+      heroDesc.textContent = `${formatBytes(game.size_bytes)} • Proton GE acceleration • Private save container.`;
     }
     heroBtnPlay.onclick = () => startOrResumeGame(game.app_id, game.title);
+
+    // Update dynamic cinematic console hero backdrop
+    const heroBackdrop = document.getElementById('console-hero-backdrop');
+    if (heroBackdrop) {
+      const bgUrl = game.header_url || game.cover_url;
+      if (bgUrl) {
+        const fullUrl = bgUrl.startsWith('/assets/') ? (BASE_PREFIX + bgUrl) : bgUrl;
+        heroBackdrop.style.backgroundImage = `url("${fullUrl}")`;
+      }
+    }
+
+    // Update active focus state across console game shelf
+    document.querySelectorAll('.game-card').forEach((c) => {
+      c.classList.toggle('active-focused', c.dataset.appId === String(game.app_id));
+    });
   }
 
   function renderGamesGrid() {
@@ -299,15 +314,17 @@
     });
 
     if (filtered.length === 0) {
-      gamesGrid.innerHTML = `<div style="grid-column:1/-1; color:var(--fg-2); padding:36px; text-align:center; background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius-lg); font-size:13px; font-weight:500;">
-        No games matching your search.
+      gamesGrid.innerHTML = `<div style="grid-column:1/-1; color:var(--fg-2); padding:36px; text-align:center; background:var(--console-card); border:1px solid var(--line); border-radius:var(--r-lg); font-size:13px; font-weight:600;">
+        No titles matching your filter.
       </div>`;
       return;
     }
 
     for (const g of filtered) {
       const card = document.createElement('div');
-      card.className = 'game-card';
+      const isSelected = selectedGame && selectedGame.app_id === g.app_id;
+      card.className = 'game-card' + (isSelected ? ' active-focused' : '');
+      card.dataset.appId = String(g.app_id);
       const catLabel = g.app_id === '0'
         ? 'Native 3D'
         : (g.app_id === '7' ? 'Steam Client' : 'Steam');
@@ -326,7 +343,6 @@
               <span>#${g.app_id}</span>
               <span>${formatBytes(g.size_bytes)}</span>
             </div>
-            <button class="btn btn-primary" style="width:100%; border-radius:var(--radius-sm); font-size:12px; font-weight:700;">▶ Play</button>
           </div>
         </div>
       `;
@@ -338,13 +354,7 @@
       };
 
       card.onclick = (ev) => {
-        if (ev.target.tagName.toLowerCase() === 'button') {
-          ev.stopPropagation();
-          selectHeroGame(g);
-          startOrResumeGame(g.app_id, g.title);
-        } else {
-          selectHeroGame(g);
-        }
+        selectHeroGame(g);
       };
 
       gamesGrid.appendChild(card);
@@ -374,6 +384,31 @@
       selectHeroGame(allGames[0]);
     }
     renderGamesGrid();
+  }
+
+  // --------------------------------------------------------------------------
+  // Console Digital Clock & Controller Navigation
+  // --------------------------------------------------------------------------
+  function updateConsoleClock() {
+    const clockEl = document.getElementById('console-clock');
+    if (clockEl) {
+      const now = new Date();
+      clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+  }
+  setInterval(updateConsoleClock, 1000);
+  updateConsoleClock();
+
+  function navigateConsoleShelf(direction) {
+    const cards = Array.from(document.querySelectorAll('.game-card'));
+    if (cards.length === 0) return;
+    let curr = cards.findIndex(c => c.classList.contains('active-focused'));
+    if (curr === -1) curr = 0;
+    let next = curr + direction;
+    if (next < 0) next = cards.length - 1;
+    if (next >= cards.length) next = 0;
+    cards[next].click();
+    cards[next].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   }
 
   // --------------------------------------------------------------------------
@@ -774,7 +809,7 @@
     const rttTxt = latestRttMs !== null ? `${latestRttMs} ms` : '-- ms';
     const fpsTxt = latestFps ? `${latestFps} FPS` : '60 FPS';
     const collapsed = hudBar.classList.contains('collapsed');
-    hudPillSummary.textContent = `${fpsTxt} • ${rttTxt}`;
+    hudPillSummary.textContent = `RYOKU HUD ${collapsed ? '▾' : '▴'} • ${fpsTxt} • ${rttTxt}`;
   }
 
   // --------------------------------------------------------------------------
@@ -918,7 +953,29 @@
   ]);
 
   window.addEventListener('keydown', (e) => {
-    if (!streamOpen || streamReplaced) return;
+    if (!streamOpen || streamReplaced) {
+      // Console Dashboard Keyboard Navigation
+      const tag = document.activeElement ? document.activeElement.tagName : '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+      if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        navigateConsoleShelf(1);
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        navigateConsoleShelf(-1);
+      } else if (e.code === 'Enter') {
+        if (selectedGame) {
+          e.preventDefault();
+          startOrResumeGame(selectedGame.app_id, selectedGame.title);
+        }
+      } else if (e.key === '/') {
+        e.preventDefault();
+        searchInput.focus();
+      }
+      return;
+    }
+
     const tag = document.activeElement ? document.activeElement.tagName : '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
@@ -1317,20 +1374,44 @@
     btn.addEventListener('lostpointercapture', releaseBtn);
   });
 
-  // W3C Gamepad API Polling (60Hz)
+  // W3C Gamepad API Polling (60Hz) - In-Stream Input + Console Dashboard Navigation
   let hadGamepadInput = false;
+  let lastGamepadNavTs = 0;
   function pollGamepads() {
-    if (streamOpen && navigator.getGamepads) {
+    if (navigator.getGamepads) {
       const pads = navigator.getGamepads();
       for (const pad of pads) {
         if (!pad || !pad.connected) continue;
-        const axes = pad.axes.slice(0, 4).map((v) => Math.abs(v) > 0.12 ? Number(v.toFixed(2)) : 0);
-        const buttons = pad.buttons.slice(0, 16).map((b) => b.pressed);
-        const active = axes.some((a) => a !== 0) || buttons.some(Boolean);
-        if (active || hadGamepadInput) {
-          sendInputPacket({ type: 'gamepad', axes, buttons });
-          hadGamepadInput = active;
-          if (active) stInputMode.textContent = `Gamepad (${pad.id.slice(0, 14)})`;
+
+        if (streamOpen) {
+          const axes = pad.axes.slice(0, 4).map((v) => Math.abs(v) > 0.12 ? Number(v.toFixed(2)) : 0);
+          const buttons = pad.buttons.slice(0, 16).map((b) => b.pressed);
+          const active = axes.some((a) => a !== 0) || buttons.some(Boolean);
+          if (active || hadGamepadInput) {
+            sendInputPacket({ type: 'gamepad', axes, buttons });
+            hadGamepadInput = active;
+            if (active) stInputMode.textContent = `Gamepad (${pad.id.slice(0, 14)})`;
+          }
+        } else {
+          // Dashboard Console Navigation via Gamepad D-Pad & Left Stick
+          const now = performance.now();
+          if (now - lastGamepadNavTs > 220) {
+            const dpadLeft = pad.buttons[14] && pad.buttons[14].pressed;
+            const dpadRight = pad.buttons[15] && pad.buttons[15].pressed;
+            const stickX = pad.axes[0] || 0;
+            const aBtn = pad.buttons[0] && pad.buttons[0].pressed;
+
+            if (dpadRight || stickX > 0.5) {
+              lastGamepadNavTs = now;
+              navigateConsoleShelf(1);
+            } else if (dpadLeft || stickX < -0.5) {
+              lastGamepadNavTs = now;
+              navigateConsoleShelf(-1);
+            } else if (aBtn && selectedGame) {
+              lastGamepadNavTs = now + 500;
+              startOrResumeGame(selectedGame.app_id, selectedGame.title);
+            }
+          }
         }
         break;
       }
