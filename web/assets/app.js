@@ -916,8 +916,8 @@
     const tag = document.activeElement ? document.activeElement.tagName : '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
-    // Toggle Telemetry HUD on Tilde (`) or F8 (frees Tab completely for in-game scanning/inventory)
-    if (e.code === 'Backquote' || e.code === 'F8') {
+    // Toggle Telemetry HUD strictly on Tilde (~) / Backquote
+    if (e.code === 'Backquote') {
       e.preventDefault();
       btnHudStats.click();
       return;
@@ -937,7 +937,7 @@
 
   window.addEventListener('keyup', (e) => {
     if (!streamOpen || streamReplaced) return;
-    if (e.code === 'Backquote' || e.code === 'F8') return;
+    if (e.code === 'Backquote') return;
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
       if (e.code !== 'Escape') {
         e.preventDefault();
