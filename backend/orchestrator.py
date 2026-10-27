@@ -309,6 +309,7 @@ class SessionOrchestrator:
         width: int = 1280,
         height: int = 720,
         fps: int = 60,
+        launch_options: Optional[str] = None,
     ) -> Dict[str, object]:
         """
         Start a new isolated session for `username` and `app_id`, or reconnect if `username`
@@ -374,6 +375,10 @@ class SessionOrchestrator:
             ]
             if self.allow_pre_sandboxed:
                 cmd.append("--allow-pre-sandboxed")
+
+            effective_launch_opts = launch_options or self.steam_mgr.get_custom_launch_options(clean_app_id)
+            if effective_launch_opts:
+                cmd.extend(["--launch-options", effective_launch_opts])
 
             env = os.environ.copy()
             if self.allow_pre_sandboxed:

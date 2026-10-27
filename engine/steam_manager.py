@@ -13,14 +13,66 @@ Features:
 
 from __future__ import annotations
 
+import json
 import os
 import re
+import shlex
 import shutil
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 KV_PATTERN = re.compile(r'"([^"]+)"\s+"([^"]*)"')
+
+DEFAULT_ONLINEFIX_DLL_OVERRIDES = (
+    "OnlineFix64=n;OnlineFix=n;SteamOverlay64=n;SteamOverlay=n;winmm=n,b;dnet=n;steam_api64=n;steam_api=n;PhotonBridge=n;version=n,b"
+)
+
+
+def parse_launch_options(
+    launch_options: Optional[str],
+    base_cmd: List[str],
+    base_env: Optional[Dict[str, str]] = None,
+) -> Tuple[List[str], Dict[str, str]]:
+    """
+    Parse a Steam launch options string like:
+    WINEDLLOVERRIDES="OnlineFix64=n;steam_api64=n" gamemoderun %command% -force-d3d11
+
+    Extracts:
+    1. Environment variables (KEY=VAL) -> injected into env dict.
+    2. Command wrappers (e.g. gamemoderun, mangohud) -> prepended to base_cmd.
+    3. Arguments after %command% -> appended to base_cmd.
+    """
+    env = dict(base_env or {})
+    if not launch_options or not launch_options.strip():
+        return list(base_cmd), env
+
+    tokens = shlex.split(launch_options.strip())
+    if "%command%" in tokens:
+        idx = tokens.index("%command%")
+        before = tokens[:idx]
+        after = tokens[idx + 1 :]
+    else:
+        before = []
+        after = tokens
+
+    cmd_prefix: List[str] = []
+    for tok in before:
+        if "=" in tok and not tok.startswith("-"):
+            k, v = tok.split("=", 1)
+            env[k.strip()] = v.strip()
+        else:
+            cmd_prefix.append(tok)
+
+    cmd_suffix: List[str] = []
+    for tok in after:
+        if "=" in tok and not tok.startswith("-") and not before:
+            k, v = tok.split("=", 1)
+            env[k.strip()] = v.strip()
+        else:
+            cmd_suffix.append(tok)
+
+    return [*cmd_prefix, *base_cmd, *cmd_suffix], env
 
 
 @dataclass
@@ -33,6 +85,7 @@ class GameEntry:
     header_url: str
     category: str  # "builtin" | "steam"
     custom_exec: Optional[str] = None
+    launch_options: Optional[str] = None
 
     def to_dict(self) -> Dict[str, object]:
         return asdict(self)
@@ -117,6 +170,7 @@ class SteamLibraryManager:
                         header_url="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/739630/header.jpg",
                         category="steam",
                         custom_exec="Phasmophobia.exe",
+                        launch_options=f'WINEDLLOVERRIDES="{DEFAULT_ONLINEFIX_DLL_OVERRIDES}" %command%',
                     ),
                 ]
             )
@@ -158,6 +212,37 @@ class SteamLibraryManager:
                 return g
         return None
 
+    @property
+    def launch_options_file(self) -> Path:
+        return self.shared_steam_dir.parent / "game_launch_options.json"
+
+    def get_custom_launch_options(self, app_id: str) -> Optional[str]:
+        clean_id = str(app_id).strip()
+        if self.launch_options_file.exists():
+            try:
+                data = json.loads(self.launch_options_file.read_text(encoding="utf-8"))
+                if clean_id in data and data[clean_id]:
+                    return str(data[clean_id])
+            except Exception:
+                pass
+        entry = self.get_game(clean_id)
+        if entry and entry.launch_options:
+            return entry.launch_options
+        if clean_id == "739630":
+            return f'WINEDLLOVERRIDES="{DEFAULT_ONLINEFIX_DLL_OVERRIDES}" %command%'
+        return None
+
+    def set_custom_launch_options(self, app_id: str, options: str) -> None:
+        clean_id = str(app_id).strip()
+        data = {}
+        if self.launch_options_file.exists():
+            try:
+                data = json.loads(self.launch_options_file.read_text(encoding="utf-8"))
+            except Exception:
+                data = {}
+        data[clean_id] = options.strip()
+        self.launch_options_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
     def build_launch_command(self, app_id: str, inside_container: bool = True) -> List[str]:
         """
         Return the command vector to execute inside the isolated container for a given app_id.
@@ -178,15 +263,24 @@ class SteamLibraryManager:
 
         entry = self.get_game(clean_id)
         if entry and entry.custom_exec:
+            common_base = Path("/steam_shared/steamapps/common") if inside_container else (self.shared_steam_dir / "steamapps" / "common")
+            game_folder = common_base / entry.install_dir
+            exec_name = entry.custom_exec
+
+            # Auto-detect OnlineFix launcher if present
+            if game_folder.exists():
+                for candidate in ("Launcher.exe", "Phasmophobia_Launcher.exe", "Photon Launcher.exe", entry.custom_exec):
+                    if candidate and (game_folder / candidate).exists():
+                        exec_name = candidate
+                        break
+
             if inside_container:
-                exec_path = f"/steam_shared/steamapps/common/{entry.install_dir}/{entry.custom_exec}"
+                exec_path = f"/steam_shared/steamapps/common/{entry.install_dir}/{exec_name}"
             else:
-                exec_path = str(
-                    self.shared_steam_dir / "steamapps" / "common" / entry.install_dir / entry.custom_exec
-                )
+                exec_path = str(game_folder / exec_name)
+
             if exec_path.lower().endswith(".exe"):
                 # Search for Proton runtime or Wine
-                common_base = Path("/steam_shared/steamapps/common") if inside_container else (self.shared_steam_dir / "steamapps" / "common")
                 proton_bin = None
                 if common_base.exists():
                     for p in sorted(common_base.glob("Proton*"), reverse=True):

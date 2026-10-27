@@ -50,6 +50,7 @@ def main() -> int:
     parser.add_argument("--list-games", action="store_true", help="List discovered games and exit")
     parser.add_argument("--user-status", action="store_true", help="Print user persistent storage status and exit")
     parser.add_argument("--display-num", type=int, default=0, help="Explicit display number (0 = auto-detect free display)")
+    parser.add_argument("--launch-options", default="", help="Steam launch options (e.g. WINEDLLOVERRIDES=... %%command%%)")
     parser.add_argument(
         "--allow-pre-sandboxed",
         action="store_true",
@@ -124,6 +125,8 @@ def main() -> int:
     ]
     if args.display_num > 0:
         inner_cmd.extend(["--display-num", str(args.display_num)])
+    if args.launch_options:
+        inner_cmd.extend(["--launch-options", args.launch_options])
     if args.game_cmd:
         inner_cmd.extend(["--game-cmd", args.game_cmd])
 
@@ -179,6 +182,8 @@ def main() -> int:
         ]
         if args.display_num > 0:
             cmd.extend(["--display-num", str(args.display_num)])
+        if args.launch_options:
+            cmd.extend(["--launch-options", args.launch_options])
         if args.game_cmd:
             cmd.extend(["--game-cmd", args.game_cmd])
     else:

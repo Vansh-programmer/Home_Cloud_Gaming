@@ -63,6 +63,7 @@ class IsolatedSessionRuntime:
         user_id: str = "default",
         app_id: str = "0",
         display_num: int = 0,
+        launch_options: Optional[str] = None,
     ) -> None:
         self.session_id = session_id
         self.width = width
@@ -72,6 +73,7 @@ class IsolatedSessionRuntime:
         self.port = port
         self.user_id = user_id or os.environ.get("CLOUD_USER_ID", "default")
         self.app_id = str(app_id or os.environ.get("CLOUD_APP_ID", "0"))
+        self.launch_options = launch_options or os.environ.get("CLOUD_LAUNCH_OPTIONS", "")
         os.environ["CLOUD_USER_ID"] = self.user_id
         os.environ["CLOUD_APP_ID"] = self.app_id
 
@@ -341,14 +343,38 @@ class IsolatedSessionRuntime:
         env["PROTON_ENABLE_NVAPI"] = "1"
         env["vblank_mode"] = "0"
         if self.audio_available:
-            env["PULSE_SINK"] = "cloud_sink"
+            env["PULSE_SINK"] = self.sink_name
             env["SDL_AUDIODRIVER"] = "pulseaudio"
         else:
             env["SDL_AUDIODRIVER"] = "dummy"
 
-        logger.info("Launching isolated game command: %s", self.game_cmd)
+        # Apply Steam launch options, command wrappers, and DLL overrides
+        from engine.steam_manager import (
+            DEFAULT_ONLINEFIX_DLL_OVERRIDES,
+            SteamLibraryManager,
+            parse_launch_options,
+        )
+        launch_opts = self.launch_options
+        if not launch_opts:
+            shared_dir = Path("/steam_shared") if Path("/steam_shared").exists() else (PROJECT_ROOT / "data" / "shared_steam_library")
+            steam_mgr = SteamLibraryManager(shared_dir)
+            launch_opts = steam_mgr.get_custom_launch_options(self.app_id)
+
+        target_cmd, env = parse_launch_options(launch_opts, self.game_cmd, env)
+
+        # Automatic detection for OnlineFix games: if OnlineFix DLLs or Phasmophobia is present, ensure DLL overrides
+        if "WINEDLLOVERRIDES" not in env:
+            if self.app_id == "739630" or "phasmophobia" in str(target_cmd).lower() or "onlinefix" in str(target_cmd).lower():
+                env["WINEDLLOVERRIDES"] = DEFAULT_ONLINEFIX_DLL_OVERRIDES
+                logger.info("Automatically injected WINEDLLOVERRIDES for online-fix game: %s", self.app_id)
+
+        logger.info(
+            "Launching isolated game command: %s (WINEDLLOVERRIDES: %s)",
+            target_cmd,
+            env.get("WINEDLLOVERRIDES", "none"),
+        )
         self.game_proc = subprocess.Popen(
-            self.game_cmd,
+            target_cmd,
             env=env,
             stdout=sys.stdout,
             stderr=sys.stderr,
@@ -626,6 +652,7 @@ async def run_session_async(args: argparse.Namespace) -> int:
         user_id=args.user_id,
         app_id=args.app_id,
         display_num=getattr(args, "display_num", 0),
+        launch_options=getattr(args, "launch_options", None),
     )
 
     state_dir = os.environ.get("SESSION_STATE_DIR")
@@ -695,6 +722,7 @@ def main() -> int:
     parser.add_argument("--user-id", default="default", help="User identifier for persistent saves/Steam profile")
     parser.add_argument("--app-id", default="0", help="Steam AppID or 0 for CyberArena 3D, 7 for Steam GamepadUI")
     parser.add_argument("--display-num", type=int, default=0, help="Explicit display number (0 = auto-detect free display)")
+    parser.add_argument("--launch-options", default="", help="Steam launch options (e.g. WINEDLLOVERRIDES=... %%command%%)")
     parser.add_argument("--game-cmd", default="", help="Optional custom game command")
     args = parser.parse_args()
 

@@ -68,3 +68,4 @@ def provision_goldberg_lan_profile(
         "steam_id": steam_id,
         "app_id": app_id,
     }
+

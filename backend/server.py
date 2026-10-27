@@ -313,6 +313,23 @@ def create_orchestrator_app(
             }
         )
 
+    async def handle_get_game_launch_options(request: web.Request) -> web.Response:
+        require_user(request)
+        app_id = request.match_info.get("app_id", "0")
+        opts = steam_mgr.get_custom_launch_options(app_id) or ""
+        return web.json_response({"ok": True, "app_id": app_id, "launch_options": opts})
+
+    async def handle_set_game_launch_options(request: web.Request) -> web.Response:
+        require_user(request)
+        app_id = request.match_info.get("app_id", "0")
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        opts = str(body.get("launch_options", "")).strip()
+        steam_mgr.set_custom_launch_options(app_id, opts)
+        return web.json_response({"ok": True, "app_id": app_id, "launch_options": opts})
+
     async def handle_server_status(request: web.Request) -> web.Response:
         user = require_user(request)
         uname = str(user["username"])
@@ -351,6 +368,7 @@ def create_orchestrator_app(
         width = int(body.get("width", 1280))
         height = int(body.get("height", 720))
         fps = int(body.get("fps", 60))
+        launch_opts = str(body.get("launch_options", "")).strip() or None
 
         try:
             session_dict = await orchestrator.start_or_reconnect_session(
@@ -360,6 +378,7 @@ def create_orchestrator_app(
                 width=width,
                 height=height,
                 fps=fps,
+                launch_options=launch_opts,
             )
             return web.json_response({"ok": True, "session": session_dict})
         except SessionConflictError as exc:
@@ -714,6 +733,8 @@ def create_orchestrator_app(
         app.router.add_get(f"{prefix}/api/auth/me", handle_me)
 
         app.router.add_get(f"{prefix}/api/games", handle_list_games)
+        app.router.add_get(f"{prefix}/api/games/{{app_id}}/launch-options", handle_get_game_launch_options)
+        app.router.add_post(f"{prefix}/api/games/{{app_id}}/launch-options", handle_set_game_launch_options)
         app.router.add_get(f"{prefix}/api/server/status", handle_server_status)
         app.router.add_get(f"{prefix}/api/webrtc/ice-config", handle_webrtc_ice_config)
         app.router.add_post(f"{prefix}/api/sessions/start", handle_session_start)

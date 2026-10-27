@@ -300,6 +300,22 @@
     document.querySelectorAll('.game-card').forEach((c) => {
       c.classList.toggle('active-focused', c.dataset.appId === String(game.app_id));
     });
+
+    // Populate custom launch options
+    const optionsInput = document.getElementById('game-launch-options-input');
+    const optionsDrawer = document.getElementById('hero-options-drawer');
+    const optionsStatus = document.getElementById('hero-options-status');
+    if (optionsInput) {
+      optionsInput.value = game.launch_options || '';
+      fetch(`/api/games/${game.app_id}/launch-options`, { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data && data.launch_options !== undefined && optionsInput) {
+            optionsInput.value = data.launch_options;
+          }
+        })
+        .catch(() => {});
+    }
   }
 
   function renderGamesGrid() {
@@ -412,6 +428,46 @@
   }
 
   // --------------------------------------------------------------------------
+  // Launch Options Drawer & Controller Config
+  // --------------------------------------------------------------------------
+  const btnHeroOptions = document.getElementById('hero-btn-options');
+  const drawerHeroOptions = document.getElementById('hero-options-drawer');
+  const btnSaveLaunchOpts = document.getElementById('btn-save-launch-options');
+  const inputLaunchOpts = document.getElementById('game-launch-options-input');
+  const statusLaunchOpts = document.getElementById('hero-options-status');
+
+  if (btnHeroOptions && drawerHeroOptions) {
+    btnHeroOptions.onclick = () => {
+      const isClosed = drawerHeroOptions.style.display === 'none';
+      drawerHeroOptions.style.display = isClosed ? 'block' : 'none';
+    };
+  }
+
+  if (btnSaveLaunchOpts && inputLaunchOpts) {
+    btnSaveLaunchOpts.onclick = async () => {
+      if (!selectedGame) return;
+      const val = inputLaunchOpts.value.trim();
+      try {
+        const resp = await fetch(`/api/games/${selectedGame.app_id}/launch-options`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ launch_options: val }),
+        });
+        if (resp.ok) {
+          selectedGame.launch_options = val;
+          if (statusLaunchOpts) {
+            statusLaunchOpts.textContent = 'Saved ✓';
+            setTimeout(() => { statusLaunchOpts.textContent = 'Configured'; }, 2000);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to save launch options:', err);
+      }
+    };
+  }
+
+  // --------------------------------------------------------------------------
   // Launching & Managing Sessions + Progress Stepper
   // --------------------------------------------------------------------------
   function setStepperState(state, message, isError = false) {
@@ -457,6 +513,9 @@
     videoEl.play().catch(() => {});
     setStepperState('starting', `Launching ${title || 'game'} in isolated sandbox...`);
 
+    const optInput = document.getElementById('game-launch-options-input');
+    const customLaunchOpts = (optInput && optInput.value.trim()) ? optInput.value.trim() : (selectedGame ? selectedGame.launch_options : undefined);
+
     const res = await fetch('/api/sessions/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -466,6 +525,7 @@
         width: w || 1280,
         height: h || 720,
         fps: 60,
+        launch_options: customLaunchOpts,
       }),
     });
     const data = await res.json();

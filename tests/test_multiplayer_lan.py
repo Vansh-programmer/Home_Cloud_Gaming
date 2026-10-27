@@ -110,7 +110,7 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
             self.assertEqual((settings_dir / "broadcast_net.txt").read_text(encoding="utf-8"), "1")
 
     def test_02_phasmophobia_library_discovery(self) -> None:
-        """Verify Phasmophobia (AppID 739630) is registered with co-op metadata."""
+        """Verify Phasmophobia (AppID 739630) is registered with co-op metadata and default DLL overrides."""
         with tempfile.TemporaryDirectory(prefix="phasmo_test_") as tmpdir:
             steam_mgr = SteamLibraryManager(Path(tmpdir))
             games = steam_mgr.list_games()
@@ -118,9 +118,28 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
             self.assertIsNotNone(phasmo, "Phasmophobia must be registered in the game library")
             self.assertIn("Phasmophobia", phasmo.title)
             self.assertEqual(phasmo.custom_exec, "Phasmophobia.exe")
+            self.assertIn("WINEDLLOVERRIDES", phasmo.launch_options or "")
+            self.assertIn("OnlineFix64=n", phasmo.launch_options or "")
 
-    async def test_03_four_player_concurrent_sessions_and_slot_limits(self) -> None:
-        """Verify 4 friends can start games concurrently on 1 PC, and 5th gets 409 SERVER_BUSY."""
+    def test_03_steam_launch_options_parser(self) -> None:
+        """Verify Steam launch options parsing with WINEDLLOVERRIDES, command wrappers, and arguments."""
+        from engine.steam_manager import parse_launch_options
+
+        # 1. Standard Online-Fix Wine DLL Override
+        opts = 'WINEDLLOVERRIDES="OnlineFix64=n;OnlineFix=n;SteamOverlay64=n;SteamOverlay=n;winmm=n,b;dnet=n;steam_api64=n;steam_api=n;PhotonBridge=n" %command%'
+        cmd, env = parse_launch_options(opts, ["/usr/bin/proton", "run", "Phasmophobia.exe"])
+        self.assertEqual(cmd, ["/usr/bin/proton", "run", "Phasmophobia.exe"])
+        self.assertIn("OnlineFix64=n", env["WINEDLLOVERRIDES"])
+        self.assertIn("PhotonBridge=n", env["WINEDLLOVERRIDES"])
+
+        # 2. Command wrapper + arguments
+        opts2 = 'PROTON_NO_ESYNC=1 gamemoderun %command% -force-d3d11 -popupwindow'
+        cmd2, env2 = parse_launch_options(opts2, ["Phasmophobia.exe"])
+        self.assertEqual(cmd2, ["gamemoderun", "Phasmophobia.exe", "-force-d3d11", "-popupwindow"])
+        self.assertEqual(env2["PROTON_NO_ESYNC"], "1")
+
+    async def test_04_four_player_concurrent_sessions_and_slot_limits(self) -> None:
+        """Verify 4 friends can start games concurrently on 1 PC, custom launch options API, and 5th gets 409."""
         with tempfile.TemporaryDirectory(prefix="multiplayer_lan_test_") as tmpdir:
             port, runner, db, orchestrator = await self._start_server(Path(tmpdir), max_concurrent_sessions=4)
             base = f"http://127.0.0.1:{port}"
@@ -142,6 +161,24 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
 
                 session_ids = []
                 internal_ports = []
+
+                # Test Custom Launch Options API for Phasmophobia
+                async with clients["alice"].get(f"{base}/api/games/739630/launch-options") as resp:
+                    self.assertEqual(resp.status, 200)
+                    opts_data = await resp.json()
+                    self.assertIn("WINEDLLOVERRIDES", opts_data["launch_options"])
+
+                custom_opt = 'WINEDLLOVERRIDES="OnlineFix64=n;PhotonBridge=n" %command% -force-d3d11'
+                async with clients["alice"].post(
+                    f"{base}/api/games/739630/launch-options",
+                    json={"launch_options": custom_opt},
+                ) as resp:
+                    self.assertEqual(resp.status, 200)
+
+                async with clients["alice"].get(f"{base}/api/games/739630/launch-options") as resp:
+                    self.assertEqual(resp.status, 200)
+                    opts_data = await resp.json()
+                    self.assertEqual(opts_data["launch_options"], custom_opt)
 
                 # 1. Launch sessions for Alice, Bob, Charlie, and Dave (all 4 should succeed!)
                 for p in ["alice", "bob", "charlie", "dave"]:
