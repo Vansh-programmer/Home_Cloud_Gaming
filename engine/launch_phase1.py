@@ -159,6 +159,8 @@ def main() -> int:
             f"STUN_SERVER={os.environ.get('STUN_SERVER', '')}",
             f"TURN_SERVER={os.environ.get('TURN_SERVER', '')}",
             f"TURN_SERVERS={os.environ.get('TURN_SERVERS', '')}",
+            f"RTP_MIN_PORT={os.environ.get('RTP_MIN_PORT', '50000')}",
+            f"RTP_MAX_PORT={os.environ.get('RTP_MAX_PORT', '50100')}",
             sys.executable,
             runner_script,
             "--session-id",

@@ -171,6 +171,39 @@ class WebRTCPeerStream:
             self._remote_desc_set = False
             self._pending_ice = []
 
+            # Lock ICE agent to deterministic port range for router port forwarding (Direct P2P)
+            if self.webrtc is not None:
+                try:
+                    import ctypes
+                    gobj = ctypes.CDLL("libgobject-2.0.so.0")
+                    gobj.g_object_get.argtypes = [
+                        ctypes.c_void_p,
+                        ctypes.c_char_p,
+                        ctypes.POINTER(ctypes.c_void_p),
+                        ctypes.c_void_p,
+                    ]
+                    gobj.g_object_set.argtypes = [
+                        ctypes.c_void_p,
+                        ctypes.c_char_p,
+                        ctypes.c_uint,
+                        ctypes.c_char_p,
+                        ctypes.c_uint,
+                        ctypes.c_void_p,
+                    ]
+                    agent_ptr = ctypes.c_void_p()
+                    gobj.g_object_get(hash(self.webrtc), b"ice-agent", ctypes.byref(agent_ptr), None)
+                    if agent_ptr.value:
+                        min_port = int(os.environ.get("RTP_MIN_PORT", "50000"))
+                        max_port = int(os.environ.get("RTP_MAX_PORT", "50100"))
+                        gobj.g_object_set(agent_ptr, b"min-rtp-port", min_port, b"max-rtp-port", max_port, None)
+                        logger.info(
+                            "Bound WebRTC ICE RTP port range via ctypes: UDP %d-%d (Direct P2P active)",
+                            min_port,
+                            max_port,
+                        )
+                except Exception as exc:
+                    logger.debug("Could not configure ICE RTP port range: %s", exc)
+
             # Register any additional TURN servers (e.g. TCP transport relays)
             if self.turn_servers and self.webrtc is not None:
                 for uri in self.turn_servers:
