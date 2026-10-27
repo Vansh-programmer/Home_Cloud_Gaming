@@ -245,6 +245,34 @@ class EphemeralSandbox:
         elif self.config.shared_steam_dir and self.config.shared_steam_dir.exists():
             cmd.extend(["--ro-bind", str(self.config.shared_steam_dir), "/steam_shared"])
 
+        # Allow Proton to acquire its runtime lock without triggering Read-only file system error
+        for src, dst in self.config.extra_ro_binds.items():
+            if "proton" in dst.lower() and dst.startswith("/steam_shared") and os.path.isdir(src):
+                lock_file_src = Path(src) / "dist.lock"
+                try:
+                    lock_file_src.touch(exist_ok=True)
+                except Exception:
+                    pass
+                lock_name = "proton_" + re.sub(r"[^a-zA-Z0-9_]", "_", dst) + ".lock"
+                lock_file = self.tmp_dir / lock_name
+                lock_file.touch(mode=0o666, exist_ok=True)
+                cmd.extend(["--bind", str(lock_file), f"{dst}/dist.lock"])
+
+        if self.config.shared_steam_dir and self.config.shared_steam_dir.exists():
+            common_dir = self.config.shared_steam_dir / "steamapps" / "common"
+            if common_dir.exists():
+                for p in common_dir.glob("Proton*"):
+                    if p.is_dir():
+                        lock_file_src = p / "dist.lock"
+                        try:
+                            lock_file_src.touch(exist_ok=True)
+                        except Exception:
+                            pass
+                        lock_name = "proton_" + re.sub(r"[^a-zA-Z0-9_]", "_", p.name) + ".lock"
+                        lock_file = self.tmp_dir / lock_name
+                        lock_file.touch(mode=0o666, exist_ok=True)
+                        cmd.extend(["--bind", str(lock_file), f"/steam_shared/steamapps/common/{p.name}/dist.lock"])
+
         # Mount optional per-user persistent directories (Phase 2+: Steam login tokens, Proton prefixes, saves)
         if self.config.user_persist_dir and self.config.user_persist_dir.exists():
             cmd.extend(["--bind", str(self.config.user_persist_dir), "/home/gamer/persist"])
