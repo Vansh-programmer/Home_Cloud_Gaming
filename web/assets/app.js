@@ -501,6 +501,9 @@
     streamOpen = false;
     pointerLockPreferred = true;
     teardownWebRTC();
+    if (navigator.keyboard && navigator.keyboard.unlock) {
+      try { navigator.keyboard.unlock(); } catch (_) {}
+    }
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     }
@@ -840,14 +843,31 @@
     btnHudTouch.classList.add('active');
   }
 
-  btnHudFullscreen.onclick = (e) => {
+  btnHudFullscreen.onclick = async (e) => {
     e.currentTarget.blur();
     if (!document.fullscreenElement) {
-      streamViewport.requestFullscreen().catch(() => {});
+      try {
+        await streamViewport.requestFullscreen();
+        if (navigator.keyboard && navigator.keyboard.lock) {
+          await navigator.keyboard.lock(['Escape', 'Tab']);
+        }
+      } catch (_) {}
     } else {
+      if (navigator.keyboard && navigator.keyboard.unlock) {
+        try { navigator.keyboard.unlock(); } catch (_) {}
+      }
       document.exitFullscreen().catch(() => {});
     }
   };
+
+  document.addEventListener('fullscreenchange', () => {
+    const isFs = Boolean(document.fullscreenElement);
+    btnHudFullscreen.textContent = isFs ? 'WINDOWED' : 'FULLSCREEN';
+    btnHudFullscreen.classList.toggle('active', isFs);
+    if (!isFs && navigator.keyboard && navigator.keyboard.unlock) {
+      try { navigator.keyboard.unlock(); } catch (_) {}
+    }
+  });
 
   btnHudMinimize.onclick = (e) => {
     e.currentTarget.blur();
@@ -877,9 +897,18 @@
   // Keyboard, Mouse, Wheel, Gamepad & Mobile Touch Input Capture
   // --------------------------------------------------------------------------
   const GAME_KEYS = new Set([
+    // Movement & Standard Action Keys
     'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'KeyF', 'KeyR',
     'Space', 'ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight',
-    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace'
+    'AltLeft', 'AltRight',
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace',
+    // In-game Action & Menu Keys (Cyberpunk 2077, RPGs, Shooters)
+    'Tab', 'Escape',
+    'KeyC', 'KeyV', 'KeyI', 'KeyM', 'KeyJ', 'KeyZ', 'KeyX', 'KeyG', 'KeyT',
+    'KeyB', 'KeyN', 'KeyH', 'KeyY', 'KeyU', 'KeyO', 'KeyP', 'KeyL', 'KeyK',
+    // Numbers & Hotbar Slots
+    'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5',
+    'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0',
   ]);
 
   window.addEventListener('keydown', (e) => {
@@ -887,17 +916,19 @@
     const tag = document.activeElement ? document.activeElement.tagName : '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
-    if (e.code === 'Tab') {
+    // Toggle Telemetry HUD on Tilde (`) or F8 (frees Tab completely for in-game scanning/inventory)
+    if (e.code === 'Backquote' || e.code === 'F8') {
       e.preventDefault();
       btnHudStats.click();
       return;
     }
-    if (e.code === 'Escape') {
-      // Allow browser to exit Pointer Lock / Fullscreen without terminating the game process
-      return;
-    }
+
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
-      e.preventDefault();
+      // Prevent browser default actions (e.g. Tab focusing URL bar, Space scrolling)
+      // Allow Escape to propagate if pointer lock is active so browser releases lock if needed
+      if (e.code !== 'Escape') {
+        e.preventDefault();
+      }
     }
     if (e.repeat) return;
     stInputMode.textContent = document.pointerLockElement === videoEl ? 'KB + 3D LOCK' : `KB (${e.code})`;
@@ -906,9 +937,11 @@
 
   window.addEventListener('keyup', (e) => {
     if (!streamOpen || streamReplaced) return;
-    if (e.code === 'Escape' || e.code === 'Tab') return;
+    if (e.code === 'Backquote' || e.code === 'F8') return;
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
-      e.preventDefault();
+      if (e.code !== 'Escape') {
+        e.preventDefault();
+      }
     }
     sendInputPacket({ type: 'keyup', code: e.code, key: e.key });
   });
