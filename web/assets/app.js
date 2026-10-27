@@ -493,6 +493,9 @@
       step3.className = 'stage-step done';
       step4.className = 'stage-step done';
       stageModal.classList.add('hidden');
+      hudBar.classList.add('collapsed');
+      updateHudPillSummary();
+      showStreamHudTemporarily(4000);
     } else if (state === 'ended' || isError) {
       stageModal.classList.remove('hidden');
       stageTitle.textContent = isError ? 'Stream Connection Notice' : 'Session Ended';
@@ -595,6 +598,11 @@
   function closeStreamViewport() {
     streamOpen = false;
     pointerLockPreferred = true;
+    if (hudHideTimeout) {
+      clearTimeout(hudHideTimeout);
+      hudHideTimeout = null;
+    }
+    streamViewport.classList.remove('hud-autohidden');
     teardownWebRTC();
     if (navigator.keyboard && navigator.keyboard.unlock) {
       try { navigator.keyboard.unlock(); } catch (_) {}
@@ -869,17 +877,84 @@
     const rttTxt = latestRttMs !== null ? `${latestRttMs} ms` : '-- ms';
     const fpsTxt = latestFps ? `${latestFps} FPS` : '60 FPS';
     const collapsed = hudBar.classList.contains('collapsed');
-    hudPillSummary.textContent = `RYOKU HUD ${collapsed ? '▾' : '▴'} • ${fpsTxt} • ${rttTxt}`;
+    hudPillSummary.textContent = `${fpsTxt} • ${rttTxt} ${collapsed ? '▾' : '▴'}`;
   }
 
   // --------------------------------------------------------------------------
-  // In-Stream HUD Controls (Collapse, Pointer Lock, Mute, Quality, Stats, Touch, Fullscreen)
+  // In-Stream Minimal HUD Engine (Auto-Hide, Floating Pill, Hover Reveals)
   // --------------------------------------------------------------------------
+  let hudHideTimeout = null;
+
+  function showStreamHudTemporarily(durationMs = 3000) {
+    if (!streamOpen) return;
+    streamViewport.classList.remove('hud-autohidden');
+    if (hudHideTimeout) {
+      clearTimeout(hudHideTimeout);
+      hudHideTimeout = null;
+    }
+    // Only auto-hide if HUD bar is collapsed (don't hide while user is clicking tools)
+    if (hudBar.classList.contains('collapsed')) {
+      hudHideTimeout = setTimeout(() => {
+        if (streamOpen && hudBar.classList.contains('collapsed')) {
+          streamViewport.classList.add('hud-autohidden');
+        }
+      }, durationMs);
+    }
+  }
+
+  function hideStreamHudImmediately() {
+    if (!streamOpen) return;
+    if (hudHideTimeout) {
+      clearTimeout(hudHideTimeout);
+      hudHideTimeout = null;
+    }
+    hudBar.classList.add('collapsed');
+    updateHudPillSummary();
+    streamViewport.classList.add('hud-autohidden');
+  }
+
   hudPillHandle.onclick = (e) => {
     e.currentTarget.blur();
     hudBar.classList.toggle('collapsed');
     updateHudPillSummary();
+    if (hudBar.classList.contains('collapsed')) {
+      showStreamHudTemporarily(2500);
+    } else {
+      streamViewport.classList.remove('hud-autohidden');
+      if (hudHideTimeout) clearTimeout(hudHideTimeout);
+    }
   };
+
+  const hudHoverTrigger = document.getElementById('hud-hover-trigger');
+  if (hudHoverTrigger) {
+    hudHoverTrigger.addEventListener('mouseenter', () => {
+      showStreamHudTemporarily(3500);
+    });
+  }
+
+  const floatingHudEl = document.querySelector('.floating-hud');
+  if (floatingHudEl) {
+    floatingHudEl.addEventListener('mouseenter', () => {
+      streamViewport.classList.remove('hud-autohidden');
+      if (hudHideTimeout) clearTimeout(hudHideTimeout);
+    });
+    floatingHudEl.addEventListener('mouseleave', () => {
+      if (hudBar.classList.contains('collapsed')) {
+        showStreamHudTemporarily(2000);
+      }
+    });
+  }
+
+  streamViewport.addEventListener('mousemove', (e) => {
+    if (!streamOpen) return;
+    if (document.pointerLockElement === videoEl) return;
+    if (e.clientY < 48) {
+      streamViewport.classList.remove('hud-autohidden');
+      if (hudHideTimeout) clearTimeout(hudHideTimeout);
+    } else {
+      showStreamHudTemporarily(2800);
+    }
+  });
 
   let pointerLockPreferred = true;
 
@@ -901,6 +976,14 @@
     btnHudLockMouse.textContent = locked ? 'UNLOCK ([)' : 'LOCK AIM';
     btnHudLockMouse.classList.toggle('active', locked);
     stInputMode.textContent = locked ? '3D POINTER LOCK' : 'FREE CURSOR';
+
+    if (locked) {
+      // Gameplay active: minimize and hide all HUD elements
+      hideStreamHudImmediately();
+    } else {
+      // Cursor released: show HUD pill briefly so player can see tools
+      showStreamHudTemporarily(3500);
+    }
   });
 
   btnHudMute.onclick = (e) => {
@@ -933,7 +1016,11 @@
     btnHudTouch.classList.toggle('active', touchOverlay.classList.contains('visible'));
   };
 
-  if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+  // Only auto-enable touch controls on true mobile handheld devices
+  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    (window.matchMedia && window.matchMedia('(pointer: coarse)').matches && window.innerWidth < 1024);
+
+  if (isMobileDevice && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
     touchOverlay.classList.add('visible');
     btnHudTouch.classList.add('active');
   }
@@ -1166,6 +1253,11 @@
     if (!streamOpen || streamReplaced) return;
     if (document.activeElement && document.activeElement !== document.body) {
       document.activeElement.blur();
+    }
+    // If tools menu was open, collapse it on clicking game view
+    if (hudBar && !hudBar.classList.contains('collapsed')) {
+      hudBar.classList.add('collapsed');
+      updateHudPillSummary();
     }
     videoEl.muted = false;
     btnHudMute.textContent = 'AUDIO ON';

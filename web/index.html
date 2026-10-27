@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/styles.css?v=10" />
+  <link rel="stylesheet" href="/assets/styles.css?v=11" />
 </head>
 <body class="console-body">
 
@@ -303,12 +303,13 @@
 
   <!-- In-Stream Viewport & Tactical HUD -->
   <div class="stream-viewport" id="stream-viewport">
+    <div class="hud-hover-trigger" id="hud-hover-trigger" title="Hover to reveal stream controls"></div>
     <div class="floating-hud">
-      <div class="hud-pill-handle" id="hud-pill-handle">
+      <div class="hud-pill-handle" id="hud-pill-handle" title="Toggle Stream Tools">
         <span class="hud-live-indicator"></span>
-        <span id="hud-pill-summary">60 FPS • -- ms</span>
+        <span id="hud-pill-summary">60 FPS • -- ms ▾</span>
       </div>
-      <div class="hud-bar" id="hud-bar">
+      <div class="hud-bar collapsed" id="hud-bar">
         <button class="btn btn-hud" id="btn-hud-lock-mouse">Lock Aim</button>
         <button class="btn btn-hud active" id="btn-hud-mute">Audio On</button>
         <select class="btn btn-hud" id="select-hud-quality" aria-label="Bitrate">
@@ -418,6 +419,6 @@
     </div>
   </div>
 
-  <script src="/assets/app.js?v=10"></script>
+  <script src="/assets/app.js?v=11"></script>
 </body>
 </html>

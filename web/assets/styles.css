@@ -1017,9 +1017,20 @@ html, body.console-body {
   display: flex;
 }
 
+/* Invisible top edge trigger to reveal HUD seamlessly on hover */
+.hud-hover-trigger {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  z-index: 529;
+  pointer-events: auto;
+}
+
 .floating-hud {
   position: absolute;
-  top: 16px;
+  top: 12px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 530;
@@ -1027,61 +1038,77 @@ html, body.console-body {
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hud-pill-handle {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(10, 13, 20, 0.88);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--line-bright);
+  background: rgba(10, 13, 20, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--r-full);
-  padding: 6px 18px;
+  padding: 4px 14px;
   font-family: var(--font-mono);
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-1);
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-  transition: all 0.18s;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  transition: all 0.18s ease;
+  user-select: none;
 }
 
 .hud-pill-handle:hover {
-  background: rgba(22, 28, 42, 0.95);
+  background: rgba(18, 24, 38, 0.95);
   border-color: var(--accent-cyan);
+  color: #fff;
+  transform: translateY(1px);
 }
 
 .hud-live-indicator {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: var(--r-full);
   background: var(--status-green);
-  box-shadow: 0 0 8px var(--status-green);
+  box-shadow: 0 0 6px var(--status-green);
 }
 
 .hud-bar {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
+  gap: 5px;
+  padding: 5px 8px;
   background: rgba(10, 13, 20, 0.92);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   border: 1px solid var(--line-bright);
   border-radius: var(--r-full);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
+  animation: hudBarPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hud-bar.collapsed {
   display: none;
 }
 
+@keyframes hudBarPop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .btn-hud {
-  padding: 7px 14px;
+  padding: 5px 12px;
   border-radius: var(--r-full);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   background: transparent;
   border: 1px solid transparent;
@@ -1130,64 +1157,85 @@ html, body.console-body {
   user-select: none;
 }
 
-/* Bottom Controls Frosted Dock */
+/* Bottom Controls Frosted Dock - Minimized & Sleek */
 .stream-controls-bar {
   position: absolute;
-  bottom: 20px;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 512;
   display: flex;
-  gap: 18px;
+  gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  padding: 8px 26px;
-  background: rgba(10, 13, 20, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 4px 18px;
+  background: rgba(10, 13, 20, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: var(--r-full);
-  font-size: 11.5px;
-  color: var(--fg-1);
+  font-size: 11px;
+  color: var(--fg-2);
   pointer-events: none;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .stream-controls-bar span {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .stream-controls-bar kbd {
   display: inline-block;
-  padding: 2px 7px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 4px;
+  padding: 1px 5px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
   color: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-/* Glassmorphism Telemetry Drawer */
+/* In-Game Auto-Hide Engine: hides HUD & bottom dock cleanly while playing */
+.stream-viewport.hud-autohidden .floating-hud {
+  opacity: 0;
+  transform: translate(-50%, -120%);
+  pointer-events: none;
+}
+
+.stream-viewport.hud-autohidden .stream-controls-bar {
+  opacity: 0;
+  transform: translate(-50%, 120%);
+  pointer-events: none;
+}
+
+/* Hover near the top edge smoothly reveals the HUD even when auto-hidden */
+.stream-viewport.hud-autohidden .hud-hover-trigger:hover ~ .floating-hud,
+.stream-viewport.hud-autohidden .floating-hud:hover {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+/* Glassmorphism Telemetry Drawer - Compact */
 .stream-stats-overlay {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: 14px;
+  left: 14px;
   z-index: 520;
-  width: 270px;
-  background: rgba(10, 13, 20, 0.92);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border: 1px solid var(--line-bright);
-  border-radius: var(--r-lg);
-  padding: 18px;
+  width: 230px;
+  background: rgba(10, 13, 20, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
   display: none;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 .stream-stats-overlay.visible {
@@ -1197,14 +1245,14 @@ html, body.console-body {
 .stats-heading {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--line);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .stats-live-dot {
