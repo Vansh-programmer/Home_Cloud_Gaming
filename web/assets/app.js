@@ -803,7 +803,7 @@
 
   document.addEventListener('pointerlockchange', () => {
     const locked = document.pointerLockElement === videoEl;
-    btnHudLockMouse.textContent = locked ? 'UNLOCK (ESC)' : 'LOCK AIM';
+    btnHudLockMouse.textContent = locked ? 'UNLOCK ([)' : 'LOCK AIM';
     btnHudLockMouse.classList.toggle('active', locked);
     stInputMode.textContent = locked ? '3D POINTER LOCK' : 'FREE CURSOR';
   });
@@ -903,7 +903,7 @@
     'AltLeft', 'AltRight',
     'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace',
     // In-game Action & Menu Keys (Cyberpunk 2077, RPGs, Shooters)
-    'Tab', 'BracketLeft', 'BracketRight',
+    'Tab', 'Escape',
     'KeyC', 'KeyV', 'KeyI', 'KeyM', 'KeyJ', 'KeyZ', 'KeyX', 'KeyG', 'KeyT',
     'KeyB', 'KeyN', 'KeyH', 'KeyY', 'KeyU', 'KeyO', 'KeyP', 'KeyL', 'KeyK',
     // Numbers & Hotbar Slots
@@ -916,29 +916,28 @@
     const tag = document.activeElement ? document.activeElement.tagName : '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
-    // Toggle Telemetry HUD strictly on Tilde (~) / Backquote (frees Tab completely for in-game actions)
+    // Toggle Telemetry HUD strictly on Tilde (~) / Backquote
     if (e.code === 'Backquote') {
       e.preventDefault();
       btnHudStats.click();
       return;
     }
 
-    // Remap [ (BracketLeft) as the game Escape / Menu key (frees physical Escape for browser pointer lock)
+    // UNLOCK MOUSE via [ key (releases 3D pointer lock and frees cursor)
     if (e.code === 'BracketLeft') {
       e.preventDefault();
-      if (e.repeat) return;
-      stInputMode.textContent = document.pointerLockElement === videoEl ? 'KB + 3D LOCK' : 'KB (ESC / [)';
-      sendInputPacket({ type: 'keydown', code: 'Escape', key: 'Escape' });
-      return;
-    }
-
-    if (e.code === 'Escape') {
-      // Physical Escape is reserved for browser to exit Pointer Lock / Fullscreen cleanly
+      if (document.pointerLockElement === videoEl) {
+        pointerLockPreferred = false;
+        document.exitPointerLock();
+      }
       return;
     }
 
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
-      e.preventDefault();
+      // Prevent browser default actions (e.g. Tab focusing URL bar, Space scrolling)
+      if (e.code !== 'Escape') {
+        e.preventDefault();
+      }
     }
     if (e.repeat) return;
     stInputMode.textContent = document.pointerLockElement === videoEl ? 'KB + 3D LOCK' : `KB (${e.code})`;
@@ -947,16 +946,11 @@
 
   window.addEventListener('keyup', (e) => {
     if (!streamOpen || streamReplaced) return;
-    if (e.code === 'Backquote' || e.code === 'Escape') return;
-
-    if (e.code === 'BracketLeft') {
-      e.preventDefault();
-      sendInputPacket({ type: 'keyup', code: 'Escape', key: 'Escape' });
-      return;
-    }
-
+    if (e.code === 'Backquote' || e.code === 'BracketLeft') return;
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
-      e.preventDefault();
+      if (e.code !== 'Escape') {
+        e.preventDefault();
+      }
     }
     sendInputPacket({ type: 'keyup', code: e.code, key: e.key });
   });
