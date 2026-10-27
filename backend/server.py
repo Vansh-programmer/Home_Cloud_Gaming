@@ -364,7 +364,7 @@ def create_orchestrator_app(
             body = {}
 
         app_id = str(body.get("app_id", "0")).strip() or "0"
-        quality = str(body.get("quality", "high")).strip() or "high"
+        quality = str(body.get("quality", "remote")).strip() or "remote"
         width = int(body.get("width", 1920))
         height = int(body.get("height", 1080))
         fps = int(body.get("fps", 60))

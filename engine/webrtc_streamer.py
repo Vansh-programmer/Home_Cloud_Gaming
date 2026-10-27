@@ -27,11 +27,11 @@ Gst.init(None)
 logger = logging.getLogger("webrtc_streamer")
 
 QUALITY_PRESETS: Dict[str, Dict[str, int]] = {
-    "low": {"bitrate_kbps": 4000, "fps": 30, "label": "Low (4 Mbps)"},
+    "low": {"bitrate_kbps": 3500, "fps": 60, "label": "Low (3.5 Mbps)"},
     "remote": {"bitrate_kbps": 6000, "fps": 60, "label": "Remote Smooth (6 Mbps)"},
-    "medium": {"bitrate_kbps": 8000, "fps": 60, "label": "Medium (8 Mbps)"},
-    "high": {"bitrate_kbps": 15000, "fps": 60, "label": "High (15 Mbps)"},
-    "ultra": {"bitrate_kbps": 25000, "fps": 60, "label": "Ultra (25 Mbps)"},
+    "medium": {"bitrate_kbps": 8500, "fps": 60, "label": "Medium (8.5 Mbps)"},
+    "high": {"bitrate_kbps": 15000, "fps": 60, "label": "High LAN (15 Mbps)"},
+    "ultra": {"bitrate_kbps": 25000, "fps": 60, "label": "Ultra Direct (25 Mbps)"},
 }
 
 
@@ -88,10 +88,11 @@ class WebRTCPeerStream:
         self._lock = threading.Lock()
 
     def build_pipeline_description(self) -> str:
-        preset = QUALITY_PRESETS.get(self.quality, QUALITY_PRESETS["high"])
+        preset = QUALITY_PRESETS.get(self.quality, QUALITY_PRESETS["remote"])
         bitrate_kbps = preset["bitrate_kbps"]
         target_fps = min(self.fps, preset["fps"])
-        gop_size = target_fps * 2
+        # Fast GOP size (1.0s max) guarantees rapid packet-loss recovery on outer networks
+        gop_size = max(15, target_fps)
         vbv_kbits = max(300, bitrate_kbps // 30)
 
         stun_prop = f'stun-server="{self.stun_server}"' if self.stun_server else ""
@@ -99,7 +100,7 @@ class WebRTCPeerStream:
 
         if Gst.ElementFactory.find("nvh264enc") is not None:
             encoder_elem = (
-                f"nvh264enc name=venc preset=p2 tune=ultra-low-latency zerolatency=true rc-mode=cbr "
+                f"nvh264enc name=venc preset=p1 tune=ultra-low-latency zerolatency=true rc-mode=cbr "
                 f"aud=true repeat-sequence-header=true bitrate={bitrate_kbps} gop-size={gop_size} bframes=0 "
                 f"vbv-buffer-size={vbv_kbits} "
             )
@@ -130,7 +131,8 @@ class WebRTCPeerStream:
             f"! {encoder_elem}"
             f"! video/x-h264,profile=constrained-baseline,stream-format=byte-stream "
             f"! h264parse config-interval=-1 "
-            f"! rtph264pay config-interval=-1 aggregate-mode=zero-latency pt=96 "
+            f"! rtph264pay config-interval=-1 aggregate-mode=zero-latency mtu=1200 pt=96 "
+            f"! queue name=net_video_queue max-size-buffers=2 max-size-bytes=0 max-size-time=0 leaky=downstream "
             f"! application/x-rtp,media=video,encoding-name=H264,payload=96 ! wb. "
         )
 
@@ -140,8 +142,9 @@ class WebRTCPeerStream:
                 f"! queue max-size-buffers=2 max-size-time=20000000 leaky=downstream "
                 f"! audioconvert ! audioresample "
                 f"! audio/x-raw,rate=48000,channels=2 "
-                f"! opusenc bitrate=128000 frame-size=10 audio-type=restricted-lowdelay "
+                f"! opusenc bitrate=96000 frame-size=10 audio-type=restricted-lowdelay "
                 f"! rtpopuspay pt=97 "
+                f"! queue name=net_audio_queue max-size-buffers=2 max-size-time=20000000 leaky=downstream "
                 f"! application/x-rtp,media=audio,encoding-name=OPUS,payload=97 ! wb. "
             )
         else:

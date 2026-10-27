@@ -489,7 +489,8 @@
     const savedRes = localStorage.getItem('ryoku_stream_resolution') || '1920x1080';
     const chosenRes = (launchResolution && launchResolution.value) || (selectHudResolution && selectHudResolution.value) || savedRes;
     const [w, h] = chosenRes.split('x').map(Number);
-    const quality = (selectHudQuality && selectHudQuality.value) || (launchQuality && launchQuality.value) || 'high';
+    const savedQuality = localStorage.getItem('ryoku_stream_quality') || 'remote';
+    const quality = (selectHudQuality && selectHudQuality.value) || (launchQuality && launchQuality.value) || savedQuality;
     if (selectHudQuality) selectHudQuality.value = quality;
     if (selectHudResolution) selectHudResolution.value = `${w || 1920}x${h || 1080}`;
     if (launchResolution) launchResolution.value = `${w || 1920}x${h || 1080}`;
@@ -987,6 +988,7 @@
   selectHudQuality.onchange = async (e) => {
     e.currentTarget.blur();
     const q = selectHudQuality.value;
+    localStorage.setItem('ryoku_stream_quality', q);
     sendInputPacket({ type: 'quality', quality: q });
     await fetch('/api/sessions/quality', {
       method: 'POST',
@@ -2123,6 +2125,9 @@
     const savedRes = localStorage.getItem('ryoku_stream_resolution') || '1920x1080';
     if (launchResolution) launchResolution.value = savedRes;
     if (selectHudResolution) selectHudResolution.value = savedRes;
+    const savedQuality = localStorage.getItem('ryoku_stream_quality') || 'remote';
+    if (selectHudQuality) selectHudQuality.value = savedQuality;
+    if (launchQuality) launchQuality.value = savedQuality;
     await loadGamesLibrary();
     await pollServerState();
   }

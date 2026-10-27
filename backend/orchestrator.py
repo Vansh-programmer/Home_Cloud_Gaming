@@ -306,7 +306,7 @@ class SessionOrchestrator:
         self,
         username: str,
         app_id: str = "0",
-        quality: str = "high",
+        quality: str = "remote",
         width: int = 1920,
         height: int = 1080,
         fps: int = 60,

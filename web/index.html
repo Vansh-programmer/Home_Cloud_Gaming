@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/styles.css?v=13" />
+  <link rel="stylesheet" href="/assets/styles.css?v=14" />
 </head>
 <body class="console-body">
 
@@ -46,7 +46,7 @@
           <option value="1920x1080" selected>1080p 60</option>
           <option value="1280x720">720p 60</option>
         </select>
-        <input type="hidden" id="launch-quality" value="high" />
+        <input type="hidden" id="launch-quality" value="remote" />
         <input type="hidden" id="game-search-input" />
         <button id="hero-btn-play" style="display:none;"></button>
       </div>
@@ -230,11 +230,11 @@
           <option value="1280x720">720p 60</option>
         </select>
         <select class="btn btn-hud" id="select-hud-quality" aria-label="Bitrate" title="Stream Bitrate">
-          <option value="low">4 Mbps</option>
-          <option value="remote">6 Mbps (Smooth)</option>
-          <option value="medium">8 Mbps</option>
-          <option value="high">15 Mbps</option>
-          <option value="ultra">25 Mbps</option>
+          <option value="low">3.5 Mbps (Mobile)</option>
+          <option value="remote" selected>6 Mbps (Smooth ★)</option>
+          <option value="medium">8.5 Mbps (Balanced)</option>
+          <option value="high">15 Mbps (High LAN)</option>
+          <option value="ultra">25 Mbps (Ultra Direct)</option>
         </select>
         <button class="btn btn-hud" id="btn-hud-stats" title="Toggle Telemetry HUD (~)">Stats (~)</button>
         <button class="btn btn-hud" id="btn-hud-touch">Touch</button>
@@ -336,6 +336,6 @@
     </div>
   </div>
 
-  <script src="/assets/app.js?v=13"></script>
+  <script src="/assets/app.js?v=14"></script>
 </body>
 </html>
