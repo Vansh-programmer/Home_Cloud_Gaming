@@ -282,7 +282,13 @@ class SteamLibraryManager:
             if exec_path.lower().endswith(".exe"):
                 # Search for Proton runtime or Wine
                 proton_bin = None
-                search_roots = [common_base, Path("/usr/share/steam/compatibilitytools.d"), Path.home() / ".local" / "share" / "Steam" / "steamapps" / "common"]
+                search_roots = [
+                    common_base,
+                    Path("/steam_shared/steamapps/common"),
+                    Path(os.environ.get("HOME", "/home/gamer")) / ".local" / "share" / "Steam" / "steamapps" / "common",
+                    Path("/usr/share/steam/compatibilitytools.d"),
+                    Path.home() / ".local" / "share" / "Steam" / "steamapps" / "common",
+                ]
                 for sroot in search_roots:
                     if sroot.exists():
                         for p in sorted(sroot.glob("**/proton"), reverse=True):

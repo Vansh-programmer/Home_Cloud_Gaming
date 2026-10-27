@@ -373,13 +373,47 @@ class IsolatedSessionRuntime:
                 env["WINEDLLOVERRIDES"] = DEFAULT_ONLINEFIX_DLL_OVERRIDES
                 logger.info("Automatically injected WINEDLLOVERRIDES for online-fix game: %s", self.app_id)
 
+        # Determine working directory for game executable
+        game_cwd = None
+        for tok in reversed(target_cmd):
+            if str(tok).lower().endswith(".exe"):
+                cand_dir = Path(tok).parent
+                if cand_dir.exists():
+                    game_cwd = str(cand_dir)
+                    break
+
+        # Setup Proton compatibility environment variables if running Windows executables
+        is_proton = any("proton" in str(tok).lower() for tok in target_cmd)
+        is_windows_exe = any(str(tok).lower().endswith(".exe") for tok in target_cmd)
+        if is_proton or is_windows_exe:
+            home_path = Path(env.get("HOME", os.path.expanduser("~")))
+            steam_dir = home_path / ".local" / "share" / "Steam"
+            compat_data_path = steam_dir / "steamapps" / "compatdata" / str(self.app_id)
+            try:
+                compat_data_path.mkdir(parents=True, exist_ok=True)
+            except Exception:
+                pass
+            env.setdefault("STEAM_COMPAT_DATA_PATH", str(compat_data_path))
+            env.setdefault("STEAM_COMPAT_CLIENT_INSTALL_PATH", str(steam_dir))
+            env.setdefault("STEAM_COMPAT_APP_ID", str(self.app_id))
+            env.setdefault("SteamAppId", str(self.app_id))
+            env.setdefault("SteamGameId", str(self.app_id))
+            logger.info(
+                "Configured Proton compat environment: STEAM_COMPAT_DATA_PATH=%s, SteamAppId=%s (cwd=%s)",
+                compat_data_path,
+                self.app_id,
+                game_cwd,
+            )
+
         logger.info(
-            "Launching isolated game command: %s (WINEDLLOVERRIDES: %s)",
+            "Launching isolated game command: %s (cwd=%s, WINEDLLOVERRIDES: %s)",
             target_cmd,
+            game_cwd,
             env.get("WINEDLLOVERRIDES", "none"),
         )
         self.game_proc = subprocess.Popen(
             target_cmd,
+            cwd=game_cwd,
             env=env,
             stdout=sys.stdout,
             stderr=sys.stderr,
