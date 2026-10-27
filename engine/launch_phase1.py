@@ -125,8 +125,8 @@ def main() -> int:
     ]
     if args.display_num > 0:
         inner_cmd.extend(["--display-num", str(args.display_num)])
-    if args.launch_options:
-        inner_cmd.extend(["--launch-options", args.launch_options])
+    if args.launch_options and args.launch_options.strip().lower() not in ("none", "null", ""):
+        inner_cmd.extend(["--launch-options", args.launch_options.strip()])
     if args.game_cmd:
         inner_cmd.extend(["--game-cmd", args.game_cmd])
 
@@ -182,8 +182,8 @@ def main() -> int:
         ]
         if args.display_num > 0:
             cmd.extend(["--display-num", str(args.display_num)])
-        if args.launch_options:
-            cmd.extend(["--launch-options", args.launch_options])
+        if args.launch_options and args.launch_options.strip().lower() not in ("none", "null", ""):
+            cmd.extend(["--launch-options", args.launch_options.strip()])
         if args.game_cmd:
             cmd.extend(["--game-cmd", args.game_cmd])
 

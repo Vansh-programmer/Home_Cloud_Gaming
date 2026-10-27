@@ -44,7 +44,7 @@ def parse_launch_options(
     3. Arguments after %command% -> appended to base_cmd.
     """
     env = dict(base_env or {})
-    if not launch_options or not launch_options.strip():
+    if not launch_options or not launch_options.strip() or launch_options.strip().lower() in ("none", "null"):
         return list(base_cmd), env
 
     tokens = shlex.split(launch_options.strip())

@@ -378,8 +378,8 @@ class SessionOrchestrator:
                 cmd.append("--allow-pre-sandboxed")
 
             effective_launch_opts = launch_options or self.steam_mgr.get_custom_launch_options(clean_app_id)
-            if effective_launch_opts:
-                cmd.extend(["--launch-options", effective_launch_opts])
+            if effective_launch_opts and str(effective_launch_opts).strip().lower() not in ("none", "null", ""):
+                cmd.extend(["--launch-options", str(effective_launch_opts).strip()])
 
             env = os.environ.copy()
             if self.allow_pre_sandboxed:
