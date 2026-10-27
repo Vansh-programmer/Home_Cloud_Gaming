@@ -193,8 +193,8 @@ class WebRTCPeerStream:
                     agent_ptr = ctypes.c_void_p()
                     gobj.g_object_get(hash(self.webrtc), b"ice-agent", ctypes.byref(agent_ptr), None)
                     if agent_ptr.value:
-                        min_port = int(os.environ.get("RTP_MIN_PORT", "50000"))
-                        max_port = int(os.environ.get("RTP_MAX_PORT", "50100"))
+                        min_port = int(os.environ.get("RTP_MIN_PORT", "30000"))
+                        max_port = int(os.environ.get("RTP_MAX_PORT", "60000"))
                         gobj.g_object_set(agent_ptr, b"min-rtp-port", min_port, b"max-rtp-port", max_port, None)
                         logger.info(
                             "Bound WebRTC ICE RTP port range via ctypes: UDP %d-%d (Direct P2P active)",
