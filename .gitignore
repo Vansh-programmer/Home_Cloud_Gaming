@@ -4,12 +4,25 @@
 
 # 1. Runtime Data, Per-User Persistent Storage & Steam Library
 # (Keeps Steam binaries, user session tokens, Proton prefixes, and savegames out of Git)
+data/
 /data/
 *.db
 *.sqlite
 *.sqlite3
 *.sqlite3-shm
 *.sqlite3-wal
+*.pid
+*.token
+*.bin
+*.toc
+*.vdf
+*.acf
+*.crash
+*.xz
+*.tar.*
+*.zip*
+.cache/
+GLCache/
 
 # 2. Secrets, Environment Variables & Tunnel Credentials
 .env
