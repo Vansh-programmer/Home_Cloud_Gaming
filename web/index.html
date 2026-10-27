@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/styles.css?v=12" />
+  <link rel="stylesheet" href="/assets/styles.css?v=13" />
 </head>
 <body class="console-body">
 
@@ -41,10 +41,10 @@
         <span>RESUME GAME</span>
       </button>
 
-      <div class="console-res-pill">
+      <div class="console-res-pill" title="Stream Resolution">
         <select id="launch-resolution" aria-label="Stream Resolution">
-          <option value="1280x720">720p 60</option>
           <option value="1920x1080" selected>1080p 60</option>
+          <option value="1280x720">720p 60</option>
         </select>
         <input type="hidden" id="launch-quality" value="high" />
         <input type="hidden" id="game-search-input" />
@@ -225,7 +225,11 @@
       <div class="hud-bar collapsed" id="hud-bar">
         <button class="btn btn-hud" id="btn-hud-lock-mouse">Lock Aim</button>
         <button class="btn btn-hud active" id="btn-hud-mute">Audio On</button>
-        <select class="btn btn-hud" id="select-hud-quality" aria-label="Bitrate">
+        <select class="btn btn-hud" id="select-hud-resolution" aria-label="Resolution" title="Stream Resolution">
+          <option value="1920x1080" selected>1080p 60</option>
+          <option value="1280x720">720p 60</option>
+        </select>
+        <select class="btn btn-hud" id="select-hud-quality" aria-label="Bitrate" title="Stream Bitrate">
           <option value="low">4 Mbps</option>
           <option value="remote">6 Mbps (Smooth)</option>
           <option value="medium">8 Mbps</option>
@@ -332,6 +336,6 @@
     </div>
   </div>
 
-  <script src="/assets/app.js?v=12"></script>
+  <script src="/assets/app.js?v=13"></script>
 </body>
 </html>

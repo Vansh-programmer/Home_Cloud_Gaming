@@ -88,6 +88,7 @@
   const hudBar = document.getElementById('hud-bar');
   const btnHudLockMouse = document.getElementById('btn-hud-lock-mouse');
   const btnHudMute = document.getElementById('btn-hud-mute');
+  const selectHudResolution = document.getElementById('select-hud-resolution');
   const selectHudQuality = document.getElementById('select-hud-quality');
   const btnHudStats = document.getElementById('btn-hud-stats');
   const btnHudTouch = document.getElementById('btn-hud-touch');
@@ -485,16 +486,20 @@
   }
 
   async function startOrResumeGame(appId, title) {
-    const [w, h] = (launchResolution.value || '1280x720').split('x').map(Number);
-    const quality = launchQuality.value || 'high';
-    selectHudQuality.value = quality;
+    const savedRes = localStorage.getItem('ryoku_stream_resolution') || '1920x1080';
+    const chosenRes = (launchResolution && launchResolution.value) || (selectHudResolution && selectHudResolution.value) || savedRes;
+    const [w, h] = chosenRes.split('x').map(Number);
+    const quality = (selectHudQuality && selectHudQuality.value) || (launchQuality && launchQuality.value) || 'high';
+    if (selectHudQuality) selectHudQuality.value = quality;
+    if (selectHudResolution) selectHudResolution.value = `${w || 1920}x${h || 1080}`;
+    if (launchResolution) launchResolution.value = `${w || 1920}x${h || 1080}`;
 
     streamOpen = true;
     streamReplaced = false;
     streamViewport.classList.add('visible');
     // Pre-unlock video playback on mobile/safari browsers during direct click gesture
     videoEl.play().catch(() => {});
-    setStepperState('starting', `Launching ${title || 'game'} in isolated sandbox...`);
+    setStepperState('starting', `Launching ${title || 'game'} in 1080p 60 FPS...`);
 
     const optInput = document.getElementById('game-launch-options-input');
     const customLaunchOpts = (optInput && optInput.value.trim()) ? optInput.value.trim() : (selectedGame ? selectedGame.launch_options : undefined);
@@ -505,8 +510,8 @@
       body: JSON.stringify({
         app_id: String(appId),
         quality,
-        width: w || 1280,
-        height: h || 720,
+        width: w || 1920,
+        height: h || 1080,
         fps: 60,
         launch_options: customLaunchOpts,
       }),
@@ -857,7 +862,13 @@
     const rttTxt = latestRttMs !== null ? `${latestRttMs} ms` : '-- ms';
     const fpsTxt = latestFps ? `${latestFps} FPS` : '60 FPS';
     const collapsed = hudBar.classList.contains('collapsed');
-    hudPillSummary.textContent = `${fpsTxt} • ${rttTxt} ${collapsed ? '▾' : '▴'}`;
+    let resLabel = '1080p';
+    if (stRes && stRes.textContent && stRes.textContent.includes('x')) {
+      resLabel = stRes.textContent.startsWith('1920') ? '1080p' : (stRes.textContent.startsWith('1280') ? '720p' : stRes.textContent);
+    } else if (selectHudResolution && selectHudResolution.value) {
+      resLabel = selectHudResolution.value === '1920x1080' ? '1080p' : '720p';
+    }
+    hudPillSummary.textContent = `${resLabel} • ${fpsTxt} • ${rttTxt} ${collapsed ? '▾' : '▴'}`;
   }
 
   // --------------------------------------------------------------------------
@@ -983,6 +994,29 @@
       body: JSON.stringify({ quality: q }),
     }).catch(() => {});
   };
+
+  if (selectHudResolution) {
+    selectHudResolution.onchange = async (e) => {
+      e.currentTarget.blur();
+      const newRes = selectHudResolution.value;
+      localStorage.setItem('ryoku_stream_resolution', newRes);
+      if (launchResolution) launchResolution.value = newRes;
+      if (streamOpen && activeSessionId) {
+        showStreamHudTemporarily(3000);
+        setStepperState('starting', `Switching stream to ${newRes === '1920x1080' ? '1080p 60 FPS' : '720p 60 FPS'}...`);
+        const game = allGames.find((g) => String(g.app_id) === String(currentSessionAppId));
+        await startOrResumeGame(currentSessionAppId || '0', game ? getCleanTitle(game.title) : 'Game');
+      }
+    };
+  }
+
+  if (launchResolution) {
+    launchResolution.onchange = (e) => {
+      const newRes = e.target.value;
+      localStorage.setItem('ryoku_stream_resolution', newRes);
+      if (selectHudResolution) selectHudResolution.value = newRes;
+    };
+  }
 
   btnHudStats.onclick = (e) => {
     if (e && e.currentTarget) e.currentTarget.blur();
@@ -2086,6 +2120,9 @@
     navCenter.style.display = 'flex';
     navRight.style.display = 'flex';
     navUsername.textContent = `${currentUser.username}`;
+    const savedRes = localStorage.getItem('ryoku_stream_resolution') || '1920x1080';
+    if (launchResolution) launchResolution.value = savedRes;
+    if (selectHudResolution) selectHudResolution.value = savedRes;
     await loadGamesLibrary();
     await pollServerState();
   }

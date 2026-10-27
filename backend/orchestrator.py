@@ -307,14 +307,14 @@ class SessionOrchestrator:
         username: str,
         app_id: str = "0",
         quality: str = "high",
-        width: int = 1280,
-        height: int = 720,
+        width: int = 1920,
+        height: int = 1080,
         fps: int = 60,
         launch_options: Optional[str] = None,
     ) -> Dict[str, object]:
         """
         Start a new isolated session for `username` and `app_id`, or reconnect if `username`
-        already has a running session for the same game.
+        already has a running session for the same game at matching resolution.
         Raises SessionConflictError if active concurrent sessions reach capacity.
         """
         clean_user = validate_user_id(username)
@@ -324,15 +324,20 @@ class SessionOrchestrator:
             # 1. Check if this specific user already has an active session
             user_sess = self.get_managed_session_by_user(clean_user)
             if user_sess is not None and user_sess.state != "ended":
-                # Same user! If same app_id, reconnect seamlessly
-                if user_sess.app_id == clean_app_id:
+                # Same user! If same app_id AND exact matching stream resolution, reconnect seamlessly
+                if (
+                    user_sess.app_id == clean_app_id
+                    and user_sess.width == width
+                    and user_sess.height == height
+                ):
                     user_sess.last_input_at = time.time()
                     user_sess.disconnected_at = None
                     data = user_sess.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
                     data["reconnected"] = True
                     return data
-                # Same user switching to a different game: terminate previous session first
-                await self._terminate_session_locked(user_sess, reason="replaced_by_new_game")
+                # Same user switching to a different game or changing resolution: terminate previous session first
+                reason = "resolution_changed" if user_sess.app_id == clean_app_id else "replaced_by_new_game"
+                await self._terminate_session_locked(user_sess, reason=reason)
 
             # 2. Check if total active sessions across PC reached max capacity
             actives = [s for s in self.active_sessions.values() if s.state != "ended"]

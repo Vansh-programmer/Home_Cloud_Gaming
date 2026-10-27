@@ -25,8 +25,8 @@ from typing import Dict, List, Optional
 @dataclass
 class SandboxConfig:
     session_id: str
-    width: int = 1280
-    height: int = 720
+    width: int = 1920
+    height: int = 1080
     fps: int = 60
     user_id: str = "default"
     app_id: str = "0"

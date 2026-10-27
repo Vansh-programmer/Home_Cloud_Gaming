@@ -114,7 +114,7 @@ _c_error_handler = XErrorHandler(_ignore_x_error)
 class IsolatedInputManager:
     """Thread-safe XTest input injector and fullscreen window enforcer for an isolated Xwayland display."""
 
-    def __init__(self, display_name: str, width: int = 1280, height: int = 720) -> None:
+    def __init__(self, display_name: str, width: int = 1920, height: int = 1080) -> None:
         self.display_name = display_name
         self.width = width
         self.height = height

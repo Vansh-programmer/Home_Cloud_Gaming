@@ -253,6 +253,47 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
             finally:
                 await runner.cleanup()
 
+    def test_05_resolution_switching_restarts_with_new_geometry(self) -> None:
+        """Verify that switching resolution (e.g. 720p -> 1080p) terminates previous session and launches 1080p."""
+        asyncio.run(self._async_test_resolution_switching())
+
+    async def _async_test_resolution_switching(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="res_switching_test_") as tmpdir:
+            port, runner, db, orchestrator = await self._start_server(Path(tmpdir), max_concurrent_sessions=2)
+            db.create_user("gamer1", "secret123", role="player")
+
+            base = f"http://127.0.0.1:{port}"
+            cs = ClientSession(cookie_jar=CookieJar(unsafe=True))
+            try:
+                # 1. Login
+                await cs.post(f"{base}/api/auth/login", json={"username": "gamer1", "password": "secret123"})
+
+                # 2. Start game at 720p
+                async with cs.post(
+                    f"{base}/api/sessions/start",
+                    json={"app_id": "0", "width": 1280, "height": 720, "fps": 60},
+                ) as resp:
+                    data = await resp.json()
+                    self.assertTrue(data["ok"])
+                    s1_id = data["session"]["session_id"]
+                    self.assertEqual(data["session"]["width"], 1280)
+                    self.assertEqual(data["session"]["height"], 720)
+
+                # 3. Switching resolution to 1080p for same game
+                async with cs.post(
+                    f"{base}/api/sessions/start",
+                    json={"app_id": "0", "width": 1920, "height": 1080, "fps": 60},
+                ) as resp:
+                    data2 = await resp.json()
+                    self.assertTrue(data2["ok"])
+                    s2_id = data2["session"]["session_id"]
+                    self.assertNotEqual(s1_id, s2_id)
+                    self.assertEqual(data2["session"]["width"], 1920)
+                    self.assertEqual(data2["session"]["height"], 1080)
+            finally:
+                await cs.close()
+                await runner.cleanup()
+
 
 if __name__ == "__main__":
     unittest.main()

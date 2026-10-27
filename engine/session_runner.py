@@ -54,8 +54,8 @@ class IsolatedSessionRuntime:
     def __init__(
         self,
         session_id: str,
-        width: int = 1280,
-        height: int = 720,
+        width: int = 1920,
+        height: int = 1080,
         fps: int = 60,
         quality: str = "high",
         game_cmd: Optional[List[str]] = None,
@@ -265,6 +265,7 @@ class IsolatedSessionRuntime:
             f"--socket={wayland_socket}",
             f"--width={self.width}",
             f"--height={self.height}",
+            f"--refresh-rate={self.fps * 1000}",
         ]
         weston_proc = subprocess.Popen(
             weston_cmd,
@@ -427,6 +428,57 @@ class IsolatedSessionRuntime:
                 self.app_id,
                 game_cwd,
             )
+
+        # Unity engine resolution enforcement (ensures games like Lethal Company launch strictly in requested resolution)
+        is_unity = bool(
+            game_cwd
+            and (
+                any(Path(game_cwd).glob("*_Data"))
+                or (Path(game_cwd) / "UnityPlayer.dll").exists()
+            )
+        )
+        if is_unity:
+            has_screen_args = any("-screen-width" in str(tok).lower() for tok in target_cmd)
+            if not has_screen_args:
+                target_cmd.extend([
+                    "-screen-width", str(self.width),
+                    "-screen-height", str(self.height),
+                    "-screen-fullscreen", "1",
+                ])
+                logger.info(
+                    "Appended Unity resolution flags: -screen-width %d -screen-height %d -screen-fullscreen 1",
+                    self.width,
+                    self.height,
+                )
+            if is_proton or is_windows_exe:
+                try:
+                    user_reg_path = compat_data_path / "pfx" / "user.reg"
+                    if user_reg_path.exists():
+                        import re
+                        reg_content = user_reg_path.read_text(encoding="utf-8", errors="ignore")
+                        w_hex = f"{self.width:08x}"
+                        h_hex = f"{self.height:08x}"
+                        new_content = re.sub(
+                            r'("Screenmanager Resolution Width[^"]*"=dword:)[0-9a-fA-F]+',
+                            rf'\g<1>{w_hex}',
+                            reg_content,
+                        )
+                        new_content = re.sub(
+                            r'("Screenmanager Resolution Height[^"]*"=dword:)[0-9a-fA-F]+',
+                            rf'\g<1>{h_hex}',
+                            new_content,
+                        )
+                        if new_content != reg_content:
+                            user_reg_path.write_text(new_content, encoding="utf-8")
+                            logger.info(
+                                "Synchronized Unity Screenmanager resolution in user.reg to %dx%d (%s x %s)",
+                                self.width,
+                                self.height,
+                                w_hex,
+                                h_hex,
+                            )
+                except Exception as exc:
+                    logger.debug("Could not patch user.reg Screenmanager resolution: %s", exc)
 
         logger.info(
             "Launching isolated game command: %s (cwd=%s, WINEDLLOVERRIDES: %s)",
@@ -777,8 +829,8 @@ def main() -> int:
     parser.add_argument("--session-id", default="phase1-demo", help="Unique session identifier")
     parser.add_argument("--host", default="0.0.0.0", help="Bind host for HTTP/WebSocket server")
     parser.add_argument("--port", type=int, default=8080, help="Bind port for HTTP/WebSocket server")
-    parser.add_argument("--width", type=int, default=1280, help="Stream width")
-    parser.add_argument("--height", type=int, default=720, help="Stream height")
+    parser.add_argument("--width", type=int, default=1920, help="Stream width")
+    parser.add_argument("--height", type=int, default=1080, help="Stream height")
     parser.add_argument("--fps", type=int, default=60, help="Target stream framerate")
     parser.add_argument("--quality", default="high", choices=list(QUALITY_PRESETS.keys()))
     parser.add_argument("--user-id", default="default", help="User identifier for persistent saves/Steam profile")
