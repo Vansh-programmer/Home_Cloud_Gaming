@@ -275,14 +275,14 @@
     if (!game) return;
     heroTitle.textContent = game.title;
     if (game.app_id === '0') {
-      heroTag.textContent = 'NATIVE // 60 FPS OPENGL';
-      heroDesc.textContent = 'Direct NVENC stream • Low-latency input • Persistent saves.';
+      heroTag.textContent = 'Native • 60 FPS';
+      heroDesc.textContent = 'Direct NVENC H.264 stream • Low-latency input • Cloud saves';
     } else if (game.app_id === '7') {
-      heroTag.textContent = 'VALVE // STEAM CLIENT';
-      heroDesc.textContent = 'Direct in-stream Steam login • Persistent session token.';
+      heroTag.textContent = 'Steam Desktop Client';
+      heroDesc.textContent = 'Direct in-stream Steam client • Persistent session token';
     } else {
-      heroTag.textContent = `STEAM // APPID ${game.app_id}`;
-      heroDesc.textContent = `${formatBytes(game.size_bytes)} • Shared library mount • Private save profile.`;
+      heroTag.textContent = `Steam App #${game.app_id}`;
+      heroDesc.textContent = `${formatBytes(game.size_bytes)} • Proton GE acceleration • Private save profile`;
     }
     heroBtnPlay.onclick = () => startOrResumeGame(game.app_id, game.title);
   }
@@ -299,8 +299,8 @@
     });
 
     if (filtered.length === 0) {
-      gamesGrid.innerHTML = `<div style="grid-column:1/-1; color:var(--text-muted); padding:24px; text-align:center; background:var(--bg-panel); border:1px solid var(--border-dim); font-family:var(--font-mono); font-size:12px;">
-        NO MATCHING TITLES
+      gamesGrid.innerHTML = `<div style="grid-column:1/-1; color:var(--fg-2); padding:36px; text-align:center; background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius-lg); font-size:13px; font-weight:500;">
+        No games matching your search.
       </div>`;
       return;
     }
@@ -309,8 +309,8 @@
       const card = document.createElement('div');
       card.className = 'game-card';
       const catLabel = g.app_id === '0'
-        ? 'NATIVE 3D'
-        : (g.app_id === '7' ? 'STEAM CLIENT' : 'STEAM');
+        ? 'Native 3D'
+        : (g.app_id === '7' ? 'Steam Client' : 'Steam');
 
       const coverSrc = (g.cover_url && g.cover_url.startsWith('/assets/'))
         ? (BASE_PREFIX + g.cover_url)
@@ -326,7 +326,7 @@
               <span>#${g.app_id}</span>
               <span>${formatBytes(g.size_bytes)}</span>
             </div>
-            <button class="btn btn-primary" style="width:100%;">▶ PLAY</button>
+            <button class="btn btn-primary" style="width:100%; border-radius:var(--radius-sm); font-size:12px; font-weight:700;">▶ Play</button>
           </div>
         </div>
       `;
@@ -774,7 +774,7 @@
     const rttTxt = latestRttMs !== null ? `${latestRttMs} ms` : '-- ms';
     const fpsTxt = latestFps ? `${latestFps} FPS` : '60 FPS';
     const collapsed = hudBar.classList.contains('collapsed');
-    hudPillSummary.textContent = `RYOKU HUD ${collapsed ? '▾' : '▴'} • ${fpsTxt} • ${rttTxt}`;
+    hudPillSummary.textContent = `${fpsTxt} • ${rttTxt}`;
   }
 
   // --------------------------------------------------------------------------
