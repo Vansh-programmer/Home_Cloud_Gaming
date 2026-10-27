@@ -268,137 +268,116 @@
   };
 
   // --------------------------------------------------------------------------
-  // Game Library, Search, Filter & Hero Spotlight
+  // PS5-Style Console Home Layout (Games on Left, Steam on Right)
   // --------------------------------------------------------------------------
-  function selectHeroGame(game) {
-    selectedGame = game;
-    if (!game) return;
-    heroTitle.textContent = game.title;
-    if (game.app_id === '0') {
-      heroTag.textContent = 'Native 3D • 60 FPS';
-      heroDesc.textContent = 'Hardware accelerated OpenGL game with persistent cloud saves and low-latency input.';
-    } else if (game.app_id === '7') {
-      heroTag.textContent = 'Steam Desktop Client';
-      heroDesc.textContent = 'Direct in-stream Steam client interface with persistent session token and library access.';
-    } else {
-      heroTag.textContent = `Steam App #${game.app_id}`;
-      heroDesc.textContent = `${formatBytes(game.size_bytes)} • Proton GE acceleration • Private save container.`;
-    }
-    heroBtnPlay.onclick = () => startOrResumeGame(game.app_id, game.title);
+  const steamFeaturedCard = document.getElementById('steam-featured-card');
+  const ambientBackdrop = document.getElementById('ps5-ambient-backdrop');
 
-    // Update dynamic cinematic console hero backdrop
-    const heroBackdrop = document.getElementById('console-hero-backdrop');
-    if (heroBackdrop) {
-      const bgUrl = game.header_url || game.cover_url;
-      if (bgUrl) {
-        const fullUrl = bgUrl.startsWith('/assets/') ? (BASE_PREFIX + bgUrl) : bgUrl;
-        heroBackdrop.style.backgroundImage = `url("${fullUrl}")`;
-      }
-    }
+  function getCleanTitle(title) {
+    if (!title) return '';
+    return title.replace(/\s*\([^)]*\)/g, '').trim() || title;
+  }
 
-    // Update active focus state across console game shelf
-    document.querySelectorAll('.game-card').forEach((c) => {
-      c.classList.toggle('active-focused', c.dataset.appId === String(game.app_id));
-    });
-
-    // Populate custom launch options
-    const optionsInput = document.getElementById('game-launch-options-input');
-    const optionsDrawer = document.getElementById('hero-options-drawer');
-    const optionsStatus = document.getElementById('hero-options-status');
-    if (optionsInput) {
-      optionsInput.value = game.launch_options || '';
-      fetch(`/api/games/${game.app_id}/launch-options`, { credentials: 'include' })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data && data.launch_options !== undefined && optionsInput) {
-            optionsInput.value = data.launch_options;
-          }
-        })
-        .catch(() => {});
-    }
+  function setAmbientBackground(url) {
+    if (!ambientBackdrop || !url) return;
+    const fullUrl = url.startsWith('/assets/') ? (BASE_PREFIX + url) : url;
+    ambientBackdrop.style.backgroundImage = `url("${fullUrl}")`;
   }
 
   function renderGamesGrid() {
+    if (!gamesGrid) return;
     gamesGrid.innerHTML = '';
-    const q = searchQuery.trim().toLowerCase();
-    const filtered = allGames.filter((g) => {
-      if (activeCategory === 'steam' && (g.category !== 'steam' || g.app_id === '7')) return false;
-      if (activeCategory === 'builtin' && g.category !== 'builtin') return false;
-      if (activeCategory === 'account' && g.app_id !== '7') return false;
-      if (q && !g.title.toLowerCase().includes(q) && !String(g.app_id).includes(q)) return false;
-      return true;
-    });
 
-    if (filtered.length === 0) {
-      gamesGrid.innerHTML = `<div style="grid-column:1/-1; color:var(--fg-2); padding:36px; text-align:center; background:var(--console-card); border:1px solid var(--line); border-radius:var(--r-lg); font-size:13px; font-weight:600;">
-        No titles matching your filter.
-      </div>`;
-      return;
-    }
+    const steamGame = allGames.find(g => String(g.app_id) === '7') || {
+      app_id: '7',
+      title: 'Steam Big Picture',
+      cover_url: '/assets/steam-cover.svg',
+      header_url: '/assets/steam-banner.svg',
+    };
+    const otherGames = allGames.filter(g => String(g.app_id) !== '7');
 
-    for (const g of filtered) {
+    for (const g of otherGames) {
       const card = document.createElement('div');
-      const isSelected = selectedGame && selectedGame.app_id === g.app_id;
-      card.className = 'game-card' + (isSelected ? ' active-focused' : '');
+      card.className = 'ps5-game-card';
       card.dataset.appId = String(g.app_id);
-      const catLabel = g.app_id === '0'
-        ? 'Native 3D'
-        : (g.app_id === '7' ? 'Steam Client' : 'Steam');
+      const cleanTitle = getCleanTitle(g.title);
+      card.title = cleanTitle;
 
       const coverSrc = (g.cover_url && g.cover_url.startsWith('/assets/'))
         ? (BASE_PREFIX + g.cover_url)
-        : g.cover_url;
+        : (g.cover_url || makeFallbackCoverSvg(cleanTitle, g.app_id));
 
       card.innerHTML = `
-        <div class="game-cover-wrap">
-          <img alt="${g.title}" src="${coverSrc}" />
-          <div class="game-cover-overlay">
-            <div class="game-card-cat">${catLabel}</div>
-            <div class="game-card-title">${g.title}</div>
-            <div class="game-card-meta">
-              <span>#${g.app_id}</span>
-              <span>${formatBytes(g.size_bytes)}</span>
-            </div>
-          </div>
+        <div class="ps5-card-media">
+          <img alt="${cleanTitle}" src="${coverSrc}" loading="lazy" />
         </div>
+        <div class="ps5-card-title">${cleanTitle}</div>
       `;
 
       const img = card.querySelector('img');
       img.onerror = () => {
         img.onerror = null;
-        img.src = makeFallbackCoverSvg(g.title, g.app_id);
+        img.src = makeFallbackCoverSvg(cleanTitle, g.app_id);
       };
 
-      card.onclick = (ev) => {
-        selectHeroGame(g);
+      card.onmouseenter = () => {
+        setAmbientBackground(g.header_url || g.cover_url);
+      };
+
+      card.onclick = () => {
+        startOrResumeGame(g.app_id, cleanTitle);
       };
 
       gamesGrid.appendChild(card);
     }
+
+    if (otherGames.length > 0) {
+      setAmbientBackground(otherGames[0].header_url || otherGames[0].cover_url);
+    } else if (steamGame) {
+      setAmbientBackground(steamGame.header_url || steamGame.cover_url);
+    }
+
+    if (steamFeaturedCard) {
+      steamFeaturedCard.innerHTML = `
+        <img alt="Steam" src="${BASE_PREFIX}/assets/steam-banner.svg" />
+        <div class="ps5-steam-overlay">
+          <div class="ps5-steam-title">Steam</div>
+        </div>
+      `;
+
+      steamFeaturedCard.onmouseenter = () => {
+        setAmbientBackground('/assets/steam-banner.svg');
+      };
+
+      steamFeaturedCard.onclick = () => {
+        startOrResumeGame('7', 'Steam Big Picture');
+      };
+    }
   }
 
-  searchInput.oninput = () => {
-    searchQuery = searchInput.value;
-    renderGamesGrid();
-  };
-
-  filterChips.forEach((chip) => {
-    chip.onclick = () => {
-      filterChips.forEach((c) => c.classList.remove('active'));
-      chip.classList.add('active');
-      activeCategory = chip.dataset.filter || 'all';
+  if (searchInput) {
+    searchInput.oninput = () => {
+      searchQuery = searchInput.value;
       renderGamesGrid();
     };
-  });
+  }
+
+  if (filterChips && filterChips.length > 0) {
+    filterChips.forEach((chip) => {
+      chip.onclick = () => {
+        filterChips.forEach((c) => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeCategory = chip.dataset.filter || 'all';
+        renderGamesGrid();
+      };
+    });
+  }
 
   async function loadGamesLibrary() {
     const res = await fetch('/api/games');
     if (!res.ok) return;
     const data = await res.json();
     allGames = data.games || [];
-    if (!selectedGame && allGames.length > 0) {
-      selectHeroGame(allGames[0]);
-    }
     renderGamesGrid();
   }
 
@@ -416,14 +395,15 @@
   updateConsoleClock();
 
   function navigateConsoleShelf(direction) {
-    const cards = Array.from(document.querySelectorAll('.game-card'));
+    const cards = Array.from(document.querySelectorAll('.ps5-game-card'));
     if (cards.length === 0) return;
     let curr = cards.findIndex(c => c.classList.contains('active-focused'));
     if (curr === -1) curr = 0;
     let next = curr + direction;
     if (next < 0) next = cards.length - 1;
     if (next >= cards.length) next = 0;
-    cards[next].click();
+    cards.forEach(c => c.classList.remove('active-focused'));
+    cards[next].classList.add('active-focused');
     cards[next].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   }
 
@@ -2040,9 +2020,9 @@
     currentUser = data.user;
 
     const save = currentUser.cyberarena_save || {};
-    heroBadgeUser.textContent = `USER: ${currentUser.username.toUpperCase()}`;
-    heroBadgeSteam.textContent = `STEAM: ${currentUser.steam_login_remembered ? 'SAVED' : 'STREAM'}`;
-    heroBadgeSave.textContent = `BEST: ${save.high_score || 0}`;
+    if (heroBadgeUser) heroBadgeUser.textContent = `USER: ${currentUser.username.toUpperCase()}`;
+    if (heroBadgeSteam) heroBadgeSteam.textContent = `STEAM: ${currentUser.steam_login_remembered ? 'SAVED' : 'STREAM'}`;
+    if (heroBadgeSave) heroBadgeSave.textContent = `BEST: ${save.high_score || 0}`;
 
     profileDetails.innerHTML = `
       <div class="list-item"><span>USER</span><strong>${currentUser.username}</strong></div>

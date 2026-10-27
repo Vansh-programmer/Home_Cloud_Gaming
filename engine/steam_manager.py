@@ -155,11 +155,11 @@ class SteamLibraryManager:
                     ),
                     GameEntry(
                         app_id="7",
-                        title="Steam Big Picture (Account Login & Library)",
+                        title="Steam Big Picture",
                         install_dir="steam",
                         size_bytes=0,
                         cover_url="/assets/steam-cover.svg",
-                        header_url="/assets/steam-cover.svg",
+                        header_url="/assets/steam-banner.svg",
                         category="steam",
                     ),
                     GameEntry(

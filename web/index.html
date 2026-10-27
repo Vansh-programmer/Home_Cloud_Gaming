@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/styles.css?v=11" />
+  <link rel="stylesheet" href="/assets/styles.css?v=12" />
 </head>
 <body class="console-body">
 
@@ -41,6 +41,16 @@
         <span>RESUME GAME</span>
       </button>
 
+      <div class="console-res-pill">
+        <select id="launch-resolution" aria-label="Stream Resolution">
+          <option value="1280x720">720p 60</option>
+          <option value="1920x1080" selected>1080p 60</option>
+        </select>
+        <input type="hidden" id="launch-quality" value="high" />
+        <input type="hidden" id="game-search-input" />
+        <button id="hero-btn-play" style="display:none;"></button>
+      </div>
+
       <div class="console-clock" id="console-clock">19:00</div>
 
       <div class="console-status-pill">
@@ -68,7 +78,6 @@
       <div class="dialogue-header">
         <div class="console-logo-mark">R</div>
         <h2>Ryoku Console</h2>
-        <p>Private High-Performance Cloud Gaming Workstation</p>
       </div>
 
       <div class="console-segmented-tabs">
@@ -116,94 +125,22 @@
       <a href="/offline" class="console-btn-subtle" style="margin-left:auto;">Status</a>
     </div>
 
-    <!-- TAB 1: CONSOLE GAME SHOWCASE & SHELF -->
-    <div id="section-library" class="console-tab-view">
-      
-      <!-- Upper Cinematic Hero Showcase (Dynamic Game Background) -->
-      <section class="console-hero-showcase">
-        <div class="console-hero-backdrop" id="console-hero-backdrop"></div>
-        <div class="console-hero-gradient"></div>
+    <!-- TAB 1: PS5-STYLE CONSOLE HOME VIEW -->
+    <div id="section-library" class="console-tab-view ps5-home-view">
+      <div class="ps5-ambient-backdrop" id="ps5-ambient-backdrop"></div>
+      <div class="ps5-ambient-gradient"></div>
 
-        <div class="console-hero-content">
-          <div class="console-hero-meta-row">
-            <span class="console-tag" id="hero-tag">Native • 60 FPS</span>
-            <span class="console-spec-chip" id="hero-badge-user">User: —</span>
-            <span class="console-spec-chip" id="hero-badge-steam">Steam: —</span>
-            <span class="console-spec-chip" id="hero-badge-save">Best: 0</span>
-          </div>
-
-          <h1 class="console-hero-title" id="hero-title">CyberArena 3D</h1>
-          <p class="console-hero-desc" id="hero-desc">Hardware accelerated stream with persistent local saves</p>
-
-          <div class="console-hero-actions">
-            <button class="console-play-btn" id="hero-btn-play">
-              <span class="controller-glyph">A</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              <span>PLAY GAME</span>
-            </button>
-
-            <div class="console-select-wrapper">
-              <select class="console-dropdown" id="launch-resolution" aria-label="Resolution">
-                <option value="1280x720" selected>720p 60 FPS</option>
-                <option value="1920x1080">1080p 60 FPS</option>
-              </select>
-            </div>
-
-            <div class="console-select-wrapper">
-              <select class="console-dropdown" id="launch-quality" aria-label="Bitrate">
-                <option value="low">4 Mbps (Low)</option>
-                <option value="remote" selected>6 Mbps (Smooth ★)</option>
-                <option value="medium">8 Mbps (Balanced)</option>
-                <option value="high">15 Mbps (High Quality)</option>
-                <option value="ultra">25 Mbps (Ultra LAN)</option>
-              </select>
-            </div>
-
-            <button class="console-action-btn sm" id="hero-btn-options" title="Configure launch options &amp; DLL overrides" style="background:var(--console-card); border:1px solid var(--line); color:var(--fg-1); padding:0 14px; height:46px; border-radius:12px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:12px; font-weight:600;">
-              <span class="controller-glyph sm">X</span>
-              <span>Options</span>
-            </button>
-          </div>
-
-          <!-- Custom Launch Options Drawer -->
-          <div id="hero-options-drawer" style="display:none; margin-top:14px; background:var(--console-card); border:1px solid var(--line); border-radius:12px; padding:12px 16px; max-width:680px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <span style="font-size:12px; font-weight:700; color:var(--fg-0);">Launch Options &amp; Wine DLL Overrides</span>
-              <span id="hero-options-status" style="font-size:11px; color:var(--fg-2);">Configured</span>
-            </div>
-            <div style="display:flex; gap:8px;">
-              <input type="text" id="game-launch-options-input" placeholder='e.g. WINEDLLOVERRIDES="OnlineFix64=n;PhotonBridge=n" %command%' class="console-field-sm" style="flex:1; font-family:var(--font-mono); font-size:11px; padding:8px 12px; border-radius:8px; background:var(--bg-0); color:var(--fg-0); border:1px solid var(--line);" />
-              <button class="console-action-btn primary sm" id="btn-save-launch-options" style="padding:0 14px; border-radius:8px; font-size:11px;">Save</button>
-            </div>
-            <p style="font-size:10px; color:var(--fg-2); margin-top:6px;">Lethal Company &amp; Online-Fix titles automatically load with native DLL overrides under Proton.</p>
-          </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Lower Console Game Shelf -->
-      <section class="console-shelf-container">
-        <div class="console-shelf-header">
-          <div class="shelf-title-wrap">
-            <h2 class="shelf-heading">Library Shelf</h2>
-            <div class="shelf-filters">
-              <button class="filter-chip active" data-filter="all">All Titles</button>
-              <button class="filter-chip" data-filter="steam">Steam</button>
-              <button class="filter-chip" data-filter="builtin">Native 3D</button>
-              <button class="filter-chip" data-filter="account">Installed</button>
-            </div>
-          </div>
-
-          <div class="console-search-bar">
-            <span class="controller-glyph sm">Y</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="search" id="game-search-input" placeholder="Search games (or press /)" />
-          </div>
+      <div class="ps5-home-layout">
+        <!-- Other Games at Left (PS5 Windows with Title Only) -->
+        <div class="ps5-games-section">
+          <div class="ps5-games-grid" id="games-grid"></div>
         </div>
 
-        <!-- Horizontal Game Poster Carousel -->
-        <div class="console-game-carousel" id="games-grid"></div>
-      </section>
+        <!-- Steam at Right (Big Horizontal Window) -->
+        <div class="ps5-steam-section">
+          <div class="ps5-steam-card" id="steam-featured-card"></div>
+        </div>
+      </div>
     </div>
 
     <!-- TAB 2: PROFILE -->
@@ -276,30 +213,6 @@
       </div>
     </div>
   </main>
-
-  <!-- Console Bottom Controller Footer Bar -->
-  <footer class="console-footer-bar" id="console-footer">
-    <div class="footer-glyph-item">
-      <span class="controller-glyph sm">A</span>
-      <span>Play Game</span>
-    </div>
-    <div class="footer-glyph-item">
-      <span class="controller-glyph sm">D-PAD</span>
-      <span>Navigate Library</span>
-    </div>
-    <div class="footer-glyph-item">
-      <span class="controller-glyph sm">X</span>
-      <span>Stream Quality</span>
-    </div>
-    <div class="footer-glyph-item">
-      <span class="controller-glyph sm">Y</span>
-      <span>Search</span>
-    </div>
-    <div class="footer-glyph-item" style="margin-left:auto;">
-      <span class="controller-glyph sm">~</span>
-      <span>Stream Stats</span>
-    </div>
-  </footer>
 
   <!-- In-Stream Viewport & Tactical HUD -->
   <div class="stream-viewport" id="stream-viewport">
@@ -419,6 +332,6 @@
     </div>
   </div>
 
-  <script src="/assets/app.js?v=11"></script>
+  <script src="/assets/app.js?v=12"></script>
 </body>
 </html>
