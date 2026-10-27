@@ -903,7 +903,7 @@
     'AltLeft', 'AltRight',
     'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace',
     // In-game Action & Menu Keys (Cyberpunk 2077, RPGs, Shooters)
-    'Tab', 'Escape',
+    'Tab', 'BracketLeft', 'BracketRight',
     'KeyC', 'KeyV', 'KeyI', 'KeyM', 'KeyJ', 'KeyZ', 'KeyX', 'KeyG', 'KeyT',
     'KeyB', 'KeyN', 'KeyH', 'KeyY', 'KeyU', 'KeyO', 'KeyP', 'KeyL', 'KeyK',
     // Numbers & Hotbar Slots
@@ -916,19 +916,29 @@
     const tag = document.activeElement ? document.activeElement.tagName : '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
-    // Toggle Telemetry HUD strictly on Tilde (~) / Backquote
+    // Toggle Telemetry HUD strictly on Tilde (~) / Backquote (frees Tab completely for in-game actions)
     if (e.code === 'Backquote') {
       e.preventDefault();
       btnHudStats.click();
       return;
     }
 
+    // Remap [ (BracketLeft) as the game Escape / Menu key (frees physical Escape for browser pointer lock)
+    if (e.code === 'BracketLeft') {
+      e.preventDefault();
+      if (e.repeat) return;
+      stInputMode.textContent = document.pointerLockElement === videoEl ? 'KB + 3D LOCK' : 'KB (ESC / [)';
+      sendInputPacket({ type: 'keydown', code: 'Escape', key: 'Escape' });
+      return;
+    }
+
+    if (e.code === 'Escape') {
+      // Physical Escape is reserved for browser to exit Pointer Lock / Fullscreen cleanly
+      return;
+    }
+
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
-      // Prevent browser default actions (e.g. Tab focusing URL bar, Space scrolling)
-      // Allow Escape to propagate if pointer lock is active so browser releases lock if needed
-      if (e.code !== 'Escape') {
-        e.preventDefault();
-      }
+      e.preventDefault();
     }
     if (e.repeat) return;
     stInputMode.textContent = document.pointerLockElement === videoEl ? 'KB + 3D LOCK' : `KB (${e.code})`;
@@ -937,11 +947,16 @@
 
   window.addEventListener('keyup', (e) => {
     if (!streamOpen || streamReplaced) return;
-    if (e.code === 'Backquote') return;
+    if (e.code === 'Backquote' || e.code === 'Escape') return;
+
+    if (e.code === 'BracketLeft') {
+      e.preventDefault();
+      sendInputPacket({ type: 'keyup', code: 'Escape', key: 'Escape' });
+      return;
+    }
+
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
-      if (e.code !== 'Escape') {
-        e.preventDefault();
-      }
+      e.preventDefault();
     }
     sendInputPacket({ type: 'keyup', code: e.code, key: e.key });
   });
