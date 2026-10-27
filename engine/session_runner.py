@@ -362,9 +362,14 @@ class IsolatedSessionRuntime:
 
         target_cmd, env = parse_launch_options(launch_opts, self.game_cmd, env)
 
-        # Automatic detection for OnlineFix games: if OnlineFix DLLs or Phasmophobia is present, ensure DLL overrides
+        # Automatic detection for OnlineFix games: if OnlineFix DLLs, Lethal Company or Phasmophobia is present, ensure DLL overrides
         if "WINEDLLOVERRIDES" not in env:
-            if self.app_id == "739630" or "phasmophobia" in str(target_cmd).lower() or "onlinefix" in str(target_cmd).lower():
+            if (
+                self.app_id in ("1966720", "739630")
+                or "lethal" in str(target_cmd).lower()
+                or "phasmophobia" in str(target_cmd).lower()
+                or "onlinefix" in str(target_cmd).lower()
+            ):
                 env["WINEDLLOVERRIDES"] = DEFAULT_ONLINEFIX_DLL_OVERRIDES
                 logger.info("Automatically injected WINEDLLOVERRIDES for online-fix game: %s", self.app_id)
 

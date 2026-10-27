@@ -31,7 +31,7 @@ def derive_user_steam_id(username: str) -> str:
 def provision_goldberg_lan_profile(
     user_id: str,
     user_root: Path,
-    app_id: str = "739630",
+    app_id: str = "1966720",
     display_name: Optional[str] = None,
 ) -> Dict[str, str]:
     """
@@ -44,11 +44,13 @@ def provision_goldberg_lan_profile(
     target_dirs = [
         # Linux native / Wine fallback path
         user_root / "home" / ".local" / "share" / "Goldberg SteamEmu Saves" / "settings",
-        # Proton prefix %APPDATA% (steamuser)
-        user_root / "home" / ".local" / "share" / "Steam" / "steamapps" / "compatdata" / str(app_id) / "pfx" / "drive_c" / "users" / "steamuser" / "AppData" / "Roaming" / "Goldberg SteamEmu Saves" / "settings",
-        # Proton prefix %APPDATA% (gamer)
-        user_root / "home" / ".local" / "share" / "Steam" / "steamapps" / "compatdata" / str(app_id) / "pfx" / "drive_c" / "users" / "gamer" / "AppData" / "Roaming" / "Goldberg SteamEmu Saves" / "settings",
     ]
+
+    for aid in {str(app_id), "1966720", "739630"}:
+        for username_cand in ("steamuser", "gamer"):
+            target_dirs.append(
+                user_root / "home" / ".local" / "share" / "Steam" / "steamapps" / "compatdata" / aid / "pfx" / "drive_c" / "users" / username_cand / "AppData" / "Roaming" / "Goldberg SteamEmu Saves" / "settings"
+            )
 
     for settings_dir in target_dirs:
         try:

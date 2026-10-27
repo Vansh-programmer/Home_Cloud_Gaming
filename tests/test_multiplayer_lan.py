@@ -12,8 +12,8 @@ Tests:
 3. Goldberg Steam LAN Provisioning:
    - Deterministic 64-bit SteamIDs and custom player names written to isolated prefixes.
    - Verified that all 4 players receive distinct SteamIDs for local broadcast matchmaking.
-4. Phasmophobia Library Discovery:
-   - Phasmophobia (AppID 739630) discovered in library with co-op metadata.
+4. Lethal Company Library Discovery:
+   - Lethal Company (AppID 1966720) discovered in library with co-op metadata and DLL overrides.
 5. Independent Per-User Lifecycle:
    - Alice quits her session -> only Alice's container is destroyed; other 3 players keep playing.
    - Frees up a slot so a new player can join.
@@ -94,7 +94,7 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
             steam_ids = set()
 
             for p in players:
-                prof = provision_goldberg_lan_profile(user_id=p, user_root=user_root, app_id="739630")
+                prof = provision_goldberg_lan_profile(user_id=p, user_root=user_root, app_id="1966720")
                 self.assertEqual(prof["username"], p)
                 self.assertEqual(prof["player_name"], p)
                 sid = prof["steam_id"]
@@ -109,17 +109,17 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
             self.assertEqual((settings_dir / "user_steam_id.txt").read_text(encoding="utf-8"), derive_user_steam_id("dave"))
             self.assertEqual((settings_dir / "broadcast_net.txt").read_text(encoding="utf-8"), "1")
 
-    def test_02_phasmophobia_library_discovery(self) -> None:
-        """Verify Phasmophobia (AppID 739630) is registered with co-op metadata and default DLL overrides."""
-        with tempfile.TemporaryDirectory(prefix="phasmo_test_") as tmpdir:
+    def test_02_lethal_company_library_discovery(self) -> None:
+        """Verify Lethal Company (AppID 1966720) is registered with co-op metadata and default DLL overrides."""
+        with tempfile.TemporaryDirectory(prefix="lethal_test_") as tmpdir:
             steam_mgr = SteamLibraryManager(Path(tmpdir))
             games = steam_mgr.list_games()
-            phasmo = next((g for g in games if g.app_id == "739630"), None)
-            self.assertIsNotNone(phasmo, "Phasmophobia must be registered in the game library")
-            self.assertIn("Phasmophobia", phasmo.title)
-            self.assertEqual(phasmo.custom_exec, "Phasmophobia.exe")
-            self.assertIn("WINEDLLOVERRIDES", phasmo.launch_options or "")
-            self.assertIn("OnlineFix64=n", phasmo.launch_options or "")
+            lethal = next((g for g in games if g.app_id == "1966720"), None)
+            self.assertIsNotNone(lethal, "Lethal Company must be registered in the game library")
+            self.assertIn("Lethal Company", lethal.title)
+            self.assertEqual(lethal.custom_exec, "Lethal Company.exe")
+            self.assertIn("WINEDLLOVERRIDES", lethal.launch_options or "")
+            self.assertIn("OnlineFix64=n", lethal.launch_options or "")
 
     def test_03_steam_launch_options_parser(self) -> None:
         """Verify Steam launch options parsing with WINEDLLOVERRIDES, command wrappers, and arguments."""
@@ -127,15 +127,15 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
 
         # 1. Standard Online-Fix Wine DLL Override
         opts = 'WINEDLLOVERRIDES="OnlineFix64=n;OnlineFix=n;SteamOverlay64=n;SteamOverlay=n;winmm=n,b;dnet=n;steam_api64=n;steam_api=n;PhotonBridge=n" %command%'
-        cmd, env = parse_launch_options(opts, ["/usr/bin/proton", "run", "Phasmophobia.exe"])
-        self.assertEqual(cmd, ["/usr/bin/proton", "run", "Phasmophobia.exe"])
+        cmd, env = parse_launch_options(opts, ["/usr/bin/proton", "run", "Lethal Company.exe"])
+        self.assertEqual(cmd, ["/usr/bin/proton", "run", "Lethal Company.exe"])
         self.assertIn("OnlineFix64=n", env["WINEDLLOVERRIDES"])
         self.assertIn("PhotonBridge=n", env["WINEDLLOVERRIDES"])
 
         # 2. Command wrapper + arguments
         opts2 = 'PROTON_NO_ESYNC=1 gamemoderun %command% -force-d3d11 -popupwindow'
-        cmd2, env2 = parse_launch_options(opts2, ["Phasmophobia.exe"])
-        self.assertEqual(cmd2, ["gamemoderun", "Phasmophobia.exe", "-force-d3d11", "-popupwindow"])
+        cmd2, env2 = parse_launch_options(opts2, ["Lethal Company.exe"])
+        self.assertEqual(cmd2, ["gamemoderun", "Lethal Company.exe", "-force-d3d11", "-popupwindow"])
         self.assertEqual(env2["PROTON_NO_ESYNC"], "1")
 
     async def test_04_four_player_concurrent_sessions_and_slot_limits(self) -> None:
@@ -162,20 +162,20 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
                 session_ids = []
                 internal_ports = []
 
-                # Test Custom Launch Options API for Phasmophobia
-                async with clients["alice"].get(f"{base}/api/games/739630/launch-options") as resp:
+                # Test Custom Launch Options API for Lethal Company
+                async with clients["alice"].get(f"{base}/api/games/1966720/launch-options") as resp:
                     self.assertEqual(resp.status, 200)
                     opts_data = await resp.json()
                     self.assertIn("WINEDLLOVERRIDES", opts_data["launch_options"])
 
-                custom_opt = 'WINEDLLOVERRIDES="OnlineFix64=n;PhotonBridge=n" %command% -force-d3d11'
+                custom_opt = 'WINEDLLOVERRIDES="OnlineFix64=n;steam_api64=n" %command% -force-d3d11'
                 async with clients["alice"].post(
-                    f"{base}/api/games/739630/launch-options",
+                    f"{base}/api/games/1966720/launch-options",
                     json={"launch_options": custom_opt},
                 ) as resp:
                     self.assertEqual(resp.status, 200)
 
-                async with clients["alice"].get(f"{base}/api/games/739630/launch-options") as resp:
+                async with clients["alice"].get(f"{base}/api/games/1966720/launch-options") as resp:
                     self.assertEqual(resp.status, 200)
                     opts_data = await resp.json()
                     self.assertEqual(opts_data["launch_options"], custom_opt)

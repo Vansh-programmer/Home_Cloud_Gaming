@@ -162,20 +162,20 @@ class SteamLibraryManager:
                         category="steam",
                     ),
                     GameEntry(
-                        app_id="739630",
-                        title="Phasmophobia (Co-op 4P LAN)",
-                        install_dir="Phasmophobia",
-                        size_bytes=18253611008,
-                        cover_url="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/739630/library_600x900.jpg",
-                        header_url="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/739630/header.jpg",
+                        app_id="1966720",
+                        title="Lethal Company (Co-op 4P LAN)",
+                        install_dir="Lethal Company",
+                        size_bytes=1073741824,
+                        cover_url="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1966720/library_600x900.jpg",
+                        header_url="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1966720/header.jpg",
                         category="steam",
-                        custom_exec="Phasmophobia.exe",
+                        custom_exec="Lethal Company.exe",
                         launch_options=f'WINEDLLOVERRIDES="{DEFAULT_ONLINEFIX_DLL_OVERRIDES}" %command%',
                     ),
                 ]
             )
 
-        seen_ids = {"0", "7", "739630"}
+        seen_ids = {"0", "7", "1966720", "739630"}
         search_dirs = [self.shared_steam_dir / "steamapps"] + self.extra_steamapps_dirs
 
         try:
@@ -228,7 +228,7 @@ class SteamLibraryManager:
         entry = self.get_game(clean_id)
         if entry and entry.launch_options:
             return entry.launch_options
-        if clean_id == "739630":
+        if clean_id in ("1966720", "739630"):
             return f'WINEDLLOVERRIDES="{DEFAULT_ONLINEFIX_DLL_OVERRIDES}" %command%'
         return None
 
@@ -267,9 +267,9 @@ class SteamLibraryManager:
             game_folder = common_base / entry.install_dir
             exec_name = entry.custom_exec
 
-            # Auto-detect OnlineFix launcher if present
+            # Auto-detect executable or OnlineFix launcher if present
             if game_folder.exists():
-                for candidate in ("Launcher.exe", "Phasmophobia_Launcher.exe", "Photon Launcher.exe", entry.custom_exec):
+                for candidate in (entry.custom_exec, "Lethal Company.exe", "Launcher.exe", "Phasmophobia_Launcher.exe", "Photon Launcher.exe"):
                     if candidate and (game_folder / candidate).exists():
                         exec_name = candidate
                         break
@@ -282,12 +282,16 @@ class SteamLibraryManager:
             if exec_path.lower().endswith(".exe"):
                 # Search for Proton runtime or Wine
                 proton_bin = None
-                if common_base.exists():
-                    for p in sorted(common_base.glob("Proton*"), reverse=True):
-                        cand = p / "proton"
-                        if cand.exists():
-                            proton_bin = cand
-                            break
+                search_roots = [common_base, Path("/usr/share/steam/compatibilitytools.d"), Path.home() / ".local" / "share" / "Steam" / "steamapps" / "common"]
+                for sroot in search_roots:
+                    if sroot.exists():
+                        for p in sorted(sroot.glob("**/proton"), reverse=True):
+                            if p.is_file() and os.access(p, os.X_OK):
+                                proton_bin = p
+                                break
+                    if proton_bin:
+                        break
+
                 if proton_bin:
                     return [str(proton_bin), "run", exec_path]
                 if shutil.which("wine"):

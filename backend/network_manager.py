@@ -178,6 +178,9 @@ class NetworkConfigManager:
             self.turn_url = str(updates["turn_url"]).strip()
         if "turn_secret" in updates and updates["turn_secret"] is not None:
             self.turn_secret = str(updates["turn_secret"]).strip()
+            if self.turn_secret and "turn_username" not in updates and "turn_password" not in updates:
+                self.turn_username = ""
+                self.turn_password = ""
         if "turn_username" in updates and updates["turn_username"] is not None:
             self.turn_username = str(updates["turn_username"]).strip()
         if "turn_password" in updates and updates["turn_password"] is not None:
