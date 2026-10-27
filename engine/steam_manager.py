@@ -262,56 +262,89 @@ class SteamLibraryManager:
                 "-nofriendsui",
             ]
 
-        entry = self.get_game(clean_id)
-        if entry and entry.custom_exec:
-            common_base = Path("/steam_shared/steamapps/common") if inside_container else (self.shared_steam_dir / "steamapps" / "common")
-            game_folder = common_base / entry.install_dir
-            exec_name = entry.custom_exec
+        KNOWN_GAME_DEFAULTS = {
+            "1091500": ("Cyberpunk 2077", "bin/x64/Cyberpunk2077.exe", ["--launcher-skip"]),
+            "292030": ("The Witcher 3", "bin/x64/witcher3.exe", ["--launcher-skip"]),
+            "203160": ("Tomb Raider", "TombRaider.exe", []),
+            "1966720": ("Lethal Company", "Lethal Company.exe", []),
+            "1086940": ("Baldur's Gate 3", "bin/bg3.exe", ["--skip-launcher"]),
+        }
 
-            # Auto-detect executable or OnlineFix launcher if present
-            if game_folder.exists():
-                for candidate in (entry.custom_exec, "Lethal Company.exe", "Launcher.exe", "Phasmophobia_Launcher.exe", "Photon Launcher.exe"):
+        entry = self.get_game(clean_id)
+        install_dir = entry.install_dir if entry else None
+        exec_name = entry.custom_exec if entry else None
+        extra_args: List[str] = []
+
+        if clean_id in KNOWN_GAME_DEFAULTS:
+            default_dir, default_exec, default_args = KNOWN_GAME_DEFAULTS[clean_id]
+            if not install_dir:
+                install_dir = default_dir
+            if not exec_name:
+                exec_name = default_exec
+            extra_args = list(default_args)
+
+        if install_dir:
+            common_base = Path("/steam_shared/steamapps/common") if inside_container else (self.shared_steam_dir / "steamapps" / "common")
+            game_folder = common_base / install_dir
+
+            # Auto-detect executable if not explicitly set
+            if not exec_name and game_folder.exists():
+                candidates = [
+                    f"{install_dir}.exe",
+                    f"{entry.title if entry else ''}.exe",
+                    "Launcher.exe",
+                    "Lethal Company.exe",
+                    "Phasmophobia_Launcher.exe",
+                    "Photon Launcher.exe",
+                ]
+                for candidate in candidates:
                     if candidate and (game_folder / candidate).exists():
                         exec_name = candidate
                         break
 
-            if inside_container:
-                exec_path = f"/steam_shared/steamapps/common/{entry.install_dir}/{exec_name}"
-            else:
-                exec_path = str(game_folder / exec_name)
+                if not exec_name:
+                    for p in game_folder.glob("**/*.exe"):
+                        p_lower = p.name.lower()
+                        if not any(ign in p_lower for ign in ("crash", "redist", "setup", "unins", "installer", "errorreporter", "touchup", "benchmark", "7za", "unitycrashhandler")):
+                            exec_name = str(p.relative_to(game_folder))
+                            break
 
-            if exec_path.lower().endswith(".exe"):
-                # Search for Proton runtime or Wine
-                proton_bin = None
-                search_roots = [
-                    common_base,
-                    Path("/steam_shared/steamapps/common"),
-                    Path(os.environ.get("HOME", "/home/gamer")) / ".local" / "share" / "Steam" / "steamapps" / "common",
-                    Path("/usr/share/steam/compatibilitytools.d"),
-                    Path.home() / ".local" / "share" / "Steam" / "steamapps" / "common",
-                ]
-                for sroot in search_roots:
-                    if sroot.exists():
-                        for p in sorted(sroot.glob("**/proton"), reverse=True):
-                            if p.is_file() and os.access(p, os.X_OK):
-                                proton_bin = p
-                                break
+            if exec_name:
+                if inside_container:
+                    exec_path = f"/steam_shared/steamapps/common/{install_dir}/{exec_name}"
+                else:
+                    exec_path = str(game_folder / exec_name)
+
+                if exec_path.lower().endswith(".exe"):
+                    # Search for Proton runtime or Wine
+                    proton_bin = None
+                    search_roots = [
+                        common_base,
+                        Path("/steam_shared/steamapps/common"),
+                        Path(os.environ.get("HOME", "/home/gamer")) / ".local" / "share" / "Steam" / "steamapps" / "common",
+                        Path("/usr/share/steam/compatibilitytools.d"),
+                        Path.home() / ".local" / "share" / "Steam" / "steamapps" / "common",
+                    ]
+                    for sroot in search_roots:
+                        if sroot.exists():
+                            for p in sorted(sroot.glob("**/proton"), reverse=True):
+                                if p.is_file() and os.access(p, os.X_OK):
+                                    proton_bin = p
+                                    break
+                        if proton_bin:
+                            break
+
                     if proton_bin:
-                        break
-
-                if proton_bin:
-                    return [str(proton_bin), "run", exec_path]
-                if shutil.which("wine"):
-                    return ["wine", exec_path]
-                if Path("/usr/bin/steam").exists():
-                    return ["/usr/bin/steam", "-gamepadui", "-applaunch", clean_id]
-            return [exec_path]
+                        return [str(proton_bin), "run", exec_path, *extra_args]
+                    if shutil.which("wine"):
+                        return ["wine", exec_path, *extra_args]
+                    if Path("/usr/bin/steam").exists():
+                        return ["/usr/bin/steam", "-gamepadui", "-applaunch", clean_id, *extra_args]
+                return [exec_path]
 
         if not clean_id.isdigit():
             raise ValueError(f"Unknown or invalid Steam AppID: {app_id}")
 
-        extra_args: List[str] = []
-        # Bypass third-party pre-launchers that block headless streaming
         if clean_id in ("1091500", "292030"):  # Cyberpunk 2077, The Witcher 3 (REDlauncher)
             extra_args = ["--launcher-skip"]
         elif clean_id in ("1086940",):  # Baldur's Gate 3 (Larian Launcher)

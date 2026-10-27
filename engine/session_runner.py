@@ -569,6 +569,11 @@ class IsolatedSessionRuntime:
             if self.game_proc is not None:
                 ret = self.game_proc.poll()
                 if ret is not None:
+                    is_steam_cli = self.game_cmd and any(str(tok).endswith("steam") for tok in self.game_cmd[:1])
+                    if is_steam_cli:
+                        # Steam CLI wrapper forks background daemons and exits; keep session alive for the Steam client
+                        await asyncio.sleep(2.0)
+                        continue
                     logger.info("Game process exited with code %d; ending isolated session", ret)
                     self.state = "ended"
                     self._shutdown_event.set()
