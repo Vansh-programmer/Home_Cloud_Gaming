@@ -173,6 +173,7 @@ class SessionOrchestrator:
         disconnect_grace_sec: float = 300.0,   # Default: 5 minutes
         allow_pre_sandboxed: bool = False,
         network_mgr: Optional[NetworkConfigManager] = None,
+        max_concurrent_sessions: Optional[int] = None,
     ) -> None:
         self.db = db
         self.storage_mgr = storage_mgr
@@ -183,15 +184,48 @@ class SessionOrchestrator:
         self.allow_pre_sandboxed = allow_pre_sandboxed or (
             os.environ.get("ALLOW_PRE_SANDBOXED_FALLBACK") == "1"
         )
+        self.max_concurrent_sessions = int(
+            max_concurrent_sessions
+            if max_concurrent_sessions is not None
+            else os.environ.get("MAX_CONCURRENT_SESSIONS", "1")
+        )
 
         self._lock = asyncio.Lock()
-        self.active_session: Optional[ManagedSession] = None
+        self.active_sessions: Dict[str, ManagedSession] = {}
+        self.user_to_session: Dict[str, str] = {}
         self.last_ended_by_user: Dict[str, ManagedSession] = {}
         self.gpu_history: List[Dict[str, object]] = []
         self._last_telemetry_ts: float = 0.0
         self._watchdog_task: Optional[asyncio.Task] = None
         self._http_client: Optional[ClientSession] = None
         self._stopping = False
+
+    @property
+    def active_session(self) -> Optional[ManagedSession]:
+        """Backward-compatible property returning the first active session."""
+        for s in self.active_sessions.values():
+            if s.state != "ended":
+                return s
+        return None
+
+    @active_session.setter
+    def active_session(self, val: Optional[ManagedSession]) -> None:
+        if val is None:
+            self.active_sessions.clear()
+            self.user_to_session.clear()
+        else:
+            self.active_sessions[val.session_id] = val
+            self.user_to_session[val.username] = val.session_id
+
+    def get_managed_session_by_user(self, username: str) -> Optional[ManagedSession]:
+        """Lookup active ManagedSession object for a given username."""
+        clean_user = validate_user_id(username)
+        sid = self.user_to_session.get(clean_user)
+        if sid:
+            s = self.active_sessions.get(sid)
+            if s and s.state != "ended":
+                return s
+        return None
 
     def update_safety_settings(
         self,
@@ -220,32 +254,48 @@ class SessionOrchestrator:
                 await self._watchdog_task
             except asyncio.CancelledError:
                 pass
-        if self.active_session is not None:
-            await self.terminate_session(reason="server_shutdown")
+        if self.active_sessions:
+            for s in list(self.active_sessions.values()):
+                await self._terminate_session_locked(s, reason="server_shutdown")
         if self._http_client:
             await self._http_client.close()
             self._http_client = None
 
     def get_active_session_public_summary(self) -> Optional[Dict[str, object]]:
-        """Return safe summary of who is currently playing (for server status banner)."""
-        s = self.active_session
-        if s is None or s.state == "ended":
+        """Return safe summary of who is currently playing and available multiplayer slots."""
+        actives = [s for s in self.active_sessions.values() if s.state != "ended"]
+        if not actives:
             return None
+        primary = actives[0]
         return {
-            "session_id": s.session_id,
-            "username": s.username,
-            "app_id": s.app_id,
-            "game_title": s.game_title,
-            "state": s.state,
-            "started_at": s.started_at,
-            "uptime_sec": round(time.time() - s.started_at, 1),
+            "session_id": primary.session_id,
+            "username": primary.username,
+            "app_id": primary.app_id,
+            "game_title": primary.game_title,
+            "state": primary.state,
+            "started_at": primary.started_at,
+            "uptime_sec": round(time.time() - primary.started_at, 1),
+            "active_count": len(actives),
+            "max_slots": self.max_concurrent_sessions,
+            "slots_remaining": max(0, self.max_concurrent_sessions - len(actives)),
+            "all_active": [
+                {
+                    "session_id": s.session_id,
+                    "username": s.username,
+                    "app_id": s.app_id,
+                    "game_title": s.game_title,
+                    "state": s.state,
+                }
+                for s in actives
+            ],
         }
 
     def get_session_for_user(self, username: str) -> Optional[Dict[str, object]]:
         """Return the active session (or most recently ended session) for a specific user."""
         clean_user = validate_user_id(username)
-        if self.active_session and self.active_session.username == clean_user:
-            return self.active_session.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
+        s = self.get_managed_session_by_user(clean_user)
+        if s:
+            return s.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
         ended = self.last_ended_by_user.get(clean_user)
         if ended:
             return ended.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
@@ -263,28 +313,33 @@ class SessionOrchestrator:
         """
         Start a new isolated session for `username` and `app_id`, or reconnect if `username`
         already has a running session for the same game.
-        Raises SessionConflictError if another user holds the single-session GPU lock.
+        Raises SessionConflictError if active concurrent sessions reach capacity.
         """
         clean_user = validate_user_id(username)
         clean_app_id = str(app_id).strip() or "0"
 
         async with self._lock:
-            # Check if an active session already exists
-            if self.active_session is not None and self.active_session.state != "ended":
-                if self.active_session.username != clean_user:
-                    raise SessionConflictError(
-                        active_username=self.active_session.username,
-                        active_game=self.active_session.game_title,
-                    )
+            # 1. Check if this specific user already has an active session
+            user_sess = self.get_managed_session_by_user(clean_user)
+            if user_sess is not None and user_sess.state != "ended":
                 # Same user! If same app_id, reconnect seamlessly
-                if self.active_session.app_id == clean_app_id:
-                    self.active_session.last_input_at = time.time()
-                    self.active_session.disconnected_at = None
-                    data = self.active_session.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
+                if user_sess.app_id == clean_app_id:
+                    user_sess.last_input_at = time.time()
+                    user_sess.disconnected_at = None
+                    data = user_sess.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
                     data["reconnected"] = True
                     return data
                 # Same user switching to a different game: terminate previous session first
-                await self._terminate_locked(reason="replaced_by_new_game")
+                await self._terminate_session_locked(user_sess, reason="replaced_by_new_game")
+
+            # 2. Check if total active sessions across PC reached max capacity
+            actives = [s for s in self.active_sessions.values() if s.state != "ended"]
+            if len(actives) >= self.max_concurrent_sessions:
+                primary = actives[0]
+                raise SessionConflictError(
+                    active_username=primary.username if len(actives) == 1 else ", ".join(s.username for s in actives),
+                    active_game=primary.game_title if len(actives) == 1 else "All multiplayer slots in use",
+                )
 
             game_entry = self.steam_mgr.get_game(clean_app_id)
             game_title = game_entry.title if game_entry else f"Steam App {clean_app_id}"
@@ -351,7 +406,8 @@ class SessionOrchestrator:
                 last_input_at=now,
                 state="starting",
             )
-            self.active_session = managed
+            self.active_sessions[session_id] = managed
+            self.user_to_session[clean_user] = session_id
             self.db.record_session_start(
                 session_id=session_id,
                 username=clean_user,
@@ -360,19 +416,21 @@ class SessionOrchestrator:
                 quality=quality,
             )
             logger.info(
-                "Spawned isolated session %s for user '%s' (game: %s) on 127.0.0.1:%d",
+                "Spawned isolated session %s for user '%s' (game: %s) on 127.0.0.1:%d [%d/%d active]",
                 session_id,
                 clean_user,
                 game_title,
                 internal_port,
+                len(self.active_sessions),
+                self.max_concurrent_sessions,
             )
             data = managed.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
             data["reconnected"] = False
             return data
 
     def notify_client_ws_connected(self, session_id: str) -> None:
-        s = self.active_session
-        if s and s.session_id == session_id and s.state != "ended":
+        s = self.active_sessions.get(session_id)
+        if s and s.state != "ended":
             now = time.time()
             s.client_connected = True
             s.ever_connected = True
@@ -382,8 +440,8 @@ class SessionOrchestrator:
             self.db.update_session_state(session_id, "playing")
 
     def notify_client_ws_disconnected(self, session_id: str) -> None:
-        s = self.active_session
-        if s and s.session_id == session_id and s.state != "ended":
+        s = self.active_sessions.get(session_id)
+        if s and s.state != "ended":
             s.client_connected = False
             s.disconnected_at = time.time()
             if s.state == "playing":
@@ -391,24 +449,35 @@ class SessionOrchestrator:
                 self.db.update_session_state(session_id, "ready")
 
     def notify_client_input(self, session_id: str) -> None:
-        s = self.active_session
-        if s and s.session_id == session_id and s.state != "ended":
+        s = self.active_sessions.get(session_id)
+        if s and s.state != "ended":
             s.last_input_at = time.time()
 
     async def terminate_session(
         self,
         reason: str = "user_quit",
         expected_username: Optional[str] = None,
+        session_id: Optional[str] = None,
     ) -> Optional[Dict[str, object]]:
         async with self._lock:
-            if self.active_session is None:
-                return None
-            if expected_username and self.active_session.username != validate_user_id(expected_username):
-                raise PermissionError("You can only stop your own gaming session.")
-            return await self._terminate_locked(reason=reason)
+            target: Optional[ManagedSession] = None
+            if session_id:
+                target = self.active_sessions.get(session_id)
+            elif expected_username:
+                clean_user = validate_user_id(expected_username)
+                sid = self.user_to_session.get(clean_user)
+                target = self.active_sessions.get(sid) if sid else None
+            elif self.active_sessions:
+                target = next(iter(self.active_sessions.values()))
 
-    async def _terminate_locked(self, reason: str) -> Optional[Dict[str, object]]:
-        s = self.active_session
+            if target is None:
+                return None
+
+            if expected_username and target.username != validate_user_id(expected_username):
+                raise PermissionError("You can only stop your own gaming session.")
+            return await self._terminate_session_locked(target, reason=reason)
+
+    async def _terminate_session_locked(self, s: ManagedSession, reason: str) -> Optional[Dict[str, object]]:
         if s is None:
             return None
 
@@ -445,12 +514,20 @@ class SessionOrchestrator:
         s.end_reason = reason
         self.db.record_session_end(s.session_id, end_reason=reason, started_at=s.started_at)
         self.last_ended_by_user[s.username] = s
-        self.active_session = None
+        self.active_sessions.pop(s.session_id, None)
+        if self.user_to_session.get(s.username) == s.session_id:
+            self.user_to_session.pop(s.username, None)
         logger.info("Session %s for user '%s' ended (reason: %s)", s.session_id, s.username, reason)
         return s.to_dict(self.idle_timeout_sec, self.disconnect_grace_sec)
 
+    async def _terminate_locked(self, reason: str) -> Optional[Dict[str, object]]:
+        s = self.active_session
+        if s is None:
+            return None
+        return await self._terminate_session_locked(s, reason=reason)
+
     async def _watchdog_loop(self) -> None:
-        """Continuously monitor the active session process, sync status, and enforce timeouts."""
+        """Continuously monitor active session processes, sync status, and enforce timeouts."""
         while not self._stopping:
             try:
                 await self._watchdog_tick()
@@ -461,72 +538,74 @@ class SessionOrchestrator:
             await asyncio.sleep(0.35)
 
     async def _watchdog_tick(self) -> None:
-        s = self.active_session
-        if s is None or s.state == "ended":
+        if not self.active_sessions:
             return
 
         now = time.time()
+        for s in list(self.active_sessions.values()):
+            if s.state == "ended":
+                continue
 
-        # 1. Check if container process exited on its own (e.g. player quit inside game)
-        ret = s.process.poll()
-        if ret is not None:
-            async with self._lock:
-                if self.active_session is s:
-                    reason = "game_exited" if ret == 0 else "startup_error"
-                    if ret != 0 and s.state == "starting":
-                        s.error_message = f"Game container exited with code {ret} during startup."
-                    await self._terminate_locked(reason=reason)
-            return
-
-        # 2. Poll internal container /api/session/status
-        if self._http_client:
-            try:
-                async with self._http_client.get(f"{s.internal_http_url}/api/session/status") as resp:
-                    if resp.status == 200:
-                        st = await resp.json()
-                        s.inner_status = st
-                        inner_last_input = float(st.get("last_input_at", 0.0))
-                        if inner_last_input > s.last_input_at:
-                            s.last_input_at = inner_last_input
-
-                        inner_state = str(st.get("state", "starting"))
-                        if s.state == "starting" and inner_state in ("ready", "playing"):
-                            s.state = "playing" if s.client_connected else "ready"
-                            s.ready_at = now
-                            s.last_input_at = max(s.last_input_at, now)
-                            self.db.update_session_state(s.session_id, s.state)
-            except Exception:
-                pass
-
-        # 3. Enforce Idle Timeout (only once session has finished starting)
-        if s.state in ("ready", "playing"):
-            idle_elapsed = now - s.last_input_at
-            if idle_elapsed >= self.idle_timeout_sec:
-                logger.info(
-                    "Session %s exceeded idle timeout (%.1fs >= %.1fs); terminating",
-                    s.session_id,
-                    idle_elapsed,
-                    self.idle_timeout_sec,
-                )
+            # 1. Check if container process exited on its own (e.g. player quit inside game)
+            ret = s.process.poll()
+            if ret is not None:
                 async with self._lock:
-                    if self.active_session is s:
-                        await self._terminate_locked(reason="idle_timeout")
-                return
+                    if s.session_id in self.active_sessions:
+                        reason = "game_exited" if ret == 0 else "startup_error"
+                        if ret != 0 and s.state == "starting":
+                            s.error_message = f"Game container exited with code {ret} during startup."
+                        await self._terminate_session_locked(s, reason=reason)
+                continue
 
-        # 4. Enforce Disconnect Grace Timeout (if browser disconnected after connecting, or never connected)
-        if s.disconnected_at is not None:
-            disc_elapsed = now - s.disconnected_at
-            if disc_elapsed >= self.disconnect_grace_sec:
-                logger.info(
-                    "Session %s exceeded disconnect grace window (%.1fs >= %.1fs); terminating",
-                    s.session_id,
-                    disc_elapsed,
-                    self.disconnect_grace_sec,
-                )
-                async with self._lock:
-                    if self.active_session is s:
-                        await self._terminate_locked(reason="disconnect_timeout")
-                return
+            # 2. Poll internal container /api/session/status
+            if self._http_client:
+                try:
+                    async with self._http_client.get(f"{s.internal_http_url}/api/session/status") as resp:
+                        if resp.status == 200:
+                            st = await resp.json()
+                            s.inner_status = st
+                            inner_last_input = float(st.get("last_input_at", 0.0))
+                            if inner_last_input > s.last_input_at:
+                                s.last_input_at = inner_last_input
+
+                            inner_state = str(st.get("state", "starting"))
+                            if s.state == "starting" and inner_state in ("ready", "playing"):
+                                s.state = "playing" if s.client_connected else "ready"
+                                s.ready_at = now
+                                s.last_input_at = max(s.last_input_at, now)
+                                self.db.update_session_state(s.session_id, s.state)
+                except Exception:
+                    pass
+
+            # 3. Enforce Idle Timeout (only once session has finished starting)
+            if s.state in ("ready", "playing"):
+                idle_elapsed = now - s.last_input_at
+                if idle_elapsed >= self.idle_timeout_sec:
+                    logger.info(
+                        "Session %s exceeded idle timeout (%.1fs >= %.1fs); terminating",
+                        s.session_id,
+                        idle_elapsed,
+                        self.idle_timeout_sec,
+                    )
+                    async with self._lock:
+                        if s.session_id in self.active_sessions:
+                            await self._terminate_session_locked(s, reason="idle_timeout")
+                    continue
+
+            # 4. Enforce Disconnect Grace Timeout
+            if s.disconnected_at is not None:
+                disc_elapsed = now - s.disconnected_at
+                if disc_elapsed >= self.disconnect_grace_sec:
+                    logger.info(
+                        "Session %s exceeded disconnect grace window (%.1fs >= %.1fs); terminating",
+                        s.session_id,
+                        disc_elapsed,
+                        self.disconnect_grace_sec,
+                    )
+                    async with self._lock:
+                        if s.session_id in self.active_sessions:
+                            await self._terminate_session_locked(s, reason="disconnect_timeout")
+                    continue
 
     @staticmethod
     def _parse_float(val: str, default: float = 0.0) -> float:

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -107,10 +108,20 @@ class SteamLibraryManager:
                         header_url="/assets/steam-cover.svg",
                         category="steam",
                     ),
+                    GameEntry(
+                        app_id="739630",
+                        title="Phasmophobia (Co-op 4P LAN)",
+                        install_dir="Phasmophobia",
+                        size_bytes=18253611008,
+                        cover_url="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/739630/library_600x900.jpg",
+                        header_url="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/739630/header.jpg",
+                        category="steam",
+                        custom_exec="Phasmophobia.exe",
+                    ),
                 ]
             )
 
-        seen_ids = {"0", "7"}
+        seen_ids = {"0", "7", "739630"}
         search_dirs = [self.shared_steam_dir / "steamapps"] + self.extra_steamapps_dirs
 
         try:
@@ -173,6 +184,22 @@ class SteamLibraryManager:
                 exec_path = str(
                     self.shared_steam_dir / "steamapps" / "common" / entry.install_dir / entry.custom_exec
                 )
+            if exec_path.lower().endswith(".exe"):
+                # Search for Proton runtime or Wine
+                common_base = Path("/steam_shared/steamapps/common") if inside_container else (self.shared_steam_dir / "steamapps" / "common")
+                proton_bin = None
+                if common_base.exists():
+                    for p in sorted(common_base.glob("Proton*"), reverse=True):
+                        cand = p / "proton"
+                        if cand.exists():
+                            proton_bin = cand
+                            break
+                if proton_bin:
+                    return [str(proton_bin), "run", exec_path]
+                if shutil.which("wine"):
+                    return ["wine", exec_path]
+                if Path("/usr/bin/steam").exists():
+                    return ["/usr/bin/steam", "-gamepadui", "-applaunch", clean_id]
             return [exec_path]
 
         if not clean_id.isdigit():

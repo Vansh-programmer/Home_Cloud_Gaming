@@ -89,6 +89,12 @@ def main() -> int:
     )
     parser.add_argument("--invite-note", default="", help="Optional note for --create-invite")
     parser.add_argument(
+        "--max-sessions",
+        type=int,
+        default=int(os.environ.get("MAX_CONCURRENT_SESSIONS", "4")),
+        help="Maximum concurrent gaming sessions (multiplayer LAN slots, default: 4)",
+    )
+    parser.add_argument(
         "--allow-pre-sandboxed",
         action="store_true",
         help="Allow running inside an already-sandboxed test environment",
@@ -131,6 +137,7 @@ def main() -> int:
         disconnect_grace_sec=args.disconnect_grace,
         allow_pre_sandboxed=args.allow_pre_sandboxed,
         network_mgr=network_mgr,
+        max_concurrent_sessions=args.max_sessions,
     )
 
     app = create_orchestrator_app(

@@ -55,11 +55,6 @@ class EphemeralSandbox:
 
     def prepare_directories(self) -> None:
         """Create isolated ephemeral directories on the host with 0700 permissions."""
-        # Sweep any orphaned session directories from previous hard kills
-        for stale in Path("/tmp").glob("cloudgaming-session-*"):
-            if stale != self.session_root:
-                shutil.rmtree(stale, ignore_errors=True)
-
         if self.session_root.exists():
             shutil.rmtree(self.session_root, ignore_errors=True)
 

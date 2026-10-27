@@ -319,12 +319,15 @@ def create_orchestrator_app(
         active = orchestrator.get_active_session_public_summary()
         my_session = orchestrator.get_session_for_user(uname)
         is_online = not orchestrator.network_mgr.maintenance_offline_mode
+        has_my_active = my_session is not None and my_session.get("state") in ("starting", "ready", "playing")
+        slots_full = len([s for s in orchestrator.active_sessions.values() if s.state != "ended"]) >= orchestrator.max_concurrent_sessions
+        busy_by_other = (active is not None and not has_my_active) if orchestrator.max_concurrent_sessions == 1 else (slots_full and not has_my_active)
         return web.json_response(
             {
                 "ok": True,
                 "online": is_online,
                 "in_use": active is not None,
-                "busy_by_other": active is not None and active["username"] != uname,
+                "busy_by_other": busy_by_other,
                 "active_session": active,
                 "my_session": my_session,
             }
@@ -379,20 +382,23 @@ def create_orchestrator_app(
         uname = str(user["username"])
         my_session = orchestrator.get_session_for_user(uname)
         active = orchestrator.get_active_session_public_summary()
+        has_my_active = my_session is not None and my_session.get("state") in ("starting", "ready", "playing")
+        slots_full = len([s for s in orchestrator.active_sessions.values() if s.state != "ended"]) >= orchestrator.max_concurrent_sessions
+        busy_by_other = (active is not None and not has_my_active) if orchestrator.max_concurrent_sessions == 1 else (slots_full and not has_my_active)
         return web.json_response(
             {
                 "ok": True,
                 "session": my_session,
                 "active_session": active,
-                "busy_by_other": active is not None and active["username"] != uname,
+                "busy_by_other": busy_by_other,
             }
         )
 
     async def handle_session_quality(request: web.Request) -> web.Response:
         user = require_user(request)
         uname = str(user["username"])
-        s = orchestrator.active_session
-        if not s or s.username != uname or s.state == "ended":
+        s = orchestrator.get_managed_session_by_user(uname)
+        if not s or s.state == "ended":
             return web.json_response(
                 {"ok": False, "error": "No active session found for your account."},
                 status=404,
@@ -436,8 +442,11 @@ def create_orchestrator_app(
             raise web.HTTPUnauthorized(text="Unauthorized WebSocket connection")
 
         uname = str(user["username"])
-        s = orchestrator.active_session
+        s = orchestrator.get_managed_session_by_user(uname)
         if s is None or s.state == "ended":
+            # If an active session exists on the PC belonging to another player, return 403 Forbidden
+            if orchestrator.active_session and orchestrator.active_session.username != uname:
+                raise web.HTTPForbidden(text="Cannot connect to another user's gaming session")
             raise web.HTTPNotFound(text="No active gaming session")
         if s.username != uname:
             raise web.HTTPForbidden(text="Cannot connect to another user's gaming session")
@@ -450,7 +459,7 @@ def create_orchestrator_app(
         inner_ws = None
         async with ClientSession() as proxy_session:
             for _ in range(60):
-                if orchestrator.active_session is not s or s.state == "ended":
+                if s.session_id not in orchestrator.active_sessions or s.state == "ended":
                     await client_ws.send_json(
                         {"type": "error", "error": "Session ended before stream connected."}
                     )

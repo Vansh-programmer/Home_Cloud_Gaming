@@ -162,6 +162,13 @@ class UserStorageManager:
         # Link any shared appmanifests and common game folders into the user's steamapps
         self._sync_shared_library_links(steam_root_dir / "steamapps")
 
+        # Automatically provision Goldberg Steam LAN profiles for seamless multi-instance co-op
+        try:
+            from engine.goldberg_manager import provision_goldberg_lan_profile
+            provision_goldberg_lan_profile(uid, user_root)
+        except Exception:
+            pass
+
         return UserStoragePaths(
             user_id=uid,
             user_root=user_root,

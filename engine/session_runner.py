@@ -62,6 +62,7 @@ class IsolatedSessionRuntime:
         port: int = 8080,
         user_id: str = "default",
         app_id: str = "0",
+        display_num: int = 0,
     ) -> None:
         self.session_id = session_id
         self.width = width
@@ -99,8 +100,12 @@ class IsolatedSessionRuntime:
             os.chmod(self.xdg_dir, 0o700)
         os.environ["XDG_RUNTIME_DIR"] = str(self.xdg_dir)
 
-        self.display_name = ":99"
-        self.pulse_source = "cloud_sink.monitor"
+        # Dynamic display and audio sink allocation for multi-instance support
+        self.use_unix_display = self._can_use_unix_x11_socket()
+        self.display_num = self._resolve_display_num(int(display_num or 0))
+        self.display_name = f":{self.display_num}" if self.use_unix_display else f"127.0.0.1:{self.display_num}"
+        self.sink_name = f"cloud_sink_{self.display_num}"
+        self.pulse_source = f"{self.sink_name}.monitor"
         self.audio_available = False
 
         self._procs: List[subprocess.Popen] = []
@@ -116,6 +121,29 @@ class IsolatedSessionRuntime:
         self._glib_loop = GLib.MainLoop()
         self._glib_thread = threading.Thread(target=self._glib_loop.run, daemon=True)
         self._glib_thread.start()
+
+    def _resolve_display_num(self, requested: int = 0) -> int:
+        """Resolve a non-conflicting display number for isolated Xwayland."""
+        if requested > 0:
+            return requested
+        if self.use_unix_display:
+            for disp in range(99, 160):
+                sock = Path(f"/tmp/.X11-unix/X{disp}")
+                lock = Path(f"/tmp/.X{disp}-lock")
+                if not sock.exists() and not lock.exists():
+                    return disp
+            return 99
+        else:
+            start_disp = 90 + (self.port % 50)
+            for offset in range(60):
+                cand = 90 + ((start_disp - 90 + offset) % 60)
+                try:
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        s.bind(("0.0.0.0", 6000 + cand))
+                    return cand
+                except OSError:
+                    continue
+            return start_disp
 
     def _can_use_unix_x11_socket(self) -> bool:
         if os.getuid() != 0:
@@ -195,7 +223,7 @@ class IsolatedSessionRuntime:
                     "pactl",
                     "load-module",
                     "module-null-sink",
-                    "sink_name=cloud_sink",
+                    f"sink_name={self.sink_name}",
                     "sink_properties=device.description=CloudGamingIsolatedAudio",
                 ],
                 env=env,
@@ -205,16 +233,16 @@ class IsolatedSessionRuntime:
             )
             if res.returncode == 0:
                 subprocess.run(
-                    ["pactl", "set-default-sink", "cloud_sink"],
+                    ["pactl", "set-default-sink", self.sink_name],
                     env=env,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                     timeout=2,
                 )
-                os.environ["PULSE_SINK"] = "cloud_sink"
-                os.environ["PULSE_SOURCE"] = "cloud_sink.monitor"
+                os.environ["PULSE_SINK"] = self.sink_name
+                os.environ["PULSE_SOURCE"] = self.pulse_source
                 self.audio_available = True
-                logger.info("Isolated PipeWire-Pulse virtual sink 'cloud_sink' initialized")
+                logger.info("Isolated PipeWire-Pulse virtual sink '%s' initialized", self.sink_name)
             else:
                 logger.warning("pactl load-module returned %d; using silent fallback", res.returncode)
         except Exception as exc:
@@ -224,7 +252,7 @@ class IsolatedSessionRuntime:
         """Start headless Weston kiosk compositor and rootful Xwayland server."""
         env = os.environ.copy()
         env["XDG_RUNTIME_DIR"] = str(self.xdg_dir)
-        wayland_socket = "wayland-cloud-0"
+        wayland_socket = f"wayland-cloud-{self.display_num}"
 
         weston_cmd = [
             "weston",
@@ -254,13 +282,10 @@ class IsolatedSessionRuntime:
         env["WAYLAND_DISPLAY"] = wayland_socket
         os.environ["WAYLAND_DISPLAY"] = wayland_socket
 
-        use_unix = self._can_use_unix_x11_socket()
-        display_num = 99
-        if use_unix:
-            self.display_name = f":{display_num}"
+        if self.use_unix_display:
             xw_cmd = [
                 "Xwayland",
-                f":{display_num}",
+                f":{self.display_num}",
                 "-ac",
                 "-noreset",
                 "-nolisten",
@@ -269,22 +294,9 @@ class IsolatedSessionRuntime:
                 f"{self.width}x{self.height}",
             ]
         else:
-            # Find a genuinely bindable TCP port for X11 (6000 + display_num) when /tmp/.X11-unix is read-only.
-            # Using bind() instead of connect_ex() avoids picking a port in TCP TIME_WAIT from a prior session.
-            start_disp = 90 + (self.port % 50)
-            for offset in range(60):
-                candidate = 90 + ((start_disp - 90 + offset) % 60)
-                try:
-                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        s.bind(("0.0.0.0", 6000 + candidate))
-                    display_num = candidate
-                    break
-                except OSError:
-                    continue
-            self.display_name = f"127.0.0.1:{display_num}"
             xw_cmd = [
                 "Xwayland",
-                f":{display_num}",
+                f":{self.display_num}",
                 "-ac",
                 "-noreset",
                 "-nolisten",
@@ -613,6 +625,7 @@ async def run_session_async(args: argparse.Namespace) -> int:
         port=args.port,
         user_id=args.user_id,
         app_id=args.app_id,
+        display_num=getattr(args, "display_num", 0),
     )
 
     state_dir = os.environ.get("SESSION_STATE_DIR")
@@ -681,6 +694,7 @@ def main() -> int:
     parser.add_argument("--quality", default="high", choices=list(QUALITY_PRESETS.keys()))
     parser.add_argument("--user-id", default="default", help="User identifier for persistent saves/Steam profile")
     parser.add_argument("--app-id", default="0", help="Steam AppID or 0 for CyberArena 3D, 7 for Steam GamepadUI")
+    parser.add_argument("--display-num", type=int, default=0, help="Explicit display number (0 = auto-detect free display)")
     parser.add_argument("--game-cmd", default="", help="Optional custom game command")
     args = parser.parse_args()
 
