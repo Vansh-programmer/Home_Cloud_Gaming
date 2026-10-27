@@ -860,12 +860,18 @@
     }
   };
 
-  document.addEventListener('fullscreenchange', () => {
+  document.addEventListener('fullscreenchange', async () => {
     const isFs = Boolean(document.fullscreenElement);
     btnHudFullscreen.textContent = isFs ? 'WINDOWED' : 'FULLSCREEN';
     btnHudFullscreen.classList.toggle('active', isFs);
-    if (!isFs && navigator.keyboard && navigator.keyboard.unlock) {
-      try { navigator.keyboard.unlock(); } catch (_) {}
+    if (isFs) {
+      if (navigator.keyboard && navigator.keyboard.lock) {
+        try { await navigator.keyboard.lock(['Escape', 'Tab']); } catch (_) {}
+      }
+    } else {
+      if (navigator.keyboard && navigator.keyboard.unlock) {
+        try { navigator.keyboard.unlock(); } catch (_) {}
+      }
     }
   });
 
@@ -916,41 +922,47 @@
     const tag = document.activeElement ? document.activeElement.tagName : '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
-    // Toggle Telemetry HUD strictly on Tilde (~) / Backquote
+    // Website action 1: Toggle Telemetry HUD strictly on Tilde (~) / Backquote
     if (e.code === 'Backquote') {
       e.preventDefault();
       btnHudStats.click();
       return;
     }
 
-    // UNLOCK MOUSE via [ key (releases 3D pointer lock and frees cursor)
+    // Website action 2: UNLOCK MOUSE strictly on [ (BracketLeft) key
     if (e.code === 'BracketLeft') {
       e.preventDefault();
-      if (document.pointerLockElement === videoEl) {
-        pointerLockPreferred = false;
+      pointerLockPreferred = false;
+      if (document.pointerLockElement) {
         document.exitPointerLock();
       }
       return;
     }
 
+    // In-game keys (including Escape, Tab, WASD, Numbers, etc.)
+    // Always call preventDefault so browser defaults do not steal focus or unlock aim
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
-      // Prevent browser default actions (e.g. Tab focusing URL bar, Space scrolling)
-      if (e.code !== 'Escape') {
-        e.preventDefault();
-      }
+      e.preventDefault();
     }
     if (e.repeat) return;
     stInputMode.textContent = document.pointerLockElement === videoEl ? 'KB + 3D LOCK' : `KB (${e.code})`;
     sendInputPacket({ type: 'keydown', code: e.code, key: e.key });
+
+    // If Escape was pressed, keep pointerLockPreferred = true so aim is not lost in windowed mode
+    if (e.code === 'Escape' && pointerLockPreferred && videoEl.requestPointerLock) {
+      setTimeout(() => {
+        if (pointerLockPreferred && document.pointerLockElement !== videoEl && streamOpen) {
+          try { videoEl.requestPointerLock(); } catch (_) {}
+        }
+      }, 30);
+    }
   });
 
   window.addEventListener('keyup', (e) => {
     if (!streamOpen || streamReplaced) return;
     if (e.code === 'Backquote' || e.code === 'BracketLeft') return;
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
-      if (e.code !== 'Escape') {
-        e.preventDefault();
-      }
+      e.preventDefault();
     }
     sendInputPacket({ type: 'keyup', code: e.code, key: e.key });
   });
