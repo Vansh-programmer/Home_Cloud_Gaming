@@ -44,13 +44,16 @@ def provision_goldberg_lan_profile(
     target_dirs = [
         # Linux native / Wine fallback path
         user_root / "home" / ".local" / "share" / "Goldberg SteamEmu Saves" / "settings",
+        user_root / "home" / ".local" / "share" / "Goldberg SteamEmu Saves" / str(app_id) / "settings",
     ]
 
     for aid in {str(app_id), "1966720", "739630"}:
-        for username_cand in ("steamuser", "gamer"):
-            target_dirs.append(
-                user_root / "home" / ".local" / "share" / "Steam" / "steamapps" / "compatdata" / aid / "pfx" / "drive_c" / "users" / username_cand / "AppData" / "Roaming" / "Goldberg SteamEmu Saves" / "settings"
-            )
+        for username_cand in ("steamuser", "gamer", clean_user):
+            base_appdata = user_root / "home" / ".local" / "share" / "Steam" / "steamapps" / "compatdata" / aid / "pfx" / "drive_c" / "users" / username_cand / "AppData" / "Roaming" / "Goldberg SteamEmu Saves"
+            target_dirs.append(base_appdata / "settings")
+            target_dirs.append(base_appdata / aid / "settings")
+
+    broadcast_content = "127.0.0.1\n255.255.255.255\n"
 
     for settings_dir in target_dirs:
         try:
@@ -58,8 +61,8 @@ def provision_goldberg_lan_profile(
             (settings_dir / "account_name.txt").write_text(player_name, encoding="utf-8")
             (settings_dir / "user_steam_id.txt").write_text(steam_id, encoding="utf-8")
             (settings_dir / "language.txt").write_text("english", encoding="utf-8")
-            # Enable LAN discovery / local save broadcast
             (settings_dir / "broadcast_net.txt").write_text("1", encoding="utf-8")
+            (settings_dir / "custom_broadcasts.txt").write_text(broadcast_content, encoding="utf-8")
             logger.debug("Provisioned Goldberg LAN profile in %s (User: %s, SteamID: %s)", settings_dir, player_name, steam_id)
         except Exception as exc:
             logger.warning("Could not write Goldberg profile to %s: %s", settings_dir, exc)

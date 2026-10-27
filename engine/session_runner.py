@@ -350,6 +350,7 @@ class IsolatedSessionRuntime:
 
         # Apply Steam launch options, command wrappers, and DLL overrides
         from engine.steam_manager import (
+            DEFAULT_GOLDBERG_DLL_OVERRIDES,
             DEFAULT_ONLINEFIX_DLL_OVERRIDES,
             SteamLibraryManager,
             parse_launch_options,
@@ -362,14 +363,16 @@ class IsolatedSessionRuntime:
 
         target_cmd, env = parse_launch_options(launch_opts, self.game_cmd, env)
 
-        # Automatic detection for OnlineFix games: if OnlineFix DLLs, Lethal Company or Phasmophobia is present, ensure DLL overrides
+        # Automatic detection for LAN / Goldberg / OnlineFix games: ensure appropriate DLL overrides
         if "WINEDLLOVERRIDES" not in env:
             if (
                 self.app_id in ("1966720", "739630")
                 or "lethal" in str(target_cmd).lower()
                 or "phasmophobia" in str(target_cmd).lower()
-                or "onlinefix" in str(target_cmd).lower()
             ):
+                env["WINEDLLOVERRIDES"] = DEFAULT_GOLDBERG_DLL_OVERRIDES
+                logger.info("Automatically injected WINEDLLOVERRIDES for LAN/Goldberg game: %s", self.app_id)
+            elif "onlinefix" in str(target_cmd).lower():
                 env["WINEDLLOVERRIDES"] = DEFAULT_ONLINEFIX_DLL_OVERRIDES
                 logger.info("Automatically injected WINEDLLOVERRIDES for online-fix game: %s", self.app_id)
 
@@ -398,6 +401,26 @@ class IsolatedSessionRuntime:
             env.setdefault("STEAM_COMPAT_APP_ID", str(self.app_id))
             env.setdefault("SteamAppId", str(self.app_id))
             env.setdefault("SteamGameId", str(self.app_id))
+            try:
+                from engine.goldberg_manager import derive_user_steam_id
+                steam_id = derive_user_steam_id(self.user_id)
+                settings_dirs = [
+                    home_path / ".local" / "share" / "Goldberg SteamEmu Saves" / "settings",
+                    home_path / ".local" / "share" / "Goldberg SteamEmu Saves" / str(self.app_id) / "settings",
+                ]
+                for ucand in ("steamuser", "gamer", self.user_id):
+                    pfx_appdata = compat_data_path / "pfx" / "drive_c" / "users" / ucand / "AppData" / "Roaming" / "Goldberg SteamEmu Saves"
+                    settings_dirs.append(pfx_appdata / "settings")
+                    settings_dirs.append(pfx_appdata / str(self.app_id) / "settings")
+                for s_dir in settings_dirs:
+                    s_dir.mkdir(parents=True, exist_ok=True)
+                    (s_dir / "account_name.txt").write_text(self.user_id, encoding="utf-8")
+                    (s_dir / "user_steam_id.txt").write_text(steam_id, encoding="utf-8")
+                    (s_dir / "language.txt").write_text("english", encoding="utf-8")
+                    (s_dir / "broadcast_net.txt").write_text("1", encoding="utf-8")
+                    (s_dir / "custom_broadcasts.txt").write_text("127.0.0.1\n255.255.255.255\n", encoding="utf-8")
+            except Exception as exc:
+                logger.debug("Inside-container Goldberg profile provisioning skipped: %s", exc)
             logger.info(
                 "Configured Proton compat environment: STEAM_COMPAT_DATA_PATH=%s, SteamAppId=%s (cwd=%s)",
                 compat_data_path,

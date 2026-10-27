@@ -108,6 +108,7 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
             self.assertEqual((settings_dir / "account_name.txt").read_text(encoding="utf-8"), "dave")
             self.assertEqual((settings_dir / "user_steam_id.txt").read_text(encoding="utf-8"), derive_user_steam_id("dave"))
             self.assertEqual((settings_dir / "broadcast_net.txt").read_text(encoding="utf-8"), "1")
+            self.assertIn("127.0.0.1", (settings_dir / "custom_broadcasts.txt").read_text(encoding="utf-8"))
 
     def test_02_lethal_company_library_discovery(self) -> None:
         """Verify Lethal Company (AppID 1966720) is registered with co-op metadata and default DLL overrides."""
@@ -119,7 +120,8 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
             self.assertIn("Lethal Company", lethal.title)
             self.assertEqual(lethal.custom_exec, "Lethal Company.exe")
             self.assertIn("WINEDLLOVERRIDES", lethal.launch_options or "")
-            self.assertIn("OnlineFix64=n", lethal.launch_options or "")
+            self.assertIn("steam_api64=n,b", lethal.launch_options or "")
+            self.assertIn("winmm=b", lethal.launch_options or "")
 
     def test_03_steam_launch_options_parser(self) -> None:
         """Verify Steam launch options parsing with WINEDLLOVERRIDES, command wrappers, and arguments."""

@@ -27,6 +27,7 @@ KV_PATTERN = re.compile(r'"([^"]+)"\s+"([^"]*)"')
 DEFAULT_ONLINEFIX_DLL_OVERRIDES = (
     "OnlineFix64=n;OnlineFix=n;SteamOverlay64=n;SteamOverlay=n;winmm=n,b;dnet=n;steam_api64=n;steam_api=n;PhotonBridge=n;version=n,b"
 )
+DEFAULT_GOLDBERG_DLL_OVERRIDES = "steam_api64=n,b;steam_api=n,b;winmm=b"
 
 
 def parse_launch_options(
@@ -170,7 +171,7 @@ class SteamLibraryManager:
                         header_url="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1966720/header.jpg",
                         category="steam",
                         custom_exec="Lethal Company.exe",
-                        launch_options=f'WINEDLLOVERRIDES="{DEFAULT_ONLINEFIX_DLL_OVERRIDES}" %command%',
+                        launch_options=f'WINEDLLOVERRIDES="{DEFAULT_GOLDBERG_DLL_OVERRIDES}" %command%',
                     ),
                 ]
             )
@@ -229,7 +230,7 @@ class SteamLibraryManager:
         if entry and entry.launch_options:
             return entry.launch_options
         if clean_id in ("1966720", "739630"):
-            return f'WINEDLLOVERRIDES="{DEFAULT_ONLINEFIX_DLL_OVERRIDES}" %command%'
+            return f'WINEDLLOVERRIDES="{DEFAULT_GOLDBERG_DLL_OVERRIDES}" %command%'
         return None
 
     def set_custom_launch_options(self, app_id: str, options: str) -> None:
