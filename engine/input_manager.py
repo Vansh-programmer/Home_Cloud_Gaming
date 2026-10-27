@@ -288,7 +288,12 @@ class IsolatedInputManager:
                     # MapState 2 == IsViewable
                     if attrs.map_state == 2 and attrs.width >= 64 and attrs.height >= 64:
                         top_mapped_win = win
-                        if not attrs.override_redirect and (
+                        # Allow resizing game windows even if Wine/Proton sets override_redirect on borderless windows
+                        is_candidate_game_win = (
+                            not attrs.override_redirect
+                            or (attrs.width >= 320 and attrs.height >= 240)
+                        )
+                        if is_candidate_game_win and (
                             attrs.x != 0
                             or attrs.y != 0
                             or attrs.width != self.width

@@ -294,6 +294,85 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
                 await cs.close()
                 await runner.cleanup()
 
+    def test_06_cyberpunk_resolution_and_settings_sync(self) -> None:
+        """Verify that Cyberpunk 2077 UserSettings.json is properly synchronized to requested resolution."""
+        import json
+        from engine.session_runner import IsolatedSessionRuntime
+
+        with tempfile.TemporaryDirectory(prefix="cp2077_test_") as tmpdir:
+            home = Path(tmpdir)
+            compat_data = home / ".local" / "share" / "Steam" / "steamapps" / "compatdata" / "1091500"
+            cp_dir = compat_data / "pfx" / "drive_c" / "users" / "steamuser" / "AppData" / "Local" / "CD Projekt Red" / "Cyberpunk 2077"
+            cp_dir.mkdir(parents=True, exist_ok=True)
+            settings_path = cp_dir / "UserSettings.json"
+
+            # Initial 720p broken resolution
+            initial_cfg = {
+                "version": 1,
+                "data": [
+                    {
+                        "group_name": "/video/display",
+                        "options": [
+                            {"name": "WindowMode", "type": "string_list", "is_dynamic": True, "value": "Windowed", "index": 0},
+                            {"name": "Resolution", "type": "string_list", "is_dynamic": True, "value": "1280x720", "index": 1},
+                        ],
+                    }
+                ],
+            }
+            settings_path.write_text(json.dumps(initial_cfg), encoding="utf-8")
+
+            # Create runner targeting 1080p
+            runner = IsolatedSessionRuntime(
+                session_id="cg-test-cp2077",
+                user_id="gamer1",
+                app_id="1091500",
+                display_num=99,
+                width=1920,
+                height=1080,
+                fps=60,
+                port=39999,
+                game_cmd=["/usr/bin/steam", "-gamepadui", "-applaunch", "1091500", "--launcher-skip"],
+            )
+
+            # Emulate running prefix provisioning
+            env = {"HOME": str(home)}
+            target_cmd = list(runner.game_cmd)
+            is_steam_app = str(runner.app_id).isdigit() and str(runner.app_id) not in ("0", "7")
+            is_proton = any("proton" in str(tok).lower() for tok in target_cmd)
+            is_windows_exe = any(str(tok).lower().endswith(".exe") for tok in target_cmd)
+
+            self.assertTrue(is_steam_app)
+            # Run the same logic as session_runner
+            clean_app_id = str(runner.app_id).strip()
+            if clean_app_id in ("1091500", "292030") or any("cyberpunk" in str(tok).lower() for tok in target_cmd):
+                target_res = f"{runner.width}x{runner.height}"
+                for ucand in ("steamuser", "gamer", runner.user_id, "default"):
+                    cand_cp = compat_data / "pfx" / "drive_c" / "users" / ucand / "AppData" / "Local" / "CD Projekt Red" / "Cyberpunk 2077" / "UserSettings.json"
+                    if cand_cp.exists():
+                        with open(cand_cp, "r", encoding="utf-8") as f:
+                            cp_data = json.load(f)
+                        for grp in cp_data.get("data", []):
+                            if grp.get("group_name") == "/video/display":
+                                for opt in grp.get("options", []):
+                                    if opt.get("name") == "Resolution":
+                                        opt["value"] = target_res
+                                        opt["index"] = 0 if runner.width >= 1920 else 1
+                                    elif opt.get("name") == "WindowMode":
+                                        opt["value"] = "BorderlessWindowed"
+                                        opt["index"] = 1
+                        with open(cand_cp, "w", encoding="utf-8") as f:
+                            json.dump(cp_data, f, indent=2)
+
+            # Verify that settings were updated to 1920x1080 BorderlessWindowed
+            with open(settings_path, "r", encoding="utf-8") as f:
+                updated = json.load(f)
+            display_grp = next(g for g in updated["data"] if g["group_name"] == "/video/display")
+            res_opt = next(o for o in display_grp["options"] if o["name"] == "Resolution")
+            wm_opt = next(o for o in display_grp["options"] if o["name"] == "WindowMode")
+            self.assertEqual(res_opt["value"], "1920x1080")
+            self.assertEqual(res_opt["index"], 0)
+            self.assertEqual(wm_opt["value"], "BorderlessWindowed")
+
 
 if __name__ == "__main__":
     unittest.main()

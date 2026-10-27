@@ -386,10 +386,11 @@ class IsolatedSessionRuntime:
                     game_cwd = str(cand_dir)
                     break
 
-        # Setup Proton compatibility environment variables if running Windows executables
+        # Setup Proton compatibility environment variables if running Windows executables or Steam games
+        is_steam_app = str(self.app_id).isdigit() and str(self.app_id) not in ("0", "7")
         is_proton = any("proton" in str(tok).lower() for tok in target_cmd)
         is_windows_exe = any(str(tok).lower().endswith(".exe") for tok in target_cmd)
-        if is_proton or is_windows_exe:
+        if is_proton or is_windows_exe or is_steam_app:
             home_path = Path(env.get("HOME", os.path.expanduser("~")))
             steam_dir = home_path / ".local" / "share" / "Steam"
             compat_data_path = steam_dir / "steamapps" / "compatdata" / str(self.app_id)
@@ -422,6 +423,66 @@ class IsolatedSessionRuntime:
                     (s_dir / "custom_broadcasts.txt").write_text("127.0.0.1\n255.255.255.255\n", encoding="utf-8")
             except Exception as exc:
                 logger.debug("Inside-container Goldberg profile provisioning skipped: %s", exc)
+
+            # Cyberpunk 2077 & CD Projekt Red resolution synchronization
+            clean_app_id = str(self.app_id).strip()
+            if clean_app_id in ("1091500", "292030") or any("cyberpunk" in str(tok).lower() for tok in target_cmd):
+                try:
+                    target_res = f"{self.width}x{self.height}"
+                    template_path = PROJECT_ROOT / "engine" / "templates" / "cyberpunk_UserSettings.json"
+                    for ucand in ("steamuser", "gamer", self.user_id, "default"):
+                        cp_user_dir = compat_data_path / "pfx" / "drive_c" / "users" / ucand / "AppData" / "Local" / "CD Projekt Red" / "Cyberpunk 2077"
+                        settings_path = cp_user_dir / "UserSettings.json"
+                        if not settings_path.exists() and template_path.exists():
+                            try:
+                                cp_user_dir.mkdir(parents=True, exist_ok=True)
+                                import shutil
+                                shutil.copy2(template_path, settings_path)
+                            except Exception:
+                                pass
+                        if settings_path.exists():
+                            import json
+                            with open(settings_path, "r", encoding="utf-8") as f:
+                                cp_data = json.load(f)
+                            cp_mod = False
+                            for group in cp_data.get("data", []):
+                                if group.get("group_name") == "/video/display":
+                                    for opt in group.get("options", []):
+                                        if opt.get("name") == "Resolution":
+                                            if opt.get("value") != target_res:
+                                                opt["value"] = target_res
+                                                opt["index"] = 0 if self.width >= 1920 else 1
+                                                cp_mod = True
+                                        elif opt.get("name") == "WindowMode":
+                                            if opt.get("value") != "BorderlessWindowed":
+                                                opt["value"] = "BorderlessWindowed"
+                                                opt["index"] = 1
+                                                cp_mod = True
+                            if cp_mod:
+                                with open(settings_path, "w", encoding="utf-8") as f:
+                                    json.dump(cp_data, f, indent=2)
+                                logger.info(
+                                    "Synchronized Cyberpunk 2077 UserSettings.json to %s (BorderlessWindowed)",
+                                    target_res,
+                                )
+                except Exception as exc:
+                    logger.warning("Could not patch Cyberpunk UserSettings.json: %s", exc)
+
+            # The Witcher 3 user.settings resolution synchronization
+            if clean_app_id in ("292030",) or any("witcher3" in str(tok).lower() for tok in target_cmd):
+                try:
+                    for ucand in ("steamuser", "gamer", self.user_id):
+                        w3_settings = compat_data_path / "pfx" / "drive_c" / "users" / ucand / "Documents" / "The Witcher 3" / "user.settings"
+                        if w3_settings.exists():
+                            import re
+                            w3_content = w3_settings.read_text(encoding="utf-8", errors="ignore")
+                            w3_content = re.sub(r'Resolution="[^"]+"', f'Resolution="{self.width}x{self.height}"', w3_content)
+                            w3_content = re.sub(r'FullScreenMode=\d+', 'FullScreenMode=2', w3_content)
+                            w3_settings.write_text(w3_content, encoding="utf-8")
+                            logger.info("Synchronized The Witcher 3 user.settings resolution to %dx%d", self.width, self.height)
+                except Exception as exc:
+                    logger.debug("Could not patch Witcher 3 user.settings: %s", exc)
+
             logger.info(
                 "Configured Proton compat environment: STEAM_COMPAT_DATA_PATH=%s, SteamAppId=%s (cwd=%s)",
                 compat_data_path,
