@@ -103,8 +103,8 @@ class WebRTCPeerStream:
         if Gst.ElementFactory.find("nvh264enc") is not None:
             encoder_elem = (
                 f"nvh264enc name=venc preset=p1 tune=ultra-low-latency zerolatency=true rc-mode=cbr "
-                f"strict-gop=true num-slices=2 aud=true repeat-sequence-header=true bitrate={bitrate_kbps} "
-                f"gop-size={gop_size} bframes=0 vbv-buffer-size={vbv_kbits} "
+                f"aud=true repeat-sequence-header=true bitrate={bitrate_kbps} gop-size={gop_size} bframes=0 "
+                f"vbv-buffer-size={vbv_kbits} "
             )
         elif Gst.ElementFactory.find("vaapih264enc") is not None:
             logger.info("Using VA-API Hardware H.264 Encoder (Intel/AMD)")
@@ -300,6 +300,7 @@ class WebRTCPeerStream:
 
     def _on_dc_open(self, dc: object) -> None:
         logger.info("RTCDataChannel 'input' is open")
+        self.force_keyframe()
         try:
             dc.emit(
                 "send-string",
@@ -412,6 +413,7 @@ class WebRTCPeerStream:
                     except Exception as exc:
                         logger.warning("Error flushing buffered ICE candidate: %s", exc)
             self._pending_ice = []
+            GLib.timeout_add(100, lambda: (self.force_keyframe(), False)[1])
 
     def handle_sdp_answer(self, sdp_text: str) -> None:
         with self._lock:

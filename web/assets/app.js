@@ -814,8 +814,13 @@
             }
             videoEl.srcObject.addTrack(event.track);
           }
-          videoEl.play().catch(() => {
-            // Autoplay with audio was blocked by browser policy; mute and retry automatically
+          videoEl.muted = true;
+          videoEl.play().then(() => {
+            // Unmute if browser policy allows it, otherwise remain muted with UNMUTE button
+            videoEl.muted = false;
+            btnHudMute.textContent = 'AUDIO ON';
+            btnHudMute.classList.add('active');
+          }).catch(() => {
             videoEl.muted = true;
             btnHudMute.textContent = 'UNMUTE';
             btnHudMute.classList.remove('active');
