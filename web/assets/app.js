@@ -1261,8 +1261,8 @@
       return;
     }
     if (dx !== 0 || dy !== 0) {
-      const stepX = Math.max(-100, Math.min(100, dx));
-      const stepY = Math.max(-100, Math.min(100, dy));
+      const stepX = Math.max(-250, Math.min(250, dx));
+      const stepY = Math.max(-250, Math.min(250, dy));
       sendInputPacket({ type: 'mousemove', dx: stepX, dy: stepY });
     }
   });
@@ -1329,15 +1329,16 @@
     btnHudMute.classList.add('active');
     videoEl.play().catch(() => {});
 
+    const isLocked = document.pointerLockElement === videoEl;
     const rect = videoEl.getBoundingClientRect();
     let nx = undefined;
     let ny = undefined;
-    if (rect.width > 0 && rect.height > 0) {
+    if (!isLocked && rect.width > 0 && rect.height > 0) {
       nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       ny = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
     }
 
-    if (document.pointerLockElement !== videoEl) {
+    if (!isLocked) {
       if (pointerLockPreferred && !touchOverlay.classList.contains('visible') && videoEl.requestPointerLock) {
         try { videoEl.requestPointerLock(); } catch (_) {}
       }
@@ -1347,10 +1348,11 @@
 
   window.addEventListener('mouseup', (e) => {
     if (!streamOpen || streamReplaced) return;
+    const isLocked = document.pointerLockElement === videoEl;
     const rect = videoEl.getBoundingClientRect();
     let nx = undefined;
     let ny = undefined;
-    if (rect.width > 0 && rect.height > 0) {
+    if (!isLocked && rect.width > 0 && rect.height > 0) {
       nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       ny = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
     }

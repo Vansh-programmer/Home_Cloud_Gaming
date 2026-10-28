@@ -338,12 +338,26 @@ class SteamLibraryManager:
                         if proton_bin:
                             break
 
+                    if clean_id not in ("203160",) and proton_bin:
+                        return [str(proton_bin), "run", exec_path, *extra_args]
+                    if Path("/usr/bin/steam").exists():
+                        return [
+                            "/usr/bin/steam",
+                            "-gamepadui",
+                            "-cef-disable-gpu",
+                            "-nochatui",
+                            "-nofriendsui",
+                            "-nointro",
+                            "-no-cef-sandbox",
+                            "--no-sandbox",
+                            "-applaunch",
+                            clean_id,
+                            *extra_args,
+                        ]
                     if proton_bin:
                         return [str(proton_bin), "run", exec_path, *extra_args]
                     if shutil.which("wine"):
                         return ["wine", exec_path, *extra_args]
-                    if Path("/usr/bin/steam").exists():
-                        return ["/usr/bin/steam", "-gamepadui", "-applaunch", clean_id, *extra_args]
                 return [exec_path]
 
         if not clean_id.isdigit():
@@ -357,6 +371,12 @@ class SteamLibraryManager:
         return [
             "/usr/bin/steam",
             "-gamepadui",
+            "-cef-disable-gpu",
+            "-nochatui",
+            "-nofriendsui",
+            "-nointro",
+            "-no-cef-sandbox",
+            "--no-sandbox",
             "-applaunch",
             clean_id,
             *extra_args,

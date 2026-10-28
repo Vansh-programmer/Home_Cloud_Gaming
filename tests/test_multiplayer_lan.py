@@ -531,6 +531,49 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
         input_mgr = IsolatedInputManager(":99", 1920, 1080)
         self.assertFalse(input_mgr.has_viewable_game_window())
 
+    def test_10_input_focus_stability_and_gamepad_menu_navigation(self) -> None:
+        """Verify input focus does not thrash, gamepad stick navigates menus, and Steam DRM launch."""
+        from engine.input_manager import IsolatedInputManager
+        from engine.steam_manager import SteamLibraryManager
+
+        input_mgr = IsolatedInputManager(":99", 1920, 1080)
+
+        # 1. Test gamepad left stick analog movement generates both WASD and Arrow keys
+        # Forward (Up)
+        input_mgr.handle_event({"type": "gamepad", "axes": [0.0, -0.9, 0.0, 0.0], "buttons": []})
+        self.assertIn("KeyW", input_mgr._virtual_pad_keys)
+        self.assertIn("ArrowUp", input_mgr._virtual_pad_keys)
+
+        # Back (Down)
+        input_mgr.handle_event({"type": "gamepad", "axes": [0.0, 0.9, 0.0, 0.0], "buttons": []})
+        self.assertIn("KeyS", input_mgr._virtual_pad_keys)
+        self.assertIn("ArrowDown", input_mgr._virtual_pad_keys)
+
+        # Left
+        input_mgr.handle_event({"type": "gamepad", "axes": [-0.9, 0.0, 0.0, 0.0], "buttons": []})
+        self.assertIn("KeyA", input_mgr._virtual_pad_keys)
+        self.assertIn("ArrowLeft", input_mgr._virtual_pad_keys)
+
+        # Right
+        input_mgr.handle_event({"type": "gamepad", "axes": [0.9, 0.0, 0.0, 0.0], "buttons": []})
+        self.assertIn("KeyD", input_mgr._virtual_pad_keys)
+        self.assertIn("ArrowRight", input_mgr._virtual_pad_keys)
+
+        # 2. Test relative mouse movement step limits allow flick turns (up to 250px)
+        input_mgr.send_mouse_move(dx=180, dy=-120)
+        self.assertEqual(input_mgr._ptr_x, 1920 // 2 + 180)
+        self.assertEqual(input_mgr._ptr_y, 1080 // 2 - 120)
+
+        # 3. Test Tomb Raider (203160) launch command uses Steam GamepadUI vector with CEF flags
+        steam_mgr = SteamLibraryManager(PROJECT_ROOT / "data" / "shared_steam_library")
+        tr_cmd = steam_mgr.build_launch_command("203160", inside_container=True)
+        self.assertIn("/usr/bin/steam", tr_cmd)
+        self.assertIn("-applaunch", tr_cmd)
+        self.assertIn("203160", tr_cmd)
+        self.assertIn("-nolauncher", tr_cmd)
+        self.assertIn("-cef-disable-gpu", tr_cmd)
+        self.assertIn("--no-sandbox", tr_cmd)
+
 
 if __name__ == "__main__":
     unittest.main()

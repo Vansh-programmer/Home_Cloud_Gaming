@@ -412,6 +412,14 @@ class IsolatedSessionRuntime:
             env.setdefault("SteamAppId", str(self.app_id))
             env.setdefault("SteamGameId", str(self.app_id))
             try:
+                if game_cwd and Path(game_cwd).exists():
+                    (Path(game_cwd) / "steam_appid.txt").write_text(f"{self.app_id}\n", encoding="utf-8")
+                c_drive = compat_data_path / "pfx" / "drive_c"
+                if c_drive.exists():
+                    (c_drive / "steam_appid.txt").write_text(f"{self.app_id}\n", encoding="utf-8")
+            except Exception as exc:
+                logger.debug("Writing steam_appid.txt skipped: %s", exc)
+            try:
                 from engine.goldberg_manager import derive_user_steam_id
                 steam_id = derive_user_steam_id(self.user_id)
                 settings_dirs = [

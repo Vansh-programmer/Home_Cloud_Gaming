@@ -339,15 +339,22 @@ class IsolatedInputManager:
                         break
 
             if target_win:
-                self._top_win = target_win
-                # Raise active game window to the top of the X11 visual stack
-                self._libX11.XRaiseWindow(self._dpy, target_win)
-                # Assign X11 keyboard input focus directly to the target window
-                self._libX11.XSetInputFocus(
-                    self._dpy, target_win, RevertToPointerRoot, CurrentTime
-                )
-                self._libX11.XFlush(self._dpy)
-                self.has_focused_window = True
+                # Only raise and reset focus when target window actually changes or when focus wasn't locked.
+                # Calling XSetInputFocus continuously fires FocusOut/FocusIn (WM_KILLFOCUS/WM_SETFOCUS),
+                # repeatedly breaking Wine's XGrabPointer and dropping Win32 DirectInput / RawInput acquisition!
+                if target_win != self._top_win or not self.has_focused_window:
+                    self._top_win = target_win
+                    # Raise active game window to the top of the X11 visual stack
+                    self._libX11.XRaiseWindow(self._dpy, target_win)
+                    # Assign X11 keyboard input focus directly to the target window
+                    self._libX11.XSetInputFocus(
+                        self._dpy, target_win, RevertToPointerRoot, CurrentTime
+                    )
+                    self._libX11.XFlush(self._dpy)
+                    self.has_focused_window = True
+            else:
+                self._top_win = 0
+                self.has_focused_window = False
             self._libX11.XFree(children_ptr)
 
     def _kiosk_window_loop(self) -> None:
@@ -410,8 +417,8 @@ class IsolatedInputManager:
         """Inject relative or normalized absolute (0.0..1.0) mouse motion."""
         with self._lock:
             if dx != 0 or dy != 0:
-                step_x = max(-100, min(100, int(dx)))
-                step_y = max(-100, min(100, int(dy)))
+                step_x = max(-250, min(250, int(dx)))
+                step_y = max(-250, min(250, int(dy)))
                 self._ptr_x = max(0, min(self.width - 1, self._ptr_x + step_x))
                 self._ptr_y = max(0, min(self.height - 1, self._ptr_y + step_y))
                 if self._dpy:
@@ -487,12 +494,16 @@ class IsolatedInputManager:
             ny = ly / mag
             if ny < -0.38:
                 desired_keys.add("KeyW")
+                desired_keys.add("ArrowUp")
             elif ny > 0.38:
                 desired_keys.add("KeyS")
+                desired_keys.add("ArrowDown")
             if nx < -0.38:
                 desired_keys.add("KeyA")
+                desired_keys.add("ArrowLeft")
             elif nx > 0.38:
                 desired_keys.add("KeyD")
+                desired_keys.add("ArrowRight")
             if mag > 0.85 and ny < -0.38:
                 desired_keys.add("ShiftLeft")
 
