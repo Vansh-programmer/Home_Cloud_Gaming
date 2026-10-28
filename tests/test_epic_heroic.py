@@ -47,6 +47,7 @@ class TestEpicHeroicIntegration(unittest.TestCase):
         cmd_gui = heroic_mgr.build_launch_command("8")
         self.assertTrue(any("heroic" in str(tok) for tok in cmd_gui))
         self.assertIn("--no-sandbox", cmd_gui)
+        self.assertIn("--ozone-platform=x11", cmd_gui)
 
         # 2. Specific Epic Game (AppID epic_Sugar)
         cmd_game = heroic_mgr.build_launch_command("epic_Sugar")

@@ -557,6 +557,7 @@ class IsolatedSessionRuntime:
                 except Exception as exc:
                     logger.debug("Could not patch user.reg Screenmanager resolution: %s", exc)
 
+        env.pop("ELECTRON_RUN_AS_NODE", None)
         logger.info(
             "Launching isolated game command: %s (cwd=%s, WINEDLLOVERRIDES: %s)",
             target_cmd,

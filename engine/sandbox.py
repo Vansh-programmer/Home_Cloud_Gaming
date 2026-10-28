@@ -203,6 +203,17 @@ class EphemeralSandbox:
             if os.path.exists(dev_path):
                 cmd.extend(["--dev-bind-try", dev_path, dev_path])
 
+        # Mount host /opt packages (Heroic, wine-cachyos, etc.) read-only into /opt
+        opt_dir = Path("/opt")
+        if opt_dir.exists():
+            cmd.extend(["--dir", "/opt"])
+            try:
+                for opt_item in opt_dir.iterdir():
+                    if opt_item.name != "cloudgaming":
+                        cmd.extend(["--ro-bind-try", str(opt_item), f"/opt/{opt_item.name}"])
+            except Exception:
+                pass
+
         # Mount ONLY the engine and web asset directories read-only at /opt/cloudgaming
         # (Never mount backend databases or host home directories into the container)
         project_root = Path(__file__).resolve().parent.parent

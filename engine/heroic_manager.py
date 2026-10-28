@@ -34,8 +34,9 @@ def find_heroic_binary() -> Optional[List[str]]:
     candidates = [
         "/usr/bin/heroic",
         "/usr/bin/heroic-games-launcher",
-        "/usr/local/bin/heroic",
+        "/opt/Heroic/heroic",
         "/opt/heroic/heroic",
+        "/usr/local/bin/heroic",
         "/opt/heroic/heroic.AppImage",
         "/usr/local/bin/heroic.AppImage",
     ]
@@ -48,9 +49,13 @@ def find_heroic_binary() -> Optional[List[str]]:
     if which_heroic:
         return [which_heroic]
 
-    # Check Flatpak runner
+    # Check Flatpak runner only if Heroic Flatpak is actually installed
     if shutil.which("flatpak"):
-        return ["flatpak", "run", "com.heroicgameslauncher.hgl"]
+        if (
+            Path("/var/lib/flatpak/app/com.heroicgameslauncher.hgl").exists()
+            or (Path.home() / ".local/share/flatpak/app/com.heroicgameslauncher.hgl").exists()
+        ):
+            return ["flatpak", "run", "com.heroicgameslauncher.hgl"]
 
     return None
 
@@ -156,17 +161,17 @@ class HeroicLibraryManager:
         # Launch Heroic Launcher GUI
         if clean_id in ("8", "heroic", "epic"):
             if heroic_bin:
-                return [*heroic_bin, "--no-sandbox"]
+                return [*heroic_bin, "--ozone-platform=x11", "--no-sandbox"]
             # Fallback launcher wrapper message
-            return ["/usr/bin/heroic", "--no-sandbox"]
+            return ["/usr/bin/heroic", "--ozone-platform=x11", "--no-sandbox"]
 
         # Launch specific Epic Game
         if clean_id.startswith("epic_"):
             clean_app_name = clean_id.removeprefix("epic_")
             if heroic_bin:
-                return [*heroic_bin, "--no-sandbox", "--no-gui", f"heroic://launch/epic/{clean_app_name}"]
+                return [*heroic_bin, "--ozone-platform=x11", "--no-sandbox", "--no-gui", f"heroic://launch/epic/{clean_app_name}"]
             if shutil.which("legendary"):
                 return ["legendary", "launch", clean_app_name]
 
-        return ["/usr/bin/heroic", "--no-sandbox"]
+        return ["/usr/bin/heroic", "--ozone-platform=x11", "--no-sandbox"]
 
