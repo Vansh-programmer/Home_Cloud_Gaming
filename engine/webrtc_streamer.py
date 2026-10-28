@@ -101,8 +101,8 @@ class WebRTCPeerStream:
         if Gst.ElementFactory.find("nvh264enc") is not None:
             encoder_elem = (
                 f"nvh264enc name=venc preset=p1 tune=ultra-low-latency zerolatency=true rc-mode=cbr "
-                f"aud=true repeat-sequence-header=true bitrate={bitrate_kbps} gop-size={gop_size} bframes=0 "
-                f"vbv-buffer-size={vbv_kbits} "
+                f"strict-gop=true num-slices=2 aud=true repeat-sequence-header=true bitrate={bitrate_kbps} "
+                f"gop-size={gop_size} bframes=0 vbv-buffer-size={vbv_kbits} "
             )
         elif Gst.ElementFactory.find("vaapih264enc") is not None:
             logger.info("Using VA-API Hardware H.264 Encoder (Intel/AMD)")
