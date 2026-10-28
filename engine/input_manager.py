@@ -323,10 +323,10 @@ class IsolatedInputManager:
                 win = children_ptr[i]
                 attrs = XWindowAttributes()
                 if self._libX11.XGetWindowAttributes(self._dpy, win, ctypes.byref(attrs)):
-                    # Viewable window with substantial dimensions (filters out 1x1, 5x5, helper/IME popups)
-                    if attrs.map_state == 2 and attrs.width >= 320 and attrs.height >= 240:
+                    # Viewable window with visual dimensions (filters out 1x1, 5x5, helper/IME popups)
+                    if attrs.map_state == 2 and attrs.width >= 64 and attrs.height >= 64:
                         target_win = win
-                        # Ensure game window occupies fullscreen stream geometry
+                        # Ensure window occupies fullscreen stream geometry
                         if (
                             attrs.x != 0
                             or attrs.y != 0
@@ -337,16 +337,6 @@ class IsolatedInputManager:
                                 self._dpy, win, 0, 0, self.width, self.height
                             )
                         break
-
-            # Secondary fallback if game created a viewable window between 64x64 and 320x240
-            if not target_win:
-                for i in reversed(range(nchildren.value)):
-                    win = children_ptr[i]
-                    attrs = XWindowAttributes()
-                    if self._libX11.XGetWindowAttributes(self._dpy, win, ctypes.byref(attrs)):
-                        if attrs.map_state == 2 and attrs.width >= 64 and attrs.height >= 64:
-                            target_win = win
-                            break
 
             if target_win:
                 self._top_win = target_win

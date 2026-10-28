@@ -491,9 +491,14 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
         steam_cmd = mgr.build_launch_command("7")
         self.assertIn("-no-cef-sandbox", steam_cmd)
         self.assertIn("--no-sandbox", steam_cmd)
+        self.assertIn("-cef-disable-gpu", steam_cmd)
         self.assertIn("-nointro", steam_cmd)
 
-        # 2. Test sandbox environment sets STEAM_NO_CEF_SANDBOX and STEAM_DISABLE_SANDBOX
+        # 1b. Test Tomb Raider launch args contains -nolauncher
+        tr_cmd = mgr.build_launch_command("203160")
+        self.assertIn("-nolauncher", tr_cmd)
+
+        # 2. Test sandbox environment sets STEAM_NO_CEF_SANDBOX, STEAM_DISABLE_SANDBOX, and VK_DRIVER_FILES
         cfg = SandboxConfig(
             session_id="test-cef-session",
             user_id="testuser",
@@ -505,6 +510,7 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
         self.assertIn("STEAM_DISABLE_SANDBOX 1", cmd_str)
         self.assertIn("STEAM_NO_CEF_SANDBOX 1", cmd_str)
         self.assertIn("SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS 0", cmd_str)
+        self.assertIn("VK_DRIVER_FILES /usr/share/vulkan/icd.d/nvidia_icd.json", cmd_str)
 
         # 3. Test IsolatedSessionRuntime.is_game_active_in_container
         runner = IsolatedSessionRuntime(

@@ -258,6 +258,7 @@ class SteamLibraryManager:
             return [
                 "/usr/bin/steam",
                 "-gamepadui",
+                "-cef-disable-gpu",
                 "-nochatui",
                 "-nofriendsui",
                 "-nointro",
@@ -268,7 +269,7 @@ class SteamLibraryManager:
         KNOWN_GAME_DEFAULTS = {
             "1091500": ("Cyberpunk 2077", "bin/x64/Cyberpunk2077.exe", ["--launcher-skip"]),
             "292030": ("The Witcher 3", "bin/x64/witcher3.exe", ["--launcher-skip"]),
-            "203160": ("Tomb Raider", "TombRaider.exe", []),
+            "203160": ("Tomb Raider", "TombRaider.exe", ["-nolauncher"]),
             "1966720": ("Lethal Company", "Lethal Company.exe", []),
             "1086940": ("Baldur's Gate 3", "bin/bg3.exe", ["--skip-launcher"]),
         }

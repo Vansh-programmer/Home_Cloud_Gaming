@@ -333,6 +333,8 @@ class EphemeralSandbox:
             "STEAM_NO_CEF_SANDBOX": "1",
             "STEAM_ZENITY": "0",
             "SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS": "0",
+            "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+            "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
         }
         if env_vars:
             default_env.update(env_vars)
