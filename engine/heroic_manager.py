@@ -169,3 +169,4 @@ class HeroicLibraryManager:
                 return ["legendary", "launch", clean_app_name]
 
         return ["/usr/bin/heroic", "--no-sandbox"]
+
