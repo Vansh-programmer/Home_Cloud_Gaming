@@ -480,6 +480,51 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
             app_ids = [g.app_id for g in games]
             self.assertIn("1091500", app_ids)
 
+    def test_09_lifecycle_resilience_and_steam_cef_sandbox(self) -> None:
+        """Verify lifecycle monitoring does not terminate active Wine processes and Steam sandbox flags are set."""
+        from engine.session_runner import IsolatedSessionRuntime
+        from engine.sandbox import EphemeralSandbox, SandboxConfig
+        from engine.steam_manager import SteamLibraryManager
+
+        # 1. Test Steam launch vector contains CEF sandbox bypass flags
+        mgr = SteamLibraryManager(PROJECT_ROOT / "data" / "shared_steam_library")
+        steam_cmd = mgr.build_launch_command("7")
+        self.assertIn("-no-cef-sandbox", steam_cmd)
+        self.assertIn("--no-sandbox", steam_cmd)
+        self.assertIn("-nointro", steam_cmd)
+
+        # 2. Test sandbox environment sets STEAM_NO_CEF_SANDBOX and STEAM_DISABLE_SANDBOX
+        cfg = SandboxConfig(
+            session_id="test-cef-session",
+            user_id="testuser",
+            app_id="7",
+        )
+        sandbox = EphemeralSandbox(cfg)
+        bwrap_cmd = sandbox.build_bwrap_command(["/usr/bin/steam"])
+        cmd_str = " ".join(bwrap_cmd)
+        self.assertIn("STEAM_DISABLE_SANDBOX 1", cmd_str)
+        self.assertIn("STEAM_NO_CEF_SANDBOX 1", cmd_str)
+        self.assertIn("SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS 0", cmd_str)
+
+        # 3. Test IsolatedSessionRuntime.is_game_active_in_container
+        runner = IsolatedSessionRuntime(
+            session_id="test-lifecycle-session",
+            user_id="testuser",
+            app_id="1091500",
+            width=1920,
+            height=1080,
+            fps=60,
+            port=39998,
+            game_cmd=["echo", "test"],
+        )
+        # Without running container/X11, is_game_active_in_container returns False safely
+        self.assertFalse(runner.is_game_active_in_container())
+
+        # 4. Test IsolatedInputManager.has_viewable_game_window
+        from engine.input_manager import IsolatedInputManager
+        input_mgr = IsolatedInputManager(":99", 1920, 1080)
+        self.assertFalse(input_mgr.has_viewable_game_window())
+
 
 if __name__ == "__main__":
     unittest.main()

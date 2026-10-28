@@ -273,6 +273,34 @@ class IsolatedInputManager:
                 self._libX11.XCloseDisplay(self._dpy)
                 self._dpy = None
 
+    def has_viewable_game_window(self) -> bool:
+        """Check if any viewable game window (at least 128x128) exists on the isolated X display."""
+        with self._lock:
+            if not self._dpy or not self._root:
+                return False
+            root_ret = ctypes.c_ulong()
+            parent_ret = ctypes.c_ulong()
+            children_ptr = ctypes.POINTER(ctypes.c_ulong)()
+            nchildren = ctypes.c_uint()
+            status = self._libX11.XQueryTree(
+                self._dpy,
+                self._root,
+                ctypes.byref(root_ret),
+                ctypes.byref(parent_ret),
+                ctypes.byref(children_ptr),
+                ctypes.byref(nchildren),
+            )
+            if status and nchildren.value > 0 and bool(children_ptr):
+                for i in range(nchildren.value):
+                    win = children_ptr[i]
+                    attrs = XWindowAttributes()
+                    if self._libX11.XGetWindowAttributes(self._dpy, win, ctypes.byref(attrs)):
+                        if attrs.map_state == 2 and attrs.width >= 128 and attrs.height >= 128:
+                            self._libX11.XFree(children_ptr)
+                            return True
+                self._libX11.XFree(children_ptr)
+            return False
+
     def _ensure_focus_locked(self) -> None:
         if not self._dpy or not self._root:
             return
@@ -289,30 +317,17 @@ class IsolatedInputManager:
             ctypes.byref(nchildren),
         )
         if status and nchildren.value > 0 and bool(children_ptr):
-            best_win = 0
-            best_area = 0
-            best_normal_win = 0
-            best_normal_area = 0
-            for i in range(nchildren.value):
+            target_win = 0
+            # Search in reverse stacking order (from top-most down to bottom-most) for active game window
+            for i in reversed(range(nchildren.value)):
                 win = children_ptr[i]
                 attrs = XWindowAttributes()
                 if self._libX11.XGetWindowAttributes(self._dpy, win, ctypes.byref(attrs)):
-                    # MapState 2 == IsViewable
-                    if attrs.map_state == 2 and attrs.width >= 64 and attrs.height >= 64:
-                        area = attrs.width * attrs.height
-                        if area > best_area:
-                            best_area = area
-                            best_win = win
-                        if not attrs.override_redirect and area > best_normal_area:
-                            best_normal_area = area
-                            best_normal_win = win
-
-                        # Allow resizing game windows even if Wine/Proton sets override_redirect on borderless windows
-                        is_candidate_game_win = (
-                            not attrs.override_redirect
-                            or (attrs.width >= 320 and attrs.height >= 240)
-                        )
-                        if is_candidate_game_win and (
+                    # Viewable window with substantial dimensions (filters out 1x1, 5x5, helper/IME popups)
+                    if attrs.map_state == 2 and attrs.width >= 320 and attrs.height >= 240:
+                        target_win = win
+                        # Ensure game window occupies fullscreen stream geometry
+                        if (
                             attrs.x != 0
                             or attrs.y != 0
                             or attrs.width != self.width
@@ -321,14 +336,26 @@ class IsolatedInputManager:
                             self._libX11.XMoveResizeWindow(
                                 self._dpy, win, 0, 0, self.width, self.height
                             )
-            focus_target = best_normal_win or best_win
-            if focus_target:
-                self._top_win = focus_target
-                self._libX11.XRaiseWindow(self._dpy, focus_target)
-                if best_normal_win:
-                    self._libX11.XSetInputFocus(
-                        self._dpy, best_normal_win, RevertToPointerRoot, CurrentTime
-                    )
+                        break
+
+            # Secondary fallback if game created a viewable window between 64x64 and 320x240
+            if not target_win:
+                for i in reversed(range(nchildren.value)):
+                    win = children_ptr[i]
+                    attrs = XWindowAttributes()
+                    if self._libX11.XGetWindowAttributes(self._dpy, win, ctypes.byref(attrs)):
+                        if attrs.map_state == 2 and attrs.width >= 64 and attrs.height >= 64:
+                            target_win = win
+                            break
+
+            if target_win:
+                self._top_win = target_win
+                # Raise active game window to the top of the X11 visual stack
+                self._libX11.XRaiseWindow(self._dpy, target_win)
+                # Assign X11 keyboard input focus directly to the target window
+                self._libX11.XSetInputFocus(
+                    self._dpy, target_win, RevertToPointerRoot, CurrentTime
+                )
                 self._libX11.XFlush(self._dpy)
                 self.has_focused_window = True
             self._libX11.XFree(children_ptr)
@@ -421,6 +448,8 @@ class IsolatedInputManager:
         with self._lock:
             if not self._dpy:
                 return
+            if is_pressed and not self.has_focused_window:
+                self._ensure_focus_locked()
             if is_pressed:
                 self._pressed_buttons.add(x_btn)
             else:

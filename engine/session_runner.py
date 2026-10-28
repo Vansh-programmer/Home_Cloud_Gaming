@@ -571,22 +571,70 @@ class IsolatedSessionRuntime:
             time.sleep(0.1)
         self.state = "ready"
 
+    def is_game_active_in_container(self) -> bool:
+        """Check if any game process or mapped game window is still active inside the isolated container."""
+        # 1. Check mapped X11 viewable game windows
+        if self.input_manager and self.input_manager.has_viewable_game_window():
+            return True
+
+        # 2. Check active container processes in /proc
+        try:
+            for pid_entry in Path("/proc").glob("[0-9]*"):
+                try:
+                    comm_file = pid_entry / "comm"
+                    cmdline_file = pid_entry / "cmdline"
+                    comm = comm_file.read_text(encoding="utf-8", errors="ignore").strip().lower() if comm_file.exists() else ""
+                    cmdline = cmdline_file.read_text(encoding="utf-8", errors="ignore").replace("\x00", " ").strip().lower() if cmdline_file.exists() else ""
+                    combined = f"{comm} {cmdline}"
+                    if any(
+                        marker in combined
+                        for marker in (
+                            "wineserver",
+                            "wine",
+                            "wine64",
+                            "wine-preloader",
+                            "wine64-preloader",
+                            ".exe",
+                            "steam",
+                            "steamwebhelper",
+                            "arena3d",
+                        )
+                    ):
+                        return True
+                except (FileNotFoundError, PermissionError, ProcessLookupError):
+                    continue
+        except Exception as exc:
+            logger.debug("Process scan error in container: %s", exc)
+
+        return False
+
     async def monitor_game_lifecycle(self) -> None:
-        """Watch the game process; terminate the session immediately when the game exits."""
+        """Watch the game process; terminate the session when all game processes and windows have exited."""
+        consecutive_inactive_checks = 0
         while not self._shutdown_event.is_set():
             if self.game_proc is not None:
                 ret = self.game_proc.poll()
                 if ret is not None:
-                    is_steam_cli = self.game_cmd and any(str(tok).endswith("steam") for tok in self.game_cmd[:1])
-                    if is_steam_cli:
-                        # Steam CLI wrapper forks background daemons and exits; keep session alive for the Steam client
-                        await asyncio.sleep(2.0)
+                    # Initial launcher, Steam wrapper, or Proton script may have exited;
+                    # check if child game processes (Wine, .exe, steamwebhelper) or game windows are still active
+                    if self.is_game_active_in_container():
+                        consecutive_inactive_checks = 0
+                        await asyncio.sleep(1.0)
                         continue
-                    logger.info("Game process exited with code %d; ending isolated session", ret)
-                    self.state = "ended"
-                    self._shutdown_event.set()
-                    break
-            await asyncio.sleep(0.3)
+                    else:
+                        consecutive_inactive_checks += 1
+                        # Allow a 5-second grace period for Wine or child executables to initialize and map windows
+                        if consecutive_inactive_checks < 5:
+                            await asyncio.sleep(1.0)
+                            continue
+
+                        logger.info("Game process and container workloads exited with code %d; ending isolated session", ret)
+                        self.state = "ended"
+                        self._shutdown_event.set()
+                        break
+                else:
+                    consecutive_inactive_checks = 0
+            await asyncio.sleep(0.5)
 
     def stop_all(self) -> None:
         """Cleanly stop WebRTC pipeline, input manager, game process, compositor, and audio daemons."""

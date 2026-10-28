@@ -260,6 +260,9 @@ class SteamLibraryManager:
                 "-gamepadui",
                 "-nochatui",
                 "-nofriendsui",
+                "-nointro",
+                "-no-cef-sandbox",
+                "--no-sandbox",
             ]
 
         KNOWN_GAME_DEFAULTS = {

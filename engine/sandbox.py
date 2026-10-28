@@ -329,6 +329,10 @@ class EphemeralSandbox:
             "PIPEWIRE_LATENCY": "128/48000",
             "PULSE_LATENCY_MSEC": "10",
             "vblank_mode": "0",
+            "STEAM_DISABLE_SANDBOX": "1",
+            "STEAM_NO_CEF_SANDBOX": "1",
+            "STEAM_ZENITY": "0",
+            "SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS": "0",
         }
         if env_vars:
             default_env.update(env_vars)
