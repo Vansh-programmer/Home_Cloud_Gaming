@@ -437,6 +437,49 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(env.get("DXVK_ASYNC"), "1")
         self.assertEqual(env.get("DXVK_FRAME_RATE"), "60")
 
+    def test_08_input_manager_controls_and_game_discovery(self) -> None:
+        """Verify input event dispatching, gamepad mapping, and user steamapps discovery."""
+        from engine.input_manager import IsolatedInputManager
+        from engine.steam_manager import SteamLibraryManager
+
+        # 1. Test IsolatedInputManager handles key, mouse, and gamepad events without error
+        mgr = IsolatedInputManager(":99", 1920, 1080)
+        # Without X connection, methods execute safely and update internal tracking
+        mgr.handle_event({"type": "keydown", "code": "KeyW", "key": "w"})
+        mgr.handle_event({"type": "keyup", "code": "KeyW", "key": "w"})
+        mgr.handle_event({"type": "keydown", "code": "ArrowUp", "key": "ArrowUp"})
+        mgr.handle_event({"type": "keyup", "code": "ArrowUp", "key": "ArrowUp"})
+
+        # Absolute mouse position on click
+        mgr.handle_event({"type": "mousedown", "button": 0, "x": 0.25, "y": 0.75})
+        self.assertEqual(mgr._ptr_x, int(0.25 * 1920))
+        self.assertEqual(mgr._ptr_y, int(0.75 * 1080))
+        mgr.handle_event({"type": "mouseup", "button": 0, "x": 0.25, "y": 0.75})
+
+        # Gamepad mapping: D-pad Up (12) and Right Trigger (7)
+        mgr.handle_event({
+            "type": "gamepad",
+            "axes": [0.0, -0.9, 0.0, 0.0],
+            "buttons": [False, False, False, False, False, False, False, True, False, False, False, False, True]
+        })
+        # D-pad Up (12) + Left Stick forward adds KeyW and ArrowUp
+        self.assertIn("KeyW", mgr._virtual_pad_keys)
+        self.assertIn("ArrowUp", mgr._virtual_pad_keys)
+        # Release all inputs safely
+        mgr.handle_event({"type": "release_all"})
+        self.assertEqual(len(mgr._virtual_pad_keys), 0)
+
+        # 2. Test user steamapps discovery finds Cyberpunk 2077
+        user_steamapps = PROJECT_ROOT / "data" / "users" / "vansh" / "home" / ".local" / "share" / "Steam" / "steamapps"
+        if user_steamapps.exists():
+            steam_mgr = SteamLibraryManager(
+                PROJECT_ROOT / "data" / "shared_steam_library",
+                extra_steamapps_dirs=[user_steamapps],
+            )
+            games = steam_mgr.list_games()
+            app_ids = [g.app_id for g in games]
+            self.assertIn("1091500", app_ids)
+
 
 if __name__ == "__main__":
     unittest.main()

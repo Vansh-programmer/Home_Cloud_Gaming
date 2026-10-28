@@ -104,7 +104,17 @@ def main() -> int:
     data_root = Path(args.data_root).resolve() if args.data_root else (PROJECT_ROOT / "data")
     storage_mgr = UserStorageManager(data_root=data_root)
     storage_mgr.ensure_base_directories()
-    steam_mgr = SteamLibraryManager(storage_mgr.shared_steam_dir)
+
+    # Discover all user Steam libraries so Cyberpunk 2077, Tomb Raider, etc. appear in games list
+    extra_steamapps: List[Path] = []
+    users_dir = data_root / "users"
+    if users_dir.exists():
+        for u_dir in users_dir.iterdir():
+            cand = u_dir / "home" / ".local" / "share" / "Steam" / "steamapps"
+            if cand.exists() and cand not in extra_steamapps:
+                extra_steamapps.append(cand)
+
+    steam_mgr = SteamLibraryManager(storage_mgr.shared_steam_dir, extra_steamapps_dirs=extra_steamapps)
     network_mgr = NetworkConfigManager(data_root=data_root)
 
     net_updates = {}

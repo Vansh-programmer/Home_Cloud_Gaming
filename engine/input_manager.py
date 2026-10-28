@@ -69,6 +69,12 @@ CODE_TO_KEYSYM_NAME: Dict[str, str] = {
     "Comma": "comma",
     "Period": "period",
     "Slash": "slash",
+    "CapsLock": "Caps_Lock",
+    "NumLock": "Num_Lock",
+    "ScrollLock": "Scroll_Lock",
+    "PrintScreen": "Print",
+    "Pause": "Pause",
+    "ContextMenu": "Menu",
 }
 
 
@@ -198,6 +204,9 @@ class IsolatedInputManager:
         ]
         self._libX11.XSetInputFocus.restype = ctypes.c_int
 
+        self._libX11.XRaiseWindow.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+        self._libX11.XRaiseWindow.restype = ctypes.c_int
+
         self._libXtst.XTestFakeKeyEvent.argtypes = [
             ctypes.c_void_p,
             ctypes.c_uint,
@@ -280,14 +289,24 @@ class IsolatedInputManager:
             ctypes.byref(nchildren),
         )
         if status and nchildren.value > 0 and bool(children_ptr):
-            top_mapped_win = 0
+            best_win = 0
+            best_area = 0
+            best_normal_win = 0
+            best_normal_area = 0
             for i in range(nchildren.value):
                 win = children_ptr[i]
                 attrs = XWindowAttributes()
                 if self._libX11.XGetWindowAttributes(self._dpy, win, ctypes.byref(attrs)):
                     # MapState 2 == IsViewable
                     if attrs.map_state == 2 and attrs.width >= 64 and attrs.height >= 64:
-                        top_mapped_win = win
+                        area = attrs.width * attrs.height
+                        if area > best_area:
+                            best_area = area
+                            best_win = win
+                        if not attrs.override_redirect and area > best_normal_area:
+                            best_normal_area = area
+                            best_normal_win = win
+
                         # Allow resizing game windows even if Wine/Proton sets override_redirect on borderless windows
                         is_candidate_game_win = (
                             not attrs.override_redirect
@@ -302,11 +321,14 @@ class IsolatedInputManager:
                             self._libX11.XMoveResizeWindow(
                                 self._dpy, win, 0, 0, self.width, self.height
                             )
-            if top_mapped_win:
-                self._top_win = top_mapped_win
-                self._libX11.XSetInputFocus(
-                    self._dpy, top_mapped_win, RevertToPointerRoot, CurrentTime
-                )
+            focus_target = best_normal_win or best_win
+            if focus_target:
+                self._top_win = focus_target
+                self._libX11.XRaiseWindow(self._dpy, focus_target)
+                if best_normal_win:
+                    self._libX11.XSetInputFocus(
+                        self._dpy, best_normal_win, RevertToPointerRoot, CurrentTime
+                    )
                 self._libX11.XFlush(self._dpy)
                 self.has_focused_window = True
             self._libX11.XFree(children_ptr)
@@ -326,8 +348,13 @@ class IsolatedInputManager:
         if not self._dpy:
             return 0
         keysym_name = CODE_TO_KEYSYM_NAME.get(code)
-        if not keysym_name and len(key) == 1 and key.isalnum():
-            keysym_name = key.lower()
+        if not keysym_name and key:
+            if key in CODE_TO_KEYSYM_NAME:
+                keysym_name = CODE_TO_KEYSYM_NAME[key]
+            elif len(key) == 1:
+                keysym_name = key.lower()
+            else:
+                keysym_name = key
         if not keysym_name:
             return 0
         keysym = self._libX11.XStringToKeysym(keysym_name.encode("utf-8"))
@@ -365,23 +392,24 @@ class IsolatedInputManager:
     ) -> None:
         """Inject relative or normalized absolute (0.0..1.0) mouse motion."""
         with self._lock:
-            if not self._dpy:
-                return
             if dx != 0 or dy != 0:
                 step_x = max(-100, min(100, int(dx)))
                 step_y = max(-100, min(100, int(dy)))
-                self._libXtst.XTestFakeRelativeMotionEvent(
-                    self._dpy, step_x, step_y, CurrentTime
-                )
                 self._ptr_x = max(0, min(self.width - 1, self._ptr_x + step_x))
                 self._ptr_y = max(0, min(self.height - 1, self._ptr_y + step_y))
+                if self._dpy:
+                    self._libXtst.XTestFakeRelativeMotionEvent(
+                        self._dpy, step_x, step_y, CurrentTime
+                    )
             elif abs_x is not None and abs_y is not None:
                 px = max(0, min(self.width - 1, int(abs_x * self.width)))
                 py = max(0, min(self.height - 1, int(abs_y * self.height)))
                 self._ptr_x = px
                 self._ptr_y = py
-                self._libXtst.XTestFakeMotionEvent(self._dpy, -1, px, py, CurrentTime)
-            self._libX11.XFlush(self._dpy)
+                if self._dpy:
+                    self._libXtst.XTestFakeMotionEvent(self._dpy, -1, px, py, CurrentTime)
+            if self._dpy:
+                self._libX11.XFlush(self._dpy)
 
     def send_mouse_button(self, button: int, is_pressed: bool) -> None:
         """
@@ -457,22 +485,59 @@ class IsolatedInputManager:
                 return bool(val.get("pressed", False))
             return bool(val)
 
-        if btn_pressed(12):
+        # D-pad navigation: support both Menu Arrow navigation and WASD movement
+        if btn_pressed(12):  # D-pad Up
+            desired_keys.add("ArrowUp")
             desired_keys.add("KeyW")
-        if btn_pressed(13):
+        if btn_pressed(13):  # D-pad Down
+            desired_keys.add("ArrowDown")
             desired_keys.add("KeyS")
-        if btn_pressed(14):
+        if btn_pressed(14):  # D-pad Left
+            desired_keys.add("ArrowLeft")
             desired_keys.add("KeyA")
-        if btn_pressed(15):
+        if btn_pressed(15):  # D-pad Right
+            desired_keys.add("ArrowRight")
             desired_keys.add("KeyD")
-        if btn_pressed(0):  # A -> Jump
+
+        # Standard Controller Actions
+        if btn_pressed(0):  # A -> Space (Jump) / Enter (Select)
             desired_keys.add("Space")
-        if btn_pressed(1) or btn_pressed(10):  # B / L3 -> Sprint
-            desired_keys.add("ShiftLeft")
-        if btn_pressed(2) or btn_pressed(5) or btn_pressed(7):  # X / RB / RT -> Fire
-            desired_keys.add("KeyF")
-        if btn_pressed(9):  # Start -> Enter
             desired_keys.add("Enter")
+        if btn_pressed(1):  # B -> Shift / Escape (Back)
+            desired_keys.add("ShiftLeft")
+            desired_keys.add("Escape")
+        if btn_pressed(2):  # X -> F / X
+            desired_keys.add("KeyF")
+            desired_keys.add("KeyX")
+        if btn_pressed(3):  # Y -> E / Tab
+            desired_keys.add("KeyE")
+            desired_keys.add("Tab")
+        if btn_pressed(9):  # Start / Menu -> Escape
+            desired_keys.add("Escape")
+        if btn_pressed(8):  # Back / View / Select -> Tab / Map
+            desired_keys.add("Tab")
+            desired_keys.add("KeyM")
+        if btn_pressed(10):  # L3 -> Sprint
+            desired_keys.add("ShiftLeft")
+        if btn_pressed(11):  # R3 -> Crouch (C)
+            desired_keys.add("KeyC")
+        if btn_pressed(5):  # RB -> Fire / F
+            desired_keys.add("KeyF")
+        if btn_pressed(4):  # LB -> Q
+            desired_keys.add("KeyQ")
+
+        # Triggers: RT = Left Click (Fire / Attack / Select), LT = Right Click (Aim / Alt)
+        rt_pressed = btn_pressed(7) or (len(buttons) > 7 and float(getattr(buttons[7], "value", buttons[7]) or 0) > 0.4)
+        lt_pressed = btn_pressed(6) or (len(buttons) > 6 and float(getattr(buttons[6], "value", buttons[6]) or 0) > 0.4)
+        if rt_pressed:
+            self.send_mouse_button(0, True)
+        elif 1 in self._pressed_buttons:
+            self.send_mouse_button(0, False)
+
+        if lt_pressed:
+            self.send_mouse_button(2, True)
+        elif 3 in self._pressed_buttons:
+            self.send_mouse_button(2, False)
 
         # Diff virtual pad keys against previously active virtual pad keys
         for new_k in desired_keys - self._virtual_pad_keys:
@@ -522,7 +587,11 @@ class IsolatedInputManager:
     def release_all_inputs(self) -> None:
         """Safety cleanup: release any held keys or mouse buttons on disconnect."""
         with self._lock:
+            self._virtual_pad_keys.clear()
+            self._virtual_touch_keys.clear()
             if not self._dpy:
+                self._pressed_keycodes.clear()
+                self._pressed_buttons.clear()
                 return
             for keycode in list(self._pressed_keycodes):
                 self._libXtst.XTestFakeKeyEvent(self._dpy, keycode, 0, CurrentTime)
@@ -530,8 +599,6 @@ class IsolatedInputManager:
             for btn in list(self._pressed_buttons):
                 self._libXtst.XTestFakeButtonEvent(self._dpy, btn, 0, CurrentTime)
             self._pressed_buttons.clear()
-            self._virtual_pad_keys.clear()
-            self._virtual_touch_keys.clear()
             self._libX11.XFlush(self._dpy)
 
     def handle_event(self, payload: dict) -> None:
@@ -559,8 +626,16 @@ class IsolatedInputManager:
                 bool(payload.get("sprint", False)),
             )
         elif ev_type == "mousedown":
+            abs_x = payload.get("x")
+            abs_y = payload.get("y")
+            if abs_x is not None and abs_y is not None:
+                self.send_mouse_move(abs_x=float(abs_x), abs_y=float(abs_y))
             self.send_mouse_button(int(payload.get("button", 0)), True)
         elif ev_type == "mouseup":
+            abs_x = payload.get("x")
+            abs_y = payload.get("y")
+            if abs_x is not None and abs_y is not None:
+                self.send_mouse_move(abs_x=float(abs_x), abs_y=float(abs_y))
             self.send_mouse_button(int(payload.get("button", 0)), False)
         elif ev_type == "wheel":
             self.send_mouse_wheel(float(payload.get("dx", 0)), float(payload.get("dy", 0)))

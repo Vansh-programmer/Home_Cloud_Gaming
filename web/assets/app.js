@@ -622,19 +622,21 @@
 
   function requestKeyframe(reason = 'auto') {
     const now = performance.now();
-    if (now - lastKeyframeRequestTs < 500) return; // Rate limit 2/sec from client
+    if (now - lastKeyframeRequestTs < 1500) return; // Rate limit 1.5s
     lastKeyframeRequestTs = now;
     console.debug(`[Stream] Requesting keyframe (${reason})`);
-    sendInputPacket({ type: 'request_keyframe', reason });
-    if (ws && ws.readyState === WebSocket.OPEN) {
+    if (dc && dc.readyState === 'open') {
+      sendInputPacket({ type: 'request_keyframe', reason });
+    } else if (ws && ws.readyState === WebSocket.OPEN) {
       try {
         ws.send(JSON.stringify({ type: 'request_keyframe', reason }));
       } catch (_) {}
+    } else {
+      fetch('/api/sessions/keyframe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      }).catch(() => {});
     }
-    fetch('/api/sessions/keyframe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    }).catch(() => {});
   }
 
   function bindDataChannel(channel) {
@@ -1327,33 +1329,32 @@
     btnHudMute.classList.add('active');
     videoEl.play().catch(() => {});
 
+    const rect = videoEl.getBoundingClientRect();
+    let nx = undefined;
+    let ny = undefined;
+    if (rect.width > 0 && rect.height > 0) {
+      nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      ny = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    }
+
     if (document.pointerLockElement !== videoEl) {
       if (pointerLockPreferred && !touchOverlay.classList.contains('visible') && videoEl.requestPointerLock) {
         try { videoEl.requestPointerLock(); } catch (_) {}
-      } else {
-        const rect = videoEl.getBoundingClientRect();
-        if (
-          rect.width > 0 &&
-          rect.height > 0 &&
-          e.clientX >= rect.left &&
-          e.clientX <= rect.right &&
-          e.clientY >= rect.top &&
-          e.clientY <= rect.bottom
-        ) {
-          sendInputPacket({
-            type: 'mousemove',
-            x: (e.clientX - rect.left) / rect.width,
-            y: (e.clientY - rect.top) / rect.height,
-          });
-        }
       }
     }
-    sendInputPacket({ type: 'mousedown', button: e.button });
+    sendInputPacket({ type: 'mousedown', button: e.button, x: nx, y: ny });
   });
 
   window.addEventListener('mouseup', (e) => {
     if (!streamOpen || streamReplaced) return;
-    sendInputPacket({ type: 'mouseup', button: e.button });
+    const rect = videoEl.getBoundingClientRect();
+    let nx = undefined;
+    let ny = undefined;
+    if (rect.width > 0 && rect.height > 0) {
+      nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      ny = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    }
+    sendInputPacket({ type: 'mouseup', button: e.button, x: nx, y: ny });
   });
 
   videoEl.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -1695,15 +1696,15 @@
             // Intelligent Stall Detection and Auto-Recovery:
             // Break 3-4 FPS packet-loss and decoder freeze loops
             if (!document.hidden && streamOpen && !streamReplaced) {
-              if (latestFps > 0 && latestFps < 25) {
+              if (latestFps > 0 && latestFps < 12) {
                 lowFpsStreak++;
-                if (lowFpsStreak >= 2 && now > autoRecoverCooloff) {
+                if (lowFpsStreak >= 3 && now > autoRecoverCooloff) {
                   console.warn(`[Stream] Low FPS stall detected (${latestFps} FPS, streak=${lowFpsStreak}). Forcing fresh IDR keyframe.`);
                   requestKeyframe('stall_recovery');
-                  autoRecoverCooloff = now + 1500;
+                  autoRecoverCooloff = now + 4000;
                 }
-                // If stall persists across 4 seconds, downshift bitrate preset to drain router buffers
-                if (lowFpsStreak >= 4 && now > autoRecoverCooloff) {
+                // If stall persists across 6 checks (~6 seconds), downshift bitrate preset to drain router buffers
+                if (lowFpsStreak >= 6 && now > autoRecoverCooloff) {
                   const curQ = (selectHudQuality && selectHudQuality.value) || 'high';
                   let nextQ = null;
                   if (curQ === 'ultra' || curQ === 'high') {
@@ -1722,9 +1723,9 @@
                       body: JSON.stringify({ quality: nextQ }),
                     }).catch(() => {});
                   }
-                  autoRecoverCooloff = now + 4000;
+                  autoRecoverCooloff = now + 6000;
                 }
-              } else if (latestFps >= 45) {
+              } else if (latestFps >= 30) {
                 lowFpsStreak = 0;
               }
             }
