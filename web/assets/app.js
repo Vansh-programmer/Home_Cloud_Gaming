@@ -312,9 +312,13 @@
         ? (BASE_PREFIX + g.cover_url)
         : (g.cover_url || makeFallbackCoverSvg(cleanTitle, g.app_id));
 
+      const isEpic = g.category === 'epic' || String(g.app_id).startsWith('epic_') || String(g.app_id) === '8';
+      const badgeHtml = isEpic ? '<span class="epic-badge">EPIC</span>' : '';
+
       card.innerHTML = `
         <div class="ps5-card-media">
           <img alt="${cleanTitle}" src="${coverSrc}" loading="lazy" />
+          ${badgeHtml}
         </div>
         <div class="ps5-card-title">${cleanTitle}</div>
       `;

@@ -587,7 +587,10 @@ class IsolatedSessionRuntime:
 
         # 2. Check active container processes in /proc
         try:
+            current_pid = str(os.getpid())
             for pid_entry in Path("/proc").glob("[0-9]*"):
+                if pid_entry.name == current_pid:
+                    continue
                 try:
                     comm_file = pid_entry / "comm"
                     cmdline_file = pid_entry / "cmdline"
@@ -605,6 +608,8 @@ class IsolatedSessionRuntime:
                             ".exe",
                             "steam",
                             "steamwebhelper",
+                            "heroic",
+                            "legendary",
                             "arena3d",
                         )
                     ):

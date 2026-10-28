@@ -434,6 +434,22 @@ html, body.console-body {
   display: block;
 }
 
+.epic-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #a855f7, #6b21a8);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 2;
+}
+
 .ps5-card-title {
   font-family: var(--font-sans);
   font-size: 13.5px;

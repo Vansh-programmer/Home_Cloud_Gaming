@@ -135,6 +135,12 @@ class UserStorageManager:
             steam_root_dir / "steamapps" / "compatdata",
             steam_root_dir / "steamapps" / "shadercache",
             local_share_dir / "cyberarena",
+            config_dir / "heroic",
+            config_dir / "heroic" / "GamesConfig",
+            config_dir / "legendary",
+            local_share_dir / "heroic",
+            home_persist / "Games",
+            home_persist / "Games" / "Heroic",
         ):
             d.mkdir(parents=True, exist_ok=True)
         os.chmod(user_root, 0o700)

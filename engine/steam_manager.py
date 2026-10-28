@@ -163,6 +163,15 @@ class SteamLibraryManager:
                         category="steam",
                     ),
                     GameEntry(
+                        app_id="8",
+                        title="Heroic Games Launcher (Epic & GOG)",
+                        install_dir="heroic",
+                        size_bytes=0,
+                        cover_url="/assets/heroic-cover.svg",
+                        header_url="/assets/heroic-banner.svg",
+                        category="epic",
+                    ),
+                    GameEntry(
                         app_id="1966720",
                         title="Lethal Company (Co-op 4P LAN)",
                         install_dir="Lethal Company",
@@ -202,6 +211,29 @@ class SteamLibraryManager:
                         continue
                     seen_ids.add(entry.app_id)
                     games.append(entry)
+
+        # 3. Discover installed Epic Games / GOG titles from Heroic & Legendary
+        try:
+            from engine.heroic_manager import HeroicLibraryManager
+            heroic_mgr = HeroicLibraryManager(self.shared_steam_dir.parent)
+            for hg in heroic_mgr.list_games():
+                hid = str(hg["app_id"])
+                if hid not in seen_ids:
+                    seen_ids.add(hid)
+                    games.append(
+                        GameEntry(
+                            app_id=hid,
+                            title=str(hg.get("title", hid)),
+                            install_dir=str(hg.get("install_dir", "")),
+                            size_bytes=int(hg.get("size_bytes", 0)),
+                            cover_url=str(hg.get("cover_url", "/assets/heroic-cover.svg")),
+                            header_url=str(hg.get("header_url", "/assets/heroic-banner.svg")),
+                            category="epic",
+                            custom_exec=hg.get("custom_exec"),
+                        )
+                    )
+        except Exception as exc:
+            logger.debug("Heroic game discovery warning: %s", exc)
 
         return games
 
@@ -265,6 +297,10 @@ class SteamLibraryManager:
                 "-no-cef-sandbox",
                 "--no-sandbox",
             ]
+
+        if clean_id in ("8", "heroic", "epic") or clean_id.startswith("epic_"):
+            from engine.heroic_manager import HeroicLibraryManager
+            return HeroicLibraryManager(self.shared_steam_dir.parent).build_launch_command(clean_id)
 
         KNOWN_GAME_DEFAULTS = {
             "1091500": ("Cyberpunk 2077", "bin/x64/Cyberpunk2077.exe", ["--launcher-skip"]),

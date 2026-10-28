@@ -285,6 +285,10 @@ class EphemeralSandbox:
             cmd.extend(["--bind", str(self.config.user_local_share_dir), "/home/gamer/.local/share"])
         if self.config.user_config_dir and self.config.user_config_dir.exists():
             cmd.extend(["--bind", str(self.config.user_config_dir), "/home/gamer/.config"])
+            user_games_dir = self.config.user_config_dir.parent / "Games"
+            if user_games_dir.exists():
+                cmd.extend(["--dir", "/home/gamer/Games"])
+                cmd.extend(["--bind", str(user_games_dir), "/home/gamer/Games"])
 
         for src, dst in self.config.extra_ro_binds.items():
             if not dst.startswith("/steam_shared") and os.path.exists(src):
