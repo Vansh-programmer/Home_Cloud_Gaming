@@ -439,6 +439,23 @@ def create_orchestrator_app(
             except Exception as exc:
                 return web.json_response({"ok": False, "error": str(exc)}, status=502)
 
+    async def handle_session_keyframe(request: web.Request) -> web.Response:
+        user = require_user(request)
+        uname = str(user["username"])
+        s = orchestrator.get_managed_session_by_user(uname)
+        if not s or s.state == "ended":
+            return web.json_response(
+                {"ok": False, "error": "No active session found for your account."},
+                status=404,
+            )
+        async with ClientSession(timeout=ClientTimeout(total=2.0)) as client:
+            try:
+                async with client.post(f"{s.internal_http_url}/api/session/keyframe") as resp:
+                    data = await resp.json()
+                    return web.json_response(data, status=resp.status)
+            except Exception as exc:
+                return web.json_response({"ok": False, "error": str(exc)}, status=502)
+
     async def handle_session_stop(request: web.Request) -> web.Response:
         user = require_user(request)
         uname = str(user["username"])
@@ -742,6 +759,8 @@ def create_orchestrator_app(
         app.router.add_get(f"{prefix}/api/session/status", handle_session_current)
         app.router.add_post(f"{prefix}/api/sessions/quality", handle_session_quality)
         app.router.add_post(f"{prefix}/api/session/quality", handle_session_quality)
+        app.router.add_post(f"{prefix}/api/sessions/keyframe", handle_session_keyframe)
+        app.router.add_post(f"{prefix}/api/session/keyframe", handle_session_keyframe)
         app.router.add_post(f"{prefix}/api/sessions/stop", handle_session_stop)
         app.router.add_post(f"{prefix}/api/session/stop", handle_session_stop)
         app.router.add_get(f"{prefix}/api/sessions/current/ws", handle_session_ws_proxy)

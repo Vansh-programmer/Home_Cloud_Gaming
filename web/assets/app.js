@@ -148,6 +148,10 @@
   let lastStatsTs = performance.now();
   let latestRttMs = null;
   let latestFps = 0;
+  let lastKeyframeRequestTs = 0;
+  let lowFpsStreak = 0;
+  let autoRecoverCooloff = 0;
+  let lastPacketsLost = 0;
 
   // --------------------------------------------------------------------------
   // Helper: Fallback Cover SVG Data URI for Offline Steam Games
@@ -564,6 +568,10 @@
   function teardownWebRTC() {
     clearTimeout(reconnectTimer);
     wsConnectingForSession = null;
+    lowFpsStreak = 0;
+    autoRecoverCooloff = 0;
+    lastPacketsLost = 0;
+    lastKeyframeRequestTs = 0;
     if (dc) {
       try { dc.close(); } catch (_) {}
       dc = null;
@@ -612,6 +620,23 @@
     }
   }
 
+  function requestKeyframe(reason = 'auto') {
+    const now = performance.now();
+    if (now - lastKeyframeRequestTs < 500) return; // Rate limit 2/sec from client
+    lastKeyframeRequestTs = now;
+    console.debug(`[Stream] Requesting keyframe (${reason})`);
+    sendInputPacket({ type: 'request_keyframe', reason });
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      try {
+        ws.send(JSON.stringify({ type: 'request_keyframe', reason }));
+      } catch (_) {}
+    }
+    fetch('/api/sessions/keyframe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    }).catch(() => {});
+  }
+
   function bindDataChannel(channel) {
     dc = channel;
     dc.onopen = () => {
@@ -624,6 +649,8 @@
           latestRttMs = Math.max(1, Math.round(performance.now() - msg.client_ts));
           stRtt.textContent = latestRttMs + ' ms';
           updateHudPillSummary();
+        } else if (msg.type === 'keyframe_ack') {
+          console.debug('[Stream] Host acknowledged keyframe refresh');
         }
       } catch (_) {}
     };
@@ -1025,6 +1052,26 @@
     statsOverlay.classList.toggle('visible');
     btnHudStats.classList.toggle('active', statsOverlay.classList.contains('visible'));
   };
+
+  if (stFps) {
+    stFps.style.cursor = 'pointer';
+    stFps.title = 'Click to force immediate keyframe refresh & clear lag';
+    stFps.onclick = () => {
+      requestKeyframe('user_click_fps');
+      stFps.style.color = '#38bdf8';
+      setTimeout(() => { if (stFps) stFps.style.color = ''; }, 600);
+    };
+  }
+
+  if (stLoss) {
+    stLoss.style.cursor = 'pointer';
+    stLoss.title = 'Click to force immediate keyframe refresh';
+    stLoss.onclick = () => {
+      requestKeyframe('user_click_loss');
+      stLoss.style.color = '#38bdf8';
+      setTimeout(() => { if (stLoss) stLoss.style.color = ''; }, 600);
+    };
+  }
 
   btnHudTouch.onclick = (e) => {
     e.currentTarget.blur();
@@ -1644,9 +1691,52 @@
           if (stat.framesPerSecond !== undefined) {
             latestFps = Math.round(stat.framesPerSecond);
             stFps.textContent = latestFps + ' FPS';
+
+            // Intelligent Stall Detection and Auto-Recovery:
+            // Break 3-4 FPS packet-loss and decoder freeze loops
+            if (!document.hidden && streamOpen && !streamReplaced) {
+              if (latestFps > 0 && latestFps < 25) {
+                lowFpsStreak++;
+                if (lowFpsStreak >= 2 && now > autoRecoverCooloff) {
+                  console.warn(`[Stream] Low FPS stall detected (${latestFps} FPS, streak=${lowFpsStreak}). Forcing fresh IDR keyframe.`);
+                  requestKeyframe('stall_recovery');
+                  autoRecoverCooloff = now + 1500;
+                }
+                // If stall persists across 4 seconds, downshift bitrate preset to drain router buffers
+                if (lowFpsStreak >= 4 && now > autoRecoverCooloff) {
+                  const curQ = (selectHudQuality && selectHudQuality.value) || 'high';
+                  let nextQ = null;
+                  if (curQ === 'ultra' || curQ === 'high') {
+                    nextQ = 'remote';
+                  } else if (curQ === 'remote') {
+                    nextQ = 'low';
+                  }
+                  if (nextQ && selectHudQuality) {
+                    console.warn(`[Stream] Persistent queue congestion. Auto-stepping quality from ${curQ} to ${nextQ}.`);
+                    selectHudQuality.value = nextQ;
+                    localStorage.setItem('ryoku_stream_quality', nextQ);
+                    sendInputPacket({ type: 'quality', quality: nextQ });
+                    fetch('/api/sessions/quality', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ quality: nextQ }),
+                    }).catch(() => {});
+                  }
+                  autoRecoverCooloff = now + 4000;
+                }
+              } else if (latestFps >= 45) {
+                lowFpsStreak = 0;
+              }
+            }
           }
           if (stat.packetsLost !== undefined) {
+            const lostDelta = lastPacketsLost > 0 ? (stat.packetsLost - lastPacketsLost) : 0;
+            lastPacketsLost = stat.packetsLost;
             stLoss.textContent = String(stat.packetsLost);
+            if (lostDelta > 15 && !document.hidden && streamOpen && !streamReplaced) {
+              console.warn(`[Stream] Packet loss burst detected (+${lostDelta} packets). Requesting keyframe.`);
+              requestKeyframe('packet_loss_burst');
+            }
           }
           if (stat.jitter !== undefined && stJitter) {
             stJitter.textContent = Math.round(stat.jitter * 1000) + ' ms';

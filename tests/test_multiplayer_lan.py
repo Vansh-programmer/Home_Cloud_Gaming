@@ -373,6 +373,70 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(res_opt["index"], 0)
             self.assertEqual(wm_opt["value"], "BorderlessWindowed")
 
+    def test_07_keyframe_recovery_and_low_latency_env(self) -> None:
+        """Verify on-demand hardware keyframe recovery and low-latency driver tuning."""
+        from engine.sandbox import EphemeralSandbox, SandboxConfig
+        from engine.session_runner import IsolatedSessionRuntime
+        from engine.webrtc_streamer import WebRTCPeerStream
+
+        # 1. Test WebRTCPeerStream force_keyframe rate-limiting logic
+        peer = WebRTCPeerStream(
+            display_name=":99",
+            pulse_source="test.monitor",
+            width=1920,
+            height=1080,
+            fps=60,
+            quality="high",
+            on_signaling_message=lambda msg: None,
+            on_input_event=lambda ev: None,
+            audio_enabled=False,
+        )
+        self.assertEqual(peer._last_keyframe_time, 0.0)
+        # Without running pipeline/venc, force_keyframe returns False safely
+        res1 = peer.force_keyframe()
+        self.assertFalse(res1)
+        self.assertGreater(peer._last_keyframe_time, 0.0)
+        # Immediate subsequent call should be rate-limited and return False
+        res2 = peer.force_keyframe()
+        self.assertFalse(res2)
+
+        # 2. Test sandbox default environment contains ultra-low latency tuning
+        cfg = SandboxConfig(
+            session_id="test-session",
+            user_id="testuser",
+            app_id="1091500",
+            fps=60,
+            width=1920,
+            height=1080,
+        )
+        sandbox = EphemeralSandbox(cfg)
+        bwrap_cmd = sandbox.build_bwrap_command(["echo", "hello"])
+        cmd_str = " ".join(bwrap_cmd)
+        self.assertIn("PIPEWIRE_LATENCY 128/48000", cmd_str)
+        self.assertIn("PROTON_HIDE_NVIDIA_GPU 0", cmd_str)
+        self.assertIn("PROTON_ENABLE_NVAPI 1", cmd_str)
+        self.assertIn("DXVK_ASYNC 1", cmd_str)
+        self.assertIn("DXVK_FRAME_RATE 60", cmd_str)
+
+        # 3. Test IsolatedSessionRuntime._build_env contains ultra-low latency tuning
+        runner = IsolatedSessionRuntime(
+            session_id="test-env-session",
+            user_id="testuser",
+            app_id="1091500",
+            width=1920,
+            height=1080,
+            fps=60,
+            port=39999,
+            game_cmd=["echo", "test"],
+        )
+        env = runner._build_game_env()
+        self.assertEqual(env.get("PIPEWIRE_LATENCY"), "128/48000")
+        self.assertEqual(env.get("PULSE_LATENCY_MSEC"), "10")
+        self.assertEqual(env.get("PROTON_HIDE_NVIDIA_GPU"), "0")
+        self.assertEqual(env.get("PROTON_ENABLE_NVAPI"), "1")
+        self.assertEqual(env.get("DXVK_ASYNC"), "1")
+        self.assertEqual(env.get("DXVK_FRAME_RATE"), "60")
+
 
 if __name__ == "__main__":
     unittest.main()

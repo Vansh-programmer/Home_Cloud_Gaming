@@ -324,8 +324,8 @@ class IsolatedSessionRuntime:
             raise RuntimeError(f"Failed to connect IsolatedInputManager to Xwayland ({self.display_name})")
         logger.info("Isolated Xwayland display ready on %s (%dx%d)", self.display_name, self.width, self.height)
 
-    def start_game(self) -> None:
-        """Launch the single target game process inside the isolated display and audio environment."""
+    def _build_game_env(self) -> Dict[str, str]:
+        """Construct the ultra-low latency execution environment for the game process."""
         env = os.environ.copy()
         env["DISPLAY"] = self.display_name
         env["WAYLAND_DISPLAY"] = ""  # Force X11/Xwayland so ximagesrc & XTest work uniformly
@@ -342,12 +342,20 @@ class IsolatedSessionRuntime:
         env["__GL_THREADED_OPTIMIZATIONS"] = "1"
         env["__GL_SYNC_TO_VBLANK"] = "0"
         env["PROTON_ENABLE_NVAPI"] = "1"
+        env["PROTON_HIDE_NVIDIA_GPU"] = "0"
+        env["PIPEWIRE_LATENCY"] = "128/48000"
+        env["PULSE_LATENCY_MSEC"] = "10"
         env["vblank_mode"] = "0"
         if self.audio_available:
             env["PULSE_SINK"] = self.sink_name
             env["SDL_AUDIODRIVER"] = "pulseaudio"
         else:
             env["SDL_AUDIODRIVER"] = "dummy"
+        return env
+
+    def start_game(self) -> None:
+        """Launch the single target game process inside the isolated display and audio environment."""
+        env = self._build_game_env()
 
         # Apply Steam launch options, command wrappers, and DLL overrides
         from engine.steam_manager import (
@@ -694,6 +702,13 @@ def create_web_app(runtime: IsolatedSessionRuntime) -> web.Application:
             info = {"quality": runtime.quality, **QUALITY_PRESETS[runtime.quality]}
         return web.json_response({"ok": True, **info})
 
+    async def handle_keyframe(_request: web.Request) -> web.Response:
+        runtime.last_input_at = time.time()
+        forced = False
+        if runtime.active_peer:
+            forced = runtime.active_peer.force_keyframe()
+        return web.json_response({"ok": True, "forced": forced})
+
     async def handle_stop(_request: web.Request) -> web.Response:
         runtime.state = "ended"
         runtime._shutdown_event.set()
@@ -781,6 +796,9 @@ def create_web_app(runtime: IsolatedSessionRuntime) -> web.Application:
                         q_info = peer.set_quality(str(data.get("quality", "high")))
                         runtime.quality = str(q_info["quality"])
                         await ws.send_json({"type": "quality_ack", **q_info})
+                    elif mtype in ("request_keyframe", "keyframe", "pli"):
+                        forced = peer.force_keyframe()
+                        await ws.send_json({"type": "keyframe_ack", "forced": forced})
                     elif mtype == "ping":
                         await ws.send_json(
                             {
@@ -814,6 +832,7 @@ def create_web_app(runtime: IsolatedSessionRuntime) -> web.Application:
         app.router.add_static("/assets", path=web_dir / "assets", show_index=False)
     app.router.add_get("/api/session/status", handle_status)
     app.router.add_post("/api/session/quality", handle_quality)
+    app.router.add_post("/api/session/keyframe", handle_keyframe)
     app.router.add_post("/api/session/stop", handle_stop)
     app.router.add_get("/ws", handle_ws)
     return app

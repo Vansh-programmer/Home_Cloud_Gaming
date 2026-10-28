@@ -325,6 +325,9 @@ class EphemeralSandbox:
             "__GL_THREADED_OPTIMIZATIONS": "1",
             "__GL_SYNC_TO_VBLANK": "0",
             "PROTON_ENABLE_NVAPI": "1",
+            "PROTON_HIDE_NVIDIA_GPU": "0",
+            "PIPEWIRE_LATENCY": "128/48000",
+            "PULSE_LATENCY_MSEC": "10",
             "vblank_mode": "0",
         }
         if env_vars:

@@ -20,7 +20,8 @@ import gi
 gi.require_version("Gst", "1.0")
 gi.require_version("GstWebRTC", "1.0")
 gi.require_version("GstSdp", "1.0")
-from gi.repository import GLib, Gst, GstSdp, GstWebRTC  # noqa: E402
+gi.require_version("GstVideo", "1.0")
+from gi.repository import GLib, Gst, GstSdp, GstVideo, GstWebRTC  # noqa: E402
 
 Gst.init(None)
 
@@ -82,6 +83,7 @@ class WebRTCPeerStream:
         self.webrtc: Optional[Gst.Element] = None
         self.venc: Optional[Gst.Element] = None
         self.data_channel: Optional[object] = None
+        self._last_keyframe_time: float = 0.0
         self._negotiated = False
         self._remote_desc_set = False
         self._pending_ice: List[tuple[int, str]] = []
@@ -240,6 +242,32 @@ class WebRTCPeerStream:
             self._negotiated = False
             self._remote_desc_set = False
             self._pending_ice = []
+            self._last_keyframe_time = 0.0
+
+    def force_keyframe(self) -> bool:
+        """
+        Request the video encoder to immediately generate an IDR keyframe.
+        Used to break client decoder stalls, missing reference frames, and 3-4 FPS packet-loss loops.
+        Rate-limited to at most 4 keyframes/sec (250ms interval) to prevent packet bursts.
+        """
+        now = time.time()
+        if now - self._last_keyframe_time < 0.25:
+            return False
+        self._last_keyframe_time = now
+
+        with self._lock:
+            if self.venc is not None:
+                try:
+                    event = GstVideo.video_event_new_upstream_force_key_unit(
+                        Gst.CLOCK_TIME_NONE, True, 0
+                    )
+                    success = self.venc.send_event(event)
+                    logger.info("Sent upstream force-key-unit event to venc (result=%s)", success)
+                    return success
+                except Exception as exc:
+                    logger.warning("Failed to send force-key-unit event: %s", exc)
+                    return False
+        return False
 
     def set_quality(self, quality: str) -> Dict[str, object]:
         """Dynamically update NVENC encoder bitrate without restarting the stream."""
@@ -307,6 +335,14 @@ class WebRTCPeerStream:
             info = self.set_quality(str(payload.get("quality", "high")))
             try:
                 dc.emit("send-string", json.dumps({"type": "quality_ack", **info}))
+            except Exception:
+                pass
+            return
+
+        if msg_type in ("request_keyframe", "keyframe", "pli"):
+            forced = self.force_keyframe()
+            try:
+                dc.emit("send-string", json.dumps({"type": "keyframe_ack", "forced": forced}))
             except Exception:
                 pass
             return
