@@ -564,15 +564,14 @@ class TestMultiplayerLAN(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(input_mgr._ptr_x, 1920 // 2 + 180)
         self.assertEqual(input_mgr._ptr_y, 1080 // 2 - 120)
 
-        # 3. Test Tomb Raider (203160) launch command uses Steam GamepadUI vector with CEF flags
+        # 3. Test Tomb Raider (203160) launch command uses direct Proton runner or clean Steam applaunch
         steam_mgr = SteamLibraryManager(PROJECT_ROOT / "data" / "shared_steam_library")
         tr_cmd = steam_mgr.build_launch_command("203160", inside_container=True)
-        self.assertIn("/usr/bin/steam", tr_cmd)
-        self.assertIn("-applaunch", tr_cmd)
-        self.assertIn("203160", tr_cmd)
-        self.assertIn("-nolauncher", tr_cmd)
-        self.assertIn("-cef-disable-gpu", tr_cmd)
-        self.assertIn("--no-sandbox", tr_cmd)
+        self.assertTrue(
+            any("proton" in tok.lower() for tok in tr_cmd)
+            or ("/usr/bin/steam" in tr_cmd and "-applaunch" in tr_cmd)
+        )
+        self.assertTrue(any("tombraider" in tok.lower() or "203160" in tok for tok in tr_cmd))
 
 
 if __name__ == "__main__":

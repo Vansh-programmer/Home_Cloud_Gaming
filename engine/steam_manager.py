@@ -306,6 +306,7 @@ class SteamLibraryManager:
             "1091500": ("Cyberpunk 2077", "bin/x64/Cyberpunk2077.exe", ["--launcher-skip"]),
             "292030": ("The Witcher 3", "bin/x64/witcher3.exe", ["--launcher-skip"]),
             "203160": ("Tomb Raider", "TombRaider.exe", ["-nolauncher"]),
+            "391220": ("Rise of the Tomb Raider", "RiseOfTheTombRaider.sh", []),
             "1966720": ("Lethal Company", "Lethal Company.exe", []),
             "1086940": ("Baldur's Gate 3", "bin/bg3.exe", ["--skip-launcher"]),
         }
@@ -331,7 +332,9 @@ class SteamLibraryManager:
             if not exec_name and game_folder.exists():
                 candidates = [
                     f"{install_dir}.exe",
+                    f"{install_dir}.sh",
                     f"{entry.title if entry else ''}.exe",
+                    f"{entry.title if entry else ''}.sh",
                     "Launcher.exe",
                     "Lethal Company.exe",
                     "Phasmophobia_Launcher.exe",
@@ -348,6 +351,11 @@ class SteamLibraryManager:
                         if not any(ign in p_lower for ign in ("crash", "redist", "setup", "unins", "installer", "errorreporter", "touchup", "benchmark", "7za", "unitycrashhandler")):
                             exec_name = str(p.relative_to(game_folder))
                             break
+
+                if not exec_name:
+                    for p in game_folder.glob("*.sh"):
+                        exec_name = str(p.relative_to(game_folder))
+                        break
 
             if exec_name:
                 if inside_container:
@@ -374,12 +382,12 @@ class SteamLibraryManager:
                         if proton_bin:
                             break
 
-                    if clean_id not in ("203160",) and proton_bin:
+                    if proton_bin:
                         return [str(proton_bin), "run", exec_path, *extra_args]
                     if Path("/usr/bin/steam").exists():
                         return [
                             "/usr/bin/steam",
-                            "-gamepadui",
+                            "-silent",
                             "-cef-disable-gpu",
                             "-nochatui",
                             "-nofriendsui",
@@ -390,10 +398,21 @@ class SteamLibraryManager:
                             clean_id,
                             *extra_args,
                         ]
-                    if proton_bin:
-                        return [str(proton_bin), "run", exec_path, *extra_args]
                     if shutil.which("wine"):
                         return ["wine", exec_path, *extra_args]
+
+                elif exec_path.lower().endswith(".sh"):
+                    # Native Linux script: search for SteamLinuxRuntime runner
+                    runtime_roots = [
+                        common_base / "SteamLinuxRuntime" / "steam-runtime" / "run.sh",
+                        Path("/steam_shared/steamapps/common/SteamLinuxRuntime/steam-runtime/run.sh"),
+                        Path.home() / ".local" / "share" / "Steam" / "steamapps" / "common" / "SteamLinuxRuntime" / "steam-runtime" / "run.sh",
+                    ]
+                    for r_script in runtime_roots:
+                        if r_script.is_file() and os.access(r_script, os.X_OK):
+                            return [str(r_script), "--", exec_path, *extra_args]
+                    return ["bash", exec_path, *extra_args]
+
                 return [exec_path]
 
         if not clean_id.isdigit():
@@ -406,7 +425,7 @@ class SteamLibraryManager:
 
         return [
             "/usr/bin/steam",
-            "-gamepadui",
+            "-silent",
             "-cef-disable-gpu",
             "-nochatui",
             "-nofriendsui",
