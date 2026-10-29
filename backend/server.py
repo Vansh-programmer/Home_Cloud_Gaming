@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import subprocess
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -729,6 +730,40 @@ def create_orchestrator_app(
         revoked = db.revoke_invite(code)
         return web.json_response({"ok": revoked, "code": code})
 
+    async def handle_admin_power(request: web.Request) -> web.Response:
+        require_admin(request)
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        action = str(body.get("action", "")).strip().lower()
+        if action not in ("suspend", "sleep", "poweroff", "shutdown", "reboot"):
+            return web.json_response({"ok": False, "error": "Invalid power action."}, status=400)
+
+        # Terminate active gaming session cleanly before triggering power transition
+        if orchestrator.active_session:
+            await orchestrator.terminate_session(reason="admin_power_action")
+
+        cmd = ["systemctl", "suspend"] if action in ("suspend", "sleep") else (
+            ["systemctl", "reboot"] if action == "reboot" else ["systemctl", "poweroff"]
+        )
+
+        async def _run_power_command():
+            await asyncio.sleep(0.8)
+            try:
+                res = subprocess.run(cmd, capture_output=True, text=True, check=False)
+                if res.returncode != 0:
+                    logger.warning("systemctl %s failed (code %d): %s %s. Attempting loginctl fallback.", action, res.returncode, res.stdout, res.stderr)
+                    fallback = ["loginctl", "suspend"] if action in ("suspend", "sleep") else (
+                        ["loginctl", "reboot"] if action == "reboot" else ["loginctl", "poweroff"]
+                    )
+                    subprocess.run(fallback, check=False)
+            except Exception as e:
+                logger.error("Failed to execute power action '%s': %s", action, e)
+
+        asyncio.create_task(_run_power_command())
+        return web.json_response({"ok": True, "action": action, "message": f"Host is executing {action}."})
+
     # Register Routes (both root `/` and subpath `/cloudgaming` for vanshdev.online/cloudgaming)
     app.router.add_get("/", handle_index)
     app.router.add_get("/cloudgaming", handle_index)
@@ -776,5 +811,6 @@ def create_orchestrator_app(
         app.router.add_post(f"{prefix}/api/admin/invites", handle_admin_create_invite)
         app.router.add_delete(f"{prefix}/api/admin/invites/{{code}}", handle_admin_revoke_invite)
         app.router.add_delete(f"{prefix}/api/admin/history", handle_admin_clear_history)
+        app.router.add_post(f"{prefix}/api/admin/power", handle_admin_power)
 
     return app

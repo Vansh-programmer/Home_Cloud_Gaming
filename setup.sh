@@ -37,7 +37,7 @@ install_packages() {
         pipewire pipewire-pulse wireplumber \
         gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-libav \
         python python-gobject python-aiohttp \
-        sdl2 glu mesa-utils gcc
+        sdl2 glu mesa-utils gcc tailscale
       ;;
     ubuntu|debian|pop|linuxmint|elementary|zorin)
       echo "[INSTALL] Installing dependencies via apt..."

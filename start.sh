@@ -5,9 +5,10 @@
 # Usage:
 #   ./start.sh                    # Start server + Cloudflare tunnel (foreground)
 #   ./start.sh --background       # Start server + Cloudflare tunnel in background
+#   ./start.sh --tailscale        # Connect / verify direct low-latency Tailscale mesh
 #   ./start.sh --install-service  # Install & enable auto-start on PC boot (systemd)
 #   ./start.sh --stop             # Stop all running Ryoku & tunnel processes
-#   ./start.sh --status           # Check live server, GPU, and tunnel status
+#   ./start.sh --status           # Check live server, GPU, tunnel, and Tailscale status
 #   ./start.sh --check-turn       # Test the TURN relay (needed for players outside your network)
 # ==============================================================================
 
@@ -51,23 +52,69 @@ stop_stack() {
 show_status() {
   print_banner
   if pgrep -af "engine/launch_phase6.py" >/dev/null 2>&1; then
-    echo "[SERVER]  ONLINE  ($(pgrep -af "engine/launch_phase6.py" | head -n 1))"
+    echo "[SERVER]    ONLINE  ($(pgrep -af "engine/launch_phase6.py" | head -n 1))"
   else
-    echo "[SERVER]  OFFLINE"
+    echo "[SERVER]    OFFLINE"
   fi
 
   if pgrep -af "cloudflared" >/dev/null 2>&1; then
-    echo "[TUNNEL]  ONLINE  ($(pgrep -af "cloudflared" | head -n 1))"
+    echo "[TUNNEL]    ONLINE  ($(pgrep -af "cloudflared" | head -n 1))"
   else
-    echo "[TUNNEL]  OFFLINE"
+    echo "[TUNNEL]    OFFLINE"
+  fi
+
+  if command -v tailscale >/dev/null 2>&1; then
+    TS_IP=$(tailscale ip -4 2>/dev/null || true)
+    if [[ -n "$TS_IP" ]]; then
+      echo "[TAILSCALE] ONLINE  (IP: $TS_IP - Direct WireGuard P2P Active)"
+    else
+      echo "[TAILSCALE] OFFLINE / STOPPED (Run: ./start.sh --tailscale)"
+    fi
+  else
+    echo "[TAILSCALE] NOT INSTALLED (Run: ./start.sh --tailscale to set up)"
   fi
 
   if command -v curl >/dev/null 2>&1; then
     HEALTH=$(curl -s "http://127.0.0.1:${PORT}/api/health" || true)
     if [[ -n "$HEALTH" ]]; then
-      echo "[HEALTH]  $HEALTH"
+      echo "[HEALTH]    $HEALTH"
     fi
   fi
+}
+
+setup_tailscale() {
+  print_banner
+  echo "[TAILSCALE] Checking Tailscale installation..."
+  if ! command -v tailscale >/dev/null 2>&1; then
+    echo "[TAILSCALE] Installing Tailscale package..."
+    if command -v pacman >/dev/null 2>&1; then
+      sudo pacman -S --needed --noconfirm tailscale
+    elif command -v apt-get >/dev/null 2>&1; then
+      curl -fsSL https://tailscale.com/install.sh | sh
+    elif command -v dnf >/dev/null 2>&1; then
+      sudo dnf install -y tailscale
+    else
+      echo "[ERROR] Unsupported package manager. Please install Tailscale manually."
+      exit 1
+    fi
+  fi
+
+  echo "[TAILSCALE] Enabling and starting tailscaled daemon..."
+  sudo systemctl enable --now tailscaled
+
+  echo "[TAILSCALE] Authenticating device..."
+  sudo tailscale up
+
+  TS_IP=$(tailscale ip -4 2>/dev/null || true)
+  echo ""
+  echo "+----------------------------------------------------------------------------+"
+  echo "| TAILSCALE READY // DIRECT WIREGUARD P2P ACTIVE                             |"
+  echo "|   Your PC Tailscale IP : ${TS_IP:-unknown}                                 |"
+  echo "|   Direct Endpoint      : http://${TS_IP:-unknown}:${PORT}                  |"
+  echo "|                                                                            |"
+  echo "|   Tip: Install Tailscale on your phone or laptop to play remotely with     |"
+  echo "|   zero lag, zero CGNAT router blocks, and zero STUN delay!                 |"
+  echo "+----------------------------------------------------------------------------+"
 }
 
 install_systemd_services() {
@@ -97,6 +144,10 @@ case "${1:-}" in
     ;;
   --status)
     show_status
+    exit 0
+    ;;
+  --tailscale)
+    setup_tailscale
     exit 0
     ;;
   --check-turn)
@@ -141,6 +192,7 @@ rm -f "$LOG_DIR/tunnel.log" "$LOG_DIR/server.log" 2>/dev/null || true
 
 LAN_IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}' | head -n 1)
 [[ -z "$LAN_IP" ]] && LAN_IP="127.0.0.1"
+TS_IP=$(tailscale ip -4 2>/dev/null || true)
 
 # 3. Check Cloudflare Tunnel readiness
 CRED_FILE=$( awk -F': ' '/credentials-file:/ {print $2}' "$CF_CONFIG" 2>/dev/null | tr -d ' "' || true )
@@ -161,6 +213,9 @@ echo "+-------------------------------------------------------------------------
 echo "| ACCESS ENDPOINTS                                                           |"
 echo "|   Local PC     : http://localhost:${PORT}                                     |"
 echo "|   Home Wi-Fi   : http://${LAN_IP}:${PORT}                                  |"
+if [[ -n "$TS_IP" ]]; then
+echo "|   Tailscale P2P: http://${TS_IP}:${PORT} (Zero-Lag WireGuard)             |"
+fi
 echo "|   Public Web   : https://${PUBLIC_DOMAIN}                       |"
 echo "|   Direct Sub   : https://play.vanshdev.online                              |"
 echo "|                                                                            |"

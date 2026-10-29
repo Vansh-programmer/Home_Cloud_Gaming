@@ -191,6 +191,19 @@
           </div>
 
           <div class="console-metric-tile">
+            <h4>Host Hardware Power</h4>
+            <div style="font-size:11px; color:var(--fg-1); margin-bottom:12px; line-height:1.4;">
+              Manage gaming PC power state. When sleeping or powered off, use the offline page or ESP8266 remote switch to wake/boot.
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" id="btn-admin-power-sleep" class="console-action-btn sm" style="border-color:var(--line-bright);">🌙 Sleep Host</button>
+              <button type="button" id="btn-admin-power-reboot" class="console-action-btn sm" style="border-color:var(--line-bright);">🔄 Reboot</button>
+              <button type="button" id="btn-admin-power-off" class="console-action-btn sm" style="border-color:rgba(255,51,68,0.5); color:var(--bad);">🛑 Shut Down</button>
+            </div>
+            <div id="admin-power-feedback" style="font-family:var(--font-mono); font-size:11px; color:var(--volt); margin-top:8px;"></div>
+          </div>
+
+          <div class="console-metric-tile">
             <h4>Access Passes</h4>
             <div id="admin-invites-list"></div>
           </div>

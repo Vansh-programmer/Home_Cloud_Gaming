@@ -1864,6 +1864,43 @@
     };
   }
 
+  const btnPowerSleep = document.getElementById('btn-admin-power-sleep');
+  const btnPowerReboot = document.getElementById('btn-admin-power-reboot');
+  const btnPowerOff = document.getElementById('btn-admin-power-off');
+  const adminPowerFeedback = document.getElementById('admin-power-feedback');
+
+  async function executeHostPower(action, confirmMsg) {
+    if (!confirm(confirmMsg)) return;
+    if (adminPowerFeedback) adminPowerFeedback.textContent = `Executing host ${action}...`;
+    try {
+      const res = await fetch('/api/admin/power', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        if (adminPowerFeedback) {
+          adminPowerFeedback.textContent = `✓ ${data.message || 'Action sent.'} Use the ESP8266 remote switch on the offline page to wake/boot.`;
+        }
+      } else {
+        if (adminPowerFeedback) adminPowerFeedback.textContent = `⚠️ Error: ${data.error || 'Failed'}`;
+      }
+    } catch (err) {
+      if (adminPowerFeedback) adminPowerFeedback.textContent = `Host unreachable or transitioning: ${err.message}`;
+    }
+  }
+
+  if (btnPowerSleep) {
+    btnPowerSleep.onclick = () => executeHostPower('suspend', 'Put host gaming PC to sleep? RAM stays powered, wakes instantly with ESP8266 or power button.');
+  }
+  if (btnPowerReboot) {
+    btnPowerReboot.onclick = () => executeHostPower('reboot', 'Reboot host gaming PC now? Active sessions will be closed.');
+  }
+  if (btnPowerOff) {
+    btnPowerOff.onclick = () => executeHostPower('poweroff', 'Shut down host gaming PC completely? You can use the ESP8266 remote power switch on the offline page to turn it back on.');
+  }
+
   if (formAdminSettings) {
     formAdminSettings.onsubmit = async (e) => {
       e.preventDefault();
