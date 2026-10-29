@@ -42,6 +42,10 @@
         <span>RESUME GAME</span>
       </button>
 
+      <button class="console-action-btn sm" id="btn-show-desktop-app" style="background:rgba(200,255,0,0.12); border-color:var(--volt); color:var(--volt); font-weight:800; display:inline-flex; align-items:center; gap:5px; padding:4px 10px;" title="Play with 120 FPS Native Moonlight Engine">
+        <span>⚡ 120 FPS DESKTOP APP</span>
+      </button>
+
       <div class="console-res-pill" title="Stream Resolution">
         <select id="launch-resolution" aria-label="Stream Resolution">
           <option value="1920x1080" selected>1080p 60</option>
@@ -350,6 +354,45 @@
     </div>
   </div>
 
-  <script src="/assets/app.js?v=17"></script>
+  <!-- MODAL: NATIVE MOONLIGHT CLIENT PROMOTION & 1-CLICK DOWNLOAD -->
+  <div id="modal-desktop-app" class="stage-modal-backdrop" style="display:none; z-index:99999;">
+    <div class="stage-modal-card" style="max-width:540px; border-left:4px solid var(--volt);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span class="brand-sub" style="color:var(--volt); font-weight:800; font-size:11px;">RYOKU NATIVE ENGINE // SUB-2MS</span>
+        <button id="btn-close-desktop-modal" type="button" class="console-btn-subtle" style="font-size:16px; cursor:pointer;">&times;</button>
+      </div>
+
+      <h2 style="font-size:20px; font-weight:900; text-transform:uppercase; margin-bottom:8px;">120 FPS Native Desktop Client</h2>
+      <p style="font-size:12px; color:var(--fg-1); line-height:1.5; margin-bottom:16px;">
+        Experience Ryoku with zero browser overhead. Powered by Moonlight's raw UDP GameStream engine under the hood, with our custom UI and full sandbox security.
+      </p>
+
+      <div style="background:var(--bg-1); border:1px solid var(--line); padding:12px; margin-bottom:18px; display:grid; grid-template-columns:1fr 1fr; gap:10px; font-family:var(--font-mono); font-size:11px;">
+        <div>
+          <span style="display:block; color:var(--fg-1); font-size:10px;">WEB BROWSER (ACTIVE)</span>
+          <strong style="color:var(--fg-0);">60 FPS • WebRTC</strong>
+        </div>
+        <div>
+          <span style="display:block; color:var(--volt); font-size:10px;">NATIVE DESKTOP CLIENT</span>
+          <strong style="color:var(--volt);">120 FPS • Sub-2ms UDP</strong>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <a href="/api/client/download/windows" class="console-action-btn primary" style="text-align:center; text-decoration:none; display:block; padding:12px;">
+          ⬇️ Download 1-Click Windows Client (.bat)
+        </a>
+        <a href="/api/client/download/linux" class="console-action-btn sm" style="text-align:center; text-decoration:none; display:block; padding:10px; border-color:var(--line-bright); color:var(--fg-0);">
+          ⬇️ Download 1-Click Linux Client (.sh)
+        </a>
+      </div>
+
+      <div style="margin-top:14px; font-family:var(--font-mono); font-size:10px; color:var(--fg-1); line-height:1.4;">
+        ⚡ <strong>True 1-Step Setup:</strong> Auto-pairs invisibly in the background. No manual PINs or IP typing required!
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/app.js?v=18"></script>
 </body>
 </html>

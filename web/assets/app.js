@@ -2296,6 +2296,35 @@
     const savedQuality = localStorage.getItem('ryoku_stream_quality') || 'remote';
     if (selectHudQuality) selectHudQuality.value = savedQuality;
     if (launchQuality) launchQuality.value = savedQuality;
+
+    // Desktop App Promo Modal Handlers
+    const btnShowDesktopApp = document.getElementById('btn-show-desktop-app');
+    const modalDesktopApp = document.getElementById('modal-desktop-app');
+    const btnCloseDesktopModal = document.getElementById('btn-close-desktop-modal');
+
+    if (btnShowDesktopApp && modalDesktopApp) {
+      if (window.ryokuNative && window.ryokuNative.isNative) {
+        btnShowDesktopApp.innerHTML = `<span>✓ NATIVE 120 FPS ACTIVE</span>`;
+        btnShowDesktopApp.style.borderColor = 'var(--ok)';
+        btnShowDesktopApp.style.color = 'var(--ok)';
+      }
+
+      btnShowDesktopApp.onclick = () => {
+        modalDesktopApp.style.display = 'flex';
+      };
+    }
+
+    if (btnCloseDesktopModal && modalDesktopApp) {
+      btnCloseDesktopModal.onclick = () => {
+        modalDesktopApp.style.display = 'none';
+      };
+      modalDesktopApp.onclick = (e) => {
+        if (e.target === modalDesktopApp) {
+          modalDesktopApp.style.display = 'none';
+        }
+      };
+    }
+
     await loadGamesLibrary();
     await pollServerState();
   }

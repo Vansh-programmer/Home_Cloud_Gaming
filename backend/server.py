@@ -815,6 +815,24 @@ def create_orchestrator_app(
                 status=503,
             )
 
+    async def handle_download_client_windows(_request: web.Request) -> web.StreamResponse:
+        bat_file = PROJECT_ROOT / "client" / "run_client_windows.bat"
+        if bat_file.exists():
+            return web.FileResponse(
+                bat_file,
+                headers={"Content-Disposition": 'attachment; filename="Ryoku_Launcher.bat"'},
+            )
+        return web.Response(text="Client script not found", status=404)
+
+    async def handle_download_client_linux(_request: web.Request) -> web.StreamResponse:
+        sh_file = PROJECT_ROOT / "client" / "run_client.sh"
+        if sh_file.exists():
+            return web.FileResponse(
+                sh_file,
+                headers={"Content-Disposition": 'attachment; filename="Ryoku_Launcher.sh"'},
+            )
+        return web.Response(text="Client script not found", status=404)
+
     # Register Routes (both root `/` and subpath `/cloudgaming` for vanshdev.online/cloudgaming)
     app.router.add_get("/", handle_index)
     app.router.add_get("/cloudgaming", handle_index)
@@ -823,6 +841,11 @@ def create_orchestrator_app(
     if (web_dir / "assets").exists():
         app.router.add_static("/assets", path=web_dir / "assets", show_index=False)
         app.router.add_static("/cloudgaming/assets", path=web_dir / "assets", show_index=False)
+
+    client_dir = PROJECT_ROOT / "client"
+    if client_dir.exists():
+        app.router.add_static("/client", path=client_dir, show_index=False)
+        app.router.add_static("/cloudgaming/client", path=client_dir, show_index=False)
 
     for prefix in ("", "/cloudgaming"):
         app.router.add_get(f"{prefix}/offline", handle_offline_page)
@@ -864,5 +887,7 @@ def create_orchestrator_app(
         app.router.add_delete(f"{prefix}/api/admin/history", handle_admin_clear_history)
         app.router.add_post(f"{prefix}/api/admin/power", handle_admin_power)
         app.router.add_post(f"{prefix}/api/client/pair", handle_sunshine_auto_pair)
+        app.router.add_get(f"{prefix}/api/client/download/windows", handle_download_client_windows)
+        app.router.add_get(f"{prefix}/api/client/download/linux", handle_download_client_linux)
 
     return app

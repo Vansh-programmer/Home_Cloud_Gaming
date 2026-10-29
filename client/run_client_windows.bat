@@ -20,3 +20,4 @@ if %ERRORLEVEL% NEQ 0 (
     echo [NOTE] Python GTK not found. Opening Ryoku Web Console directly in your default browser...
     start "" "%SERVER_URL%"
 )
+
