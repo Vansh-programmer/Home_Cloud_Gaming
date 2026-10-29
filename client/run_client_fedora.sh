@@ -116,3 +116,4 @@ else
   echo "[ERROR] Could not find a suitable browser or GTK runtime to launch Ryoku."
   exit 1
 fi
+
