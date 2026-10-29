@@ -44,9 +44,10 @@ print_banner() {
 }
 
 stop_stack() {
-  echo "[STOP] Stopping running Ryoku Cloud Gaming and cloudflared processes..."
+  echo "[STOP] Stopping running Ryoku, Cloudflare Tunnel, and Sunshine processes..."
   pkill -f "engine/launch_phase6.py" 2>/dev/null || true
   pkill -f "cloudflared.*deploy/cloudflared-config.yml" 2>/dev/null || true
+  pkill -x sunshine 2>/dev/null || true
   sleep 1
   echo "[OK] All processes stopped."
 }
@@ -63,6 +64,12 @@ show_status() {
     echo "[TUNNEL]    ONLINE  ($(pgrep -af "cloudflared" | head -n 1))"
   else
     echo "[TUNNEL]    OFFLINE"
+  fi
+
+  if pgrep -x sunshine >/dev/null 2>&1; then
+    echo "[SUNSHINE]  ONLINE  (Moonlight GameStream Server on UDP 47998-48010)"
+  else
+    echo "[SUNSHINE]  OFFLINE (Run: ./start.sh to launch Sunshine)"
   fi
 
   if command -v tailscale >/dev/null 2>&1; then
@@ -215,6 +222,20 @@ if command -v cloudflared >/dev/null 2>&1 && [[ -f "$CF_CONFIG" ]]; then
     if cloudflared tunnel token --cred-file "$CRED_FILE" vansh-cloud-gaming >/dev/null 2>&1; then
       CAN_RUN_TUNNEL=1
     fi
+  fi
+fi
+
+# 4. Sunshine GameStream Server (Moonlight Host)
+if command -v sunshine >/dev/null 2>&1; then
+  echo "[SUNSHINE] Syncing sandboxed games to Sunshine..."
+  python3 "$PROJECT_DIR/backend/sunshine_sync.py" >/dev/null 2>&1 || true
+
+  if ! pgrep -x sunshine >/dev/null 2>&1; then
+    echo "[SUNSHINE] Starting Sunshine GameStream server..."
+    setsid nohup sunshine > "$LOG_DIR/sunshine.log" 2>&1 &
+    disown $! 2>/dev/null || true
+  else
+    echo "[SUNSHINE] Sunshine is active (Moonlight UDP GameStream ready)."
   fi
 fi
 
