@@ -199,7 +199,7 @@ if pgrep -f "engine/launch_phase6.py" >/dev/null 2>&1; then
 fi
 rm -f "$LOG_DIR/tunnel.log" "$LOG_DIR/server.log" 2>/dev/null || true
 
-LAN_IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}' | head -n 1)
+LAN_IP=$( (ip -4 route get 1.1.1.1 2>/dev/null || true) | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}' | head -n 1 )
 [[ -z "$LAN_IP" ]] && LAN_IP="127.0.0.1"
 TS_IP=$(tailscale ip -4 2>/dev/null || true)
 
