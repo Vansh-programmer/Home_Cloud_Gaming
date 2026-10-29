@@ -22,9 +22,12 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import random
 import shutil
 import subprocess
 import sys
+import time
+import urllib.request
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -174,6 +177,32 @@ class RyokuClientWindow(Gtk.Window):
 
         def run_proc():
             try:
+                # 1. Automatic One-Step Pairing Handshake
+                auto_pin = f"{random.randint(1000, 9999)}"
+                print(f"[RYOKU PAIR] Checking/ensuring host pairing with PIN {auto_pin}...")
+                pair_cmd = [moonlight_bin, "pair", self.host_target, "--pin", auto_pin]
+                pair_proc = subprocess.Popen(pair_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                time.sleep(0.5)
+
+                try:
+                    req = urllib.request.Request(
+                        f"{self.server_url}/api/client/pair",
+                        data=json.dumps({"pin": auto_pin}).encode("utf-8"),
+                        headers={"Content-Type": "application/json"}
+                    )
+                    with urllib.request.urlopen(req, timeout=3) as resp:
+                        print(f"[RYOKU PAIR] Auto-pair API response: {resp.status}")
+                except Exception:
+                    # If already paired or on local loopback, this is normal
+                    pass
+
+                try:
+                    pair_proc.wait(timeout=2)
+                except Exception:
+                    pass
+
+                # 2. Launch Native Moonlight UDP Stream (120 FPS Sub-2ms)
+                print(f"[RYOKU MOONLIGHT] Connecting raw UDP stream to '{game_title}'...")
                 proc = subprocess.Popen(cmd)
                 self.moonlight_process = proc
                 proc.wait()
@@ -253,3 +282,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

@@ -14,10 +14,12 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import subprocess
 from pathlib import Path
 from typing import Dict, Optional
 
+import aiohttp
 from aiohttp import ClientSession, ClientTimeout, WSMsgType, web
 
 from backend.database import CloudGamingDatabase
@@ -764,6 +766,55 @@ def create_orchestrator_app(
         asyncio.create_task(_run_power_command())
         return web.json_response({"ok": True, "action": action, "message": f"Host is executing {action}."})
 
+    async def handle_sunshine_auto_pair(request: web.Request) -> web.Response:
+        user = require_user(request)
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        pin = str(body.get("pin", "")).strip()
+        if not pin or len(pin) != 4 or not pin.isdigit():
+            return web.json_response({"ok": False, "error": "Invalid 4-digit pairing PIN."}, status=400)
+
+        # Connect to local Sunshine REST API on host to approve client pairing
+        sunshine_port = int(os.environ.get("SUNSHINE_PORT", "47990"))
+        sunshine_url = f"https://127.0.0.1:{sunshine_port}/api/pin"
+        sunshine_user = os.environ.get("SUNSHINE_USER", "admin")
+        sunshine_pass = os.environ.get("SUNSHINE_PASS", "admin")
+
+        logger.info("Auto-pairing Moonlight client for user '%s' with PIN %s...", user["username"], pin)
+
+        try:
+            auth = aiohttp.BasicAuth(sunshine_user, sunshine_pass)
+            # Sunshine uses self-signed HTTPS certificate on loopback
+            connector = aiohttp.TCPConnector(ssl=False)
+            async with ClientSession(connector=connector, timeout=ClientTimeout(total=4)) as session:
+                async with session.post(
+                    sunshine_url,
+                    json={"pin": pin},
+                    auth=auth,
+                ) as resp:
+                    if resp.status == 200:
+                        try:
+                            data = await resp.json()
+                        except Exception:
+                            data = {"status": "ok"}
+                        logger.info("Moonlight client auto-paired successfully for '%s'!", user["username"])
+                        return web.json_response({"ok": True, "paired": True, "details": data})
+                    else:
+                        err_text = await resp.text()
+                        logger.warning("Sunshine auto-pair rejected PIN (%d): %s", resp.status, err_text)
+                        return web.json_response(
+                            {"ok": False, "error": f"Sunshine responded with code {resp.status}"},
+                            status=resp.status,
+                        )
+        except Exception as e:
+            logger.error("Could not reach Sunshine API on 127.0.0.1:%d: %s", sunshine_port, e)
+            return web.json_response(
+                {"ok": False, "error": f"Sunshine service is not running or unreachable: {e}"},
+                status=503,
+            )
+
     # Register Routes (both root `/` and subpath `/cloudgaming` for vanshdev.online/cloudgaming)
     app.router.add_get("/", handle_index)
     app.router.add_get("/cloudgaming", handle_index)
@@ -812,5 +863,6 @@ def create_orchestrator_app(
         app.router.add_delete(f"{prefix}/api/admin/invites/{{code}}", handle_admin_revoke_invite)
         app.router.add_delete(f"{prefix}/api/admin/history", handle_admin_clear_history)
         app.router.add_post(f"{prefix}/api/admin/power", handle_admin_power)
+        app.router.add_post(f"{prefix}/api/client/pair", handle_sunshine_auto_pair)
 
     return app

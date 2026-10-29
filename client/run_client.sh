@@ -23,3 +23,4 @@ echo "  Server URL  : $SERVER_URL"
 echo "  Moonlight Target: $TARGET_HOST"
 
 exec python3 "$CLIENT_DIR/ryoku_client.py" --server "$SERVER_URL" --host "$TARGET_HOST"
+
