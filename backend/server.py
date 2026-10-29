@@ -874,6 +874,35 @@ def create_orchestrator_app(
                 headers={"Content-Disposition": 'attachment; filename="Ryoku_Launcher.sh"'},
             )
 
+    async def handle_download_client_fedora(request: web.Request) -> web.StreamResponse:
+        sh_file = PROJECT_ROOT / "client" / "run_client_fedora.sh"
+        if not sh_file.exists():
+            return web.Response(text="Fedora client script not found", status=404)
+
+        host_hdr = request.headers.get("Host", "play.vanshdev.online")
+        proto = request.headers.get("X-Forwarded-Proto", request.scheme or "https")
+        server_url = f"{proto}://{host_hdr}"
+        if request.path.startswith("/cloudgaming"):
+            server_url = f"{server_url}/cloudgaming"
+        target_host = host_hdr.split(":")[0]
+
+        try:
+            content = sh_file.read_text(encoding="utf-8")
+            content = content.replace("__SERVER_URL__", server_url).replace("__TARGET_HOST__", target_host)
+            return web.Response(
+                text=content,
+                content_type="application/x-sh",
+                headers={
+                    "Content-Disposition": 'attachment; filename="Ryoku_Launcher_Fedora.sh"',
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                },
+            )
+        except Exception:
+            return web.FileResponse(
+                sh_file,
+                headers={"Content-Disposition": 'attachment; filename="Ryoku_Launcher_Fedora.sh"'},
+            )
+
     # Register Routes (both root `/` and subpath `/cloudgaming` for vanshdev.online/cloudgaming)
     app.router.add_get("/", handle_index)
     app.router.add_get("/cloudgaming", handle_index)
@@ -930,9 +959,12 @@ def create_orchestrator_app(
         app.router.add_post(f"{prefix}/api/client/pair", handle_sunshine_auto_pair)
         app.router.add_get(f"{prefix}/api/client/download/windows", handle_download_client_windows)
         app.router.add_get(f"{prefix}/api/client/download/linux", handle_download_client_linux)
+        app.router.add_get(f"{prefix}/api/client/download/fedora", handle_download_client_fedora)
         app.router.add_get(f"{prefix}/client/download/windows", handle_download_client_windows)
         app.router.add_get(f"{prefix}/client/download/linux", handle_download_client_linux)
+        app.router.add_get(f"{prefix}/client/download/fedora", handle_download_client_fedora)
         app.router.add_get(f"{prefix}/download/windows", handle_download_client_windows)
         app.router.add_get(f"{prefix}/download/linux", handle_download_client_linux)
+        app.router.add_get(f"{prefix}/download/fedora", handle_download_client_fedora)
 
     return app

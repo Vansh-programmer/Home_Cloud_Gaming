@@ -2303,12 +2303,16 @@
     const btnCloseDesktopModal = document.getElementById('btn-close-desktop-modal');
     const btnDlWin = document.getElementById('btn-download-client-windows');
     const btnDlLin = document.getElementById('btn-download-client-linux');
+    const btnDlFedora = document.getElementById('btn-download-client-fedora');
 
     if (btnDlWin) {
       btnDlWin.href = `${BASE_PREFIX}/api/client/download/windows`;
     }
     if (btnDlLin) {
       btnDlLin.href = `${BASE_PREFIX}/api/client/download/linux`;
+    }
+    if (btnDlFedora) {
+      btnDlFedora.href = `${BASE_PREFIX}/api/client/download/fedora`;
     }
 
     if (btnShowDesktopApp && modalDesktopApp) {

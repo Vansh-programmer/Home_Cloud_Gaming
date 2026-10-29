@@ -151,17 +151,31 @@ class RyokuClientWindow(Gtk.Window):
         fps = int(opts.get("fps", 120))
         bitrate = int(opts.get("bitrate", 35000))
 
-        moonlight_bin = shutil.which("moonlight-qt") or shutil.which("moonlight")
+        moonlight_cmd: list[str] = []
+        if shutil.which("moonlight-qt"):
+            moonlight_cmd = [shutil.which("moonlight-qt")]
+        elif shutil.which("moonlight"):
+            moonlight_cmd = [shutil.which("moonlight")]
+        elif shutil.which("flatpak"):
+            try:
+                res = subprocess.run(
+                    ["flatpak", "info", "com.moonlight_stream.Moonlight"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                if res.returncode == 0:
+                    moonlight_cmd = ["flatpak", "run", "com.moonlight_stream.Moonlight"]
+            except Exception:
+                pass
 
-        if not moonlight_bin:
+        if not moonlight_cmd:
             self._show_moonlight_missing_dialog()
             return
 
         print(f"[RYOKU MOONLIGHT] Launching native stream for '{game_title}' ({width}x{height} @ {fps}fps, {bitrate}kbps)...")
         print(f"[RYOKU MOONLIGHT] Target Host: {self.host_target}")
 
-        cmd = [
-            moonlight_bin,
+        cmd = moonlight_cmd + [
             "stream",
             self.host_target,
             game_title,
@@ -180,7 +194,7 @@ class RyokuClientWindow(Gtk.Window):
                 # 1. Automatic One-Step Pairing Handshake
                 auto_pin = f"{random.randint(1000, 9999)}"
                 print(f"[RYOKU PAIR] Checking/ensuring host pairing with PIN {auto_pin}...")
-                pair_cmd = [moonlight_bin, "pair", self.host_target, "--pin", auto_pin]
+                pair_cmd = moonlight_cmd + ["pair", self.host_target, "--pin", auto_pin]
                 pair_proc = subprocess.Popen(pair_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 time.sleep(0.5)
 
@@ -232,9 +246,10 @@ class RyokuClientWindow(Gtk.Window):
         )
         dialog.format_secondary_text(
             "To use native 120 FPS Moonlight streaming, please install moonlight-qt:\n\n"
+            "• Fedora / Nobara (Flatpak): flatpak install flathub com.moonlight_stream.Moonlight\n"
+            "• Fedora / RHEL (DNF): sudo dnf install moonlight-qt\n"
             "• Arch / CachyOS: sudo pacman -S moonlight-qt\n"
-            "• Ubuntu / Debian: sudo apt install moonlight-qt\n"
-            "• Fedora: sudo dnf install moonlight-qt\n\n"
+            "• Ubuntu / Debian: sudo apt install moonlight-qt\n\n"
             "In the meantime, browser-based WebRTC streaming is still available!"
         )
         dialog.run()
