@@ -665,10 +665,20 @@
 
   function bindDataChannel(channel) {
     dc = channel;
-    dc.onopen = () => {
+    const markPlaying = () => {
+      mediaFlowing = true;
+      if (typeof noMediaTimer !== 'undefined') clearTimeout(noMediaTimer);
       setStepperState('playing');
     };
+
+    if (dc.readyState === 'open') {
+      markPlaying();
+    }
+    dc.onopen = () => {
+      markPlaying();
+    };
     dc.onmessage = (ev) => {
+      markPlaying();
       try {
         const msg = JSON.parse(ev.data);
         if (msg.type === 'pong' && msg.client_ts) {
@@ -852,6 +862,33 @@
           });
           setStepperState('playing');
         };
+
+        videoEl.onloadeddata = () => {
+          mediaFlowing = true;
+          clearTimeout(noMediaTimer);
+          setStepperState('playing');
+        };
+        videoEl.onplaying = () => {
+          mediaFlowing = true;
+          clearTimeout(noMediaTimer);
+          setStepperState('playing');
+        };
+        videoEl.ontimeupdate = () => {
+          if (videoEl.currentTime > 0) {
+            mediaFlowing = true;
+            clearTimeout(noMediaTimer);
+            setStepperState('playing');
+          }
+        };
+
+        // Safety fallback: if ICE is connected or DataChannel is open, dismiss loading modal
+        setTimeout(() => {
+          if (streamOpen && !streamReplaced && (mediaFlowing || (pc && (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed' || pc.connectionState === 'connected')) || (dc && dc.readyState === 'open'))) {
+            mediaFlowing = true;
+            clearTimeout(noMediaTimer);
+            setStepperState('playing');
+          }
+        }, 2200);
 
         pc.onicecandidate = (event) => {
           if (event.candidate && ws && ws.readyState === WebSocket.OPEN) {

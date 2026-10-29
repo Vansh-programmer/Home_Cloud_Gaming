@@ -65,6 +65,43 @@ class RyokuClientWindow(Gtk.Window):
         if settings:
             settings.set_property("gtk-application-prefer-dark-theme", True)
 
+        # Define JS Bridge for Moonlight Handoff
+        self.bridge_js = """
+            (function() {
+                if (window.ryokuNative && window.ryokuNative.isNative) return;
+                window.ryokuNative = {
+                    isNative: true,
+                    version: '2.0.0',
+                    engine: 'moonlight-udp',
+                    launchMoonlight: function(opts) {
+                        try {
+                            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ryokuNativeBridge) {
+                                window.webkit.messageHandlers.ryokuNativeBridge.postMessage(JSON.stringify({
+                                    action: 'launch_moonlight',
+                                    opts: opts || {}
+                                }));
+                            }
+                        } catch(err) {
+                            console.error('Ryoku bridge error:', err);
+                        }
+                    },
+                    notify: function(msg) {
+                        try {
+                            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ryokuNativeBridge) {
+                                window.webkit.messageHandlers.ryokuNativeBridge.postMessage(JSON.stringify({
+                                    action: 'notify',
+                                    message: msg
+                                }));
+                            }
+                        } catch(e) {}
+                    }
+                };
+                console.log('[RYOKU NATIVE] Moonlight UDP Bridge Injected successfully.');
+                var badge = document.getElementById('native-engine-badge');
+                if (badge) badge.style.display = 'inline-block';
+            })();
+        """
+
         # Set up WebKit User Content Manager for JS -> Python bridge
         self.user_content_mgr = WebKit2.UserContentManager()
         self.user_content_mgr.register_script_message_handler("ryokuNativeBridge")
@@ -72,30 +109,7 @@ class RyokuClientWindow(Gtk.Window):
 
         # Inject native identification script into every page load
         init_script = WebKit2.UserScript(
-            source="""
-                window.ryokuNative = {
-                    isNative: true,
-                    version: '2.0.0',
-                    engine: 'moonlight-udp',
-                    launchMoonlight: function(opts) {
-                        try {
-                            window.webkit.messageHandlers.ryokuNativeBridge.postMessage(JSON.stringify({
-                                action: 'launch_moonlight',
-                                opts: opts || {}
-                            }));
-                        } catch(err) {
-                            console.error('Ryoku bridge error:', err);
-                        }
-                    },
-                    notify: function(msg) {
-                        window.webkit.messageHandlers.ryokuNativeBridge.postMessage(JSON.stringify({
-                            action: 'notify',
-                            message: msg
-                        }));
-                    }
-                };
-                console.log('[RYOKU NATIVE] Moonlight UDP Bridge Injected successfully.');
-            """,
+            source=self.bridge_js,
             injected_frames=WebKit2.UserContentInjectedFrames.ALL_FRAMES,
             injection_time=WebKit2.UserScriptInjectionTime.START,
             whitelist=[],
@@ -103,17 +117,19 @@ class RyokuClientWindow(Gtk.Window):
         )
         self.user_content_mgr.add_script(init_script)
 
-        # Create WebKit WebView
-        web_context = WebKit2.WebContext.get_default()
-        # Enable hardware acceleration
-        settings_web = WebKit2.Settings()
-        settings_web.set_enable_webgl(True)
-        settings_web.set_enable_accelerated_2d_canvas(True)
-        settings_web.set_enable_developer_extras(True)
-        settings_web.set_hardware_acceleration_policy(WebKit2.HardwareAccelerationPolicy.ALWAYS)
+        # Create WebKit WebView using the UserContentManager
+        self.webview = WebKit2.WebView.new_with_user_content_manager(self.user_content_mgr)
 
-        self.webview = WebKit2.WebView.new_with_context(web_context)
-        self.webview.set_settings(settings_web)
+        settings_web = self.webview.get_settings()
+        if settings_web:
+            settings_web.set_enable_webgl(True)
+            settings_web.set_enable_accelerated_2d_canvas(True)
+            settings_web.set_enable_developer_extras(True)
+            settings_web.set_hardware_acceleration_policy(WebKit2.HardwareAccelerationPolicy.ALWAYS)
+            self.webview.set_settings(settings_web)
+
+        # Reinforce injection on load-changed to ensure window.ryokuNative is present immediately
+        self.webview.connect("load-changed", self._on_load_changed)
 
         # Wrap in scrolled window
         scrolled = Gtk.ScrolledWindow()
@@ -125,6 +141,13 @@ class RyokuClientWindow(Gtk.Window):
         # Load Ryoku Web Interface
         print(f"[RYOKU CLIENT] Loading live interface from: {self.server_url}")
         self.webview.load_uri(self.server_url)
+
+    def _on_load_changed(self, webview, load_event) -> None:
+        if load_event in (WebKit2.LoadEvent.COMMITTED, WebKit2.LoadEvent.FINISHED):
+            try:
+                webview.run_javascript(self.bridge_js, None, None, None)
+            except Exception:
+                pass
 
     def _on_js_message(self, _content_mgr, js_result) -> None:
         """Handle messages received from the Ryoku web UI."""

@@ -67,10 +67,9 @@ if [[ "$HAS_MOONLIGHT" -eq 0 ]]; then
 fi
 
 # 3. Check for PyGObject & WebKit2 dependencies on Fedora
-if command -v dnf >/dev/null 2>&1; then
-  if ! python3 -c "import gi; gi.require_version('WebKit2', '4.1')" 2>/dev/null && \
-     ! python3 -c "import gi; gi.require_version('WebKit2', '4.0')" 2>/dev/null; then
-    echo "[NOTE] Installing python3-gobject & webkit2gtk4.1 for dedicated Fedora client window..."
+if ! python3 -c "import gi; gi.require_version('Gtk', '3.0'); (gi.require_version('WebKit2', '4.1') or gi.require_version('WebKit2', '4.0'))" 2>/dev/null; then
+  echo "[RYOKU] Installing python3-gobject & webkit2gtk4.1 for dedicated Fedora client window..."
+  if command -v dnf >/dev/null 2>&1; then
     sudo dnf install -y python3-gobject webkit2gtk4.1 || true
   fi
 fi
@@ -93,8 +92,8 @@ else
 fi
 
 # 5. Launch Native GTK Client Window if environment is supported
-if [[ -n "$CLIENT_PY" ]] && python3 -c "import gi; gi.require_version('Gtk', '3.0')" 2>/dev/null; then
-  echo "[RYOKU] Launching native Ryoku client..."
+if [[ -n "$CLIENT_PY" ]] && python3 -c "import gi; gi.require_version('Gtk', '3.0'); (gi.require_version('WebKit2', '4.1') or gi.require_version('WebKit2', '4.0'))" 2>/dev/null; then
+  echo "[RYOKU] Starting native 120 FPS Ryoku client (Moonlight UDP)..."
   exec python3 "$CLIENT_PY" --server "$SERVER_URL" --host "$TARGET_HOST"
 fi
 
