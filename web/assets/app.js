@@ -293,34 +293,52 @@
     if (!gamesGrid) return;
     gamesGrid.innerHTML = '';
 
-    const steamGame = allGames.find(g => String(g.app_id) === '7') || {
-      app_id: '7',
-      title: 'Steam Big Picture',
-      cover_url: '/assets/steam-cover.svg',
-      header_url: '/assets/steam-banner.svg',
-    };
-    const otherGames = allGames.filter(g => String(g.app_id) !== '7');
+    const list = (allGames && allGames.length > 0) ? allGames : [];
 
-    for (const g of otherGames) {
+    if (list.length === 0) {
+      gamesGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align:center; padding:60px 20px; color:var(--fg-1);">
+          <p style="font-size:15px; font-weight:600;">No games found.</p>
+          <p style="font-size:12px; margin-top:6px;">Connect your Steam account or add games to begin streaming.</p>
+        </div>
+      `;
+      return;
+    }
+
+    for (const g of list) {
       const card = document.createElement('div');
-      card.className = 'ps5-game-card';
+      card.className = 'game-card ps5-game-card';
       card.dataset.appId = String(g.app_id);
       const cleanTitle = getCleanTitle(g.title);
       card.title = cleanTitle;
 
-      const coverSrc = (g.cover_url && g.cover_url.startsWith('/assets/'))
+      const isSteam = String(g.app_id) === '7' || g.category === 'steam';
+      const isEpic = g.category === 'epic' || String(g.app_id).startsWith('epic_') || String(g.app_id) === '8';
+
+      let coverSrc = (g.cover_url && g.cover_url.startsWith('/assets/'))
         ? (BASE_PREFIX + g.cover_url)
         : (g.cover_url || makeFallbackCoverSvg(cleanTitle, g.app_id));
 
-      const isEpic = g.category === 'epic' || String(g.app_id).startsWith('epic_') || String(g.app_id) === '8';
-      const badgeHtml = isEpic ? '<span class="epic-badge">EPIC</span>' : '';
+      if (String(g.app_id) === '7') {
+        coverSrc = `${BASE_PREFIX}/assets/steam-banner.svg`;
+      }
+
+      let badgeHtml = '';
+      if (isEpic) {
+        badgeHtml = '<span class="game-badge epic">EPIC</span>';
+      } else if (isSteam) {
+        badgeHtml = '<span class="game-badge steam">STEAM</span>';
+      }
 
       card.innerHTML = `
-        <div class="ps5-card-media">
+        <div class="game-card-media ps5-card-media">
           <img alt="${cleanTitle}" src="${coverSrc}" loading="lazy" />
           ${badgeHtml}
+          <div class="game-play-overlay">
+            <span class="game-play-btn">▶ Play</span>
+          </div>
         </div>
-        <div class="ps5-card-title">${cleanTitle}</div>
+        <div class="game-card-title ps5-card-title">${cleanTitle}</div>
       `;
 
       const img = card.querySelector('img');
@@ -340,24 +358,11 @@
       gamesGrid.appendChild(card);
     }
 
-    if (otherGames.length > 0) {
-      setAmbientBackground(otherGames[0].header_url || otherGames[0].cover_url);
-    } else if (steamGame) {
-      setAmbientBackground(steamGame.header_url || steamGame.cover_url);
+    if (list.length > 0) {
+      setAmbientBackground(list[0].header_url || list[0].cover_url);
     }
 
     if (steamFeaturedCard) {
-      steamFeaturedCard.innerHTML = `
-        <img alt="Steam" src="${BASE_PREFIX}/assets/steam-banner.svg" />
-        <div class="ps5-steam-overlay">
-          <div class="ps5-steam-title">Steam</div>
-        </div>
-      `;
-
-      steamFeaturedCard.onmouseenter = () => {
-        setAmbientBackground('/assets/steam-banner.svg');
-      };
-
       steamFeaturedCard.onclick = () => {
         startOrResumeGame('7', 'Steam Big Picture');
       };

@@ -377,85 +377,148 @@ html, body.console-body {
   pointer-events: none;
 }
 
-.ps5-home-layout {
+/* ==========================================================================
+   CLEAN UNIFIED GAMES LIBRARY (UNCLUTTERED SHOWCASE GRID)
+   ========================================================================== */
+.console-app-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-console);
+}
+
+.console-app-btn:hover {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  transform: translateY(-1px);
+}
+
+.library-container {
   position: relative;
   z-index: 2;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 36px;
   width: 100%;
-  max-width: 1600px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 44px 52px 60px;
+  padding: 36px 40px 80px;
 }
 
-/* Left side: Other Games as PS5 windows with title only */
-.ps5-games-section {
-  flex: 1;
-  min-width: 0;
+.library-header-line {
+  margin-bottom: 28px;
 }
 
-.ps5-games-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 22px;
-  align-items: flex-start;
+.library-main-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
 }
 
-/* Individual PS5 Game Window */
-.ps5-game-card {
+.library-main-sub {
+  font-size: 13px;
+  color: var(--fg-1);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.games-grid-showcase {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 26px;
+  width: 100%;
+}
+
+/* Unified Game Card */
+.game-card {
   position: relative;
-  width: 180px;
-  cursor: pointer;
-  user-select: none;
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
   gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.25s var(--ease-console);
 }
 
-.ps5-card-media {
+.game-card:hover {
+  transform: translateY(-8px);
+}
+
+.game-card-media {
   position: relative;
   width: 100%;
-  height: 250px;
-  border-radius: 14px;
+  aspect-ratio: 3 / 4.2;
+  border-radius: 16px;
   overflow: hidden;
-  background: #0d121d;
-  border: 2px solid transparent;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  background: #0d121c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
 }
 
-.ps5-card-media img {
+.game-card:hover .game-card-media {
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 20px 44px rgba(0, 0, 0, 0.85);
+}
+
+.game-card-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.35s ease;
 }
 
-.epic-badge {
+.game-card:hover .game-card-media img {
+  transform: scale(1.05);
+}
+
+.game-play-overlay {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: linear-gradient(135deg, #a855f7, #6b21a8);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  z-index: 2;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.1) 60%, transparent 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.22s ease;
 }
 
-.ps5-card-title {
+.game-card:hover .game-play-overlay {
+  opacity: 1;
+}
+
+.game-play-btn {
+  padding: 8px 18px;
+  border-radius: var(--r-full);
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  transform: scale(0.92);
+  transition: transform 0.2s ease;
+}
+
+.game-card:hover .game-play-btn {
+  transform: scale(1);
+}
+
+.game-card-title {
   font-family: var(--font-sans);
   font-size: 13.5px;
   font-weight: 700;
-  color: #e2e8f0;
-  letter-spacing: -0.01em;
+  color: #cbd5e1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -463,69 +526,34 @@ html, body.console-body {
   transition: color 0.18s ease;
 }
 
-/* PS5 Card Hover State */
-.ps5-game-card:hover {
-  transform: translateY(-6px);
-}
-
-.ps5-game-card:hover .ps5-card-media {
-  border-color: #ffffff;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 16px 36px rgba(0, 0, 0, 0.85);
-}
-
-.ps5-game-card:hover .ps5-card-title {
+.game-card:hover .game-card-title {
   color: #ffffff;
 }
 
-/* Right side: Steam Horizontal Big Window */
-.ps5-steam-section {
-  flex: 0 0 460px;
-  max-width: 480px;
-}
-
-.ps5-steam-card {
-  position: relative;
-  width: 100%;
-  height: 250px;
-  border-radius: 14px;
-  overflow: hidden;
-  cursor: pointer;
-  user-select: none;
-  background: #0d121d;
-  border: 2px solid transparent;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.ps5-steam-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.ps5-steam-overlay {
+.game-badge {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(6, 10, 18, 0.85) 0%, rgba(6, 10, 18, 0.15) 60%, transparent 100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 20px 24px;
-}
-
-.ps5-steam-title {
-  font-family: var(--font-sans);
-  font-size: 20px;
+  top: 9px;
+  right: 9px;
+  font-size: 9.5px;
   font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  z-index: 2;
 }
 
-.ps5-steam-card:hover {
-  transform: translateY(-6px);
-  border-color: #ffffff;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 16px 36px rgba(0, 0, 0, 0.85);
+.game-badge.epic {
+  background: linear-gradient(135deg, #9333ea, #6b21a8);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.game-badge.steam {
+  background: linear-gradient(135deg, #0284c7, #075985);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 /* Resolution select pill in top bar */
@@ -1412,26 +1440,21 @@ html, body.console-body {
    ========================================================================== */
 @media (max-width: 1100px) {
   .console-top-bar { padding: 0 20px; }
-  .ps5-home-layout {
-    flex-direction: column-reverse;
-    gap: 28px;
-    padding: 24px 20px;
-  }
-  .ps5-steam-section {
-    flex: none;
-    width: 100%;
-    max-width: 100%;
-  }
-  .ps5-steam-card {
-    height: 190px;
+  .library-container { padding: 24px 20px 60px; }
+  .games-grid-showcase {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 18px;
   }
 }
 
 @media (max-width: 768px) {
   .console-nav { display: none !important; }
-  .console-clock { display: none; }
-  .console-hw-badge { display: none; }
-  .ps5-game-card { width: 140px; }
-  .ps5-card-media { height: 190px; }
+  .console-top-bar { padding: 0 16px; height: 56px; }
+  .library-container { padding: 20px 16px 50px; }
+  .library-main-title { font-size: 22px; }
+  .games-grid-showcase {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
+  }
   .stream-controls-bar { display: none; }
 }
