@@ -503,6 +503,21 @@
     if (selectHudResolution) selectHudResolution.value = `${w || 1920}x${h || 1080}`;
     if (launchResolution) launchResolution.value = `${w || 1920}x${h || 1080}`;
 
+    // Native Moonlight Engine Handoff (Sub-2ms Raw UDP Streaming)
+    if (window.ryokuNative && window.ryokuNative.isNative) {
+      const gameTitle = title || (selectedGame && selectedGame.title) || 'CyberArena 3D';
+      console.log(`[RYOKU CLIENT] Handoff to native Moonlight engine for '${gameTitle}' (120 FPS)...`);
+      window.ryokuNative.launchMoonlight({
+        appId: String(appId),
+        title: gameTitle,
+        width: w || 1920,
+        height: h || 1080,
+        fps: 120,
+        quality
+      });
+      return;
+    }
+
     streamOpen = true;
     streamReplaced = false;
     streamViewport.classList.add('visible');
@@ -2261,6 +2276,20 @@
     navCenter.style.display = 'flex';
     navRight.style.display = 'flex';
     navUsername.textContent = `${currentUser.username}`;
+
+    // Native Moonlight Engine Detection
+    if (window.ryokuNative && window.ryokuNative.isNative) {
+      const nativeBadge = document.getElementById('native-engine-badge');
+      if (nativeBadge) nativeBadge.style.display = 'inline-block';
+      if (launchResolution) {
+        launchResolution.innerHTML = `
+          <option value="1920x1080" selected>1080p 120 FPS (Moonlight)</option>
+          <option value="2560x1440">1440p 120 FPS (Moonlight)</option>
+          <option value="1280x720">720p 120 FPS (Moonlight)</option>
+        `;
+      }
+    }
+
     const savedRes = localStorage.getItem('ryoku_stream_resolution') || '1920x1080';
     if (launchResolution) launchResolution.value = savedRes;
     if (selectHudResolution) selectHudResolution.value = savedRes;

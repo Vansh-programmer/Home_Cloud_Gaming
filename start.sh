@@ -5,6 +5,8 @@
 # Usage:
 #   ./start.sh                    # Start server + Cloudflare tunnel (foreground)
 #   ./start.sh --background       # Start server + Cloudflare tunnel in background
+#   ./start.sh --client           # Launch the native Ryoku desktop client (Moonlight UDP engine)
+#   ./start.sh --sync-sunshine    # Sync sandboxed games to Sunshine (No desktop access)
 #   ./start.sh --tailscale        # Connect / verify direct low-latency Tailscale mesh
 #   ./start.sh --install-service  # Install & enable auto-start on PC boot (systemd)
 #   ./start.sh --stop             # Stop all running Ryoku & tunnel processes
@@ -145,6 +147,13 @@ case "${1:-}" in
   --status)
     show_status
     exit 0
+    ;;
+  --client)
+    exec python3 "$PROJECT_DIR/client/ryoku_client.py" "${@:2}"
+    ;;
+  --sync-sunshine)
+    python3 "$PROJECT_DIR/backend/sunshine_sync.py"
+    exit $?
     ;;
   --tailscale)
     setup_tailscale
