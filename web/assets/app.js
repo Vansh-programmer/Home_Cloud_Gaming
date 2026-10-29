@@ -498,49 +498,126 @@
     }
   }
 
-  async function startOrResumeGame(appId, title) {
-    const savedRes = localStorage.getItem('ryoku_stream_resolution') || '1920x1080';
-    const chosenRes = (launchResolution && launchResolution.value) || (selectHudResolution && selectHudResolution.value) || savedRes;
-    const [w, h] = chosenRes.split('x').map(Number);
-    const savedQuality = localStorage.getItem('ryoku_stream_quality') || 'remote';
-    const quality = (selectHudQuality && selectHudQuality.value) || (launchQuality && launchQuality.value) || savedQuality;
-    if (selectHudQuality) selectHudQuality.value = quality;
-    if (selectHudResolution) selectHudResolution.value = `${w || 1920}x${h || 1080}`;
-    if (launchResolution) launchResolution.value = `${w || 1920}x${h || 1080}`;
+  let streamingHost = '100.89.198.41';
 
-    // Native Moonlight Engine Handoff (Sub-2ms Raw UDP Streaming)
-    if (window.ryokuNative && window.ryokuNative.isNative) {
-      const gameTitle = title || (selectedGame && selectedGame.title) || 'CyberArena 3D';
-      console.log(`[RYOKU CLIENT] Handoff to native Moonlight engine for '${gameTitle}' (120 FPS)...`);
-      window.ryokuNative.launchMoonlight({
-        appId: String(appId),
-        title: gameTitle,
-        width: w || 1920,
-        height: h || 1080,
-        fps: 120,
-        quality
-      });
-      return;
+  async function resolveStreamingHost() {
+    try {
+      const res = await fetch(`${BASE_PREFIX}/api/client/endpoint`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.recommended_host) {
+          streamingHost = data.recommended_host;
+        }
+      }
+    } catch (e) {}
+  }
+  resolveStreamingHost();
+
+  function showMoonlightLaunchModal(appId, title, opts) {
+    const modal = document.getElementById('modal-moonlight-launch');
+    if (!modal) return;
+
+    const modalTitle = document.getElementById('moonlight-modal-game-title');
+    const inputHost = document.getElementById('moonlight-target-host-input');
+    const protoBtn = document.getElementById('btn-open-moonlight-protocol');
+    const cliCmd = document.getElementById('moonlight-cli-command');
+    const btnCopy = document.getElementById('btn-copy-moonlight-cmd');
+    const btnPair = document.getElementById('btn-moonlight-auto-pair');
+    const btnFallback = document.getElementById('btn-launch-webrtc-fallback');
+    const btnClose = document.getElementById('btn-close-moonlight-modal');
+
+    if (modalTitle) modalTitle.textContent = title;
+    if (inputHost) inputHost.value = streamingHost;
+
+    const updateCommands = () => {
+      const host = (inputHost && inputHost.value.trim()) || streamingHost;
+      if (protoBtn) {
+        protoBtn.href = `moonlight://stream?address=${encodeURIComponent(host)}&app=${encodeURIComponent(title)}`;
+      }
+      if (cliCmd) {
+        cliCmd.textContent = `flatpak run com.moonlight_stream.Moonlight stream ${host} "${title}"`;
+      }
+    };
+
+    updateCommands();
+    if (inputHost) inputHost.oninput = updateCommands;
+
+    if (btnCopy) {
+      btnCopy.onclick = () => {
+        const host = (inputHost && inputHost.value.trim()) || streamingHost;
+        const text = `flatpak run com.moonlight_stream.Moonlight stream ${host} "${title}"`;
+        navigator.clipboard.writeText(text).then(() => {
+          btnCopy.textContent = '✓ Copied!';
+          setTimeout(() => { btnCopy.textContent = '📋 Copy CLI'; }, 2000);
+        });
+      };
     }
+
+    if (btnPair) {
+      btnPair.onclick = async () => {
+        const pin = prompt('Enter 4-digit pairing PIN shown by Moonlight on your device:', '1234');
+        if (!pin || pin.length !== 4) return;
+        btnPair.textContent = 'Pairing...';
+        try {
+          const res = await fetch(`${BASE_PREFIX}/api/client/pair`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin }),
+          });
+          const d = await res.json();
+          if (res.ok && d.ok) {
+            btnPair.textContent = '✓ Paired!';
+            alert('Host pairing approved! You can now launch the stream in Moonlight.');
+          } else {
+            alert('Pairing failed: ' + (d.error || 'Check that Sunshine is running on host'));
+            btnPair.textContent = '🔑 1-Click Auto-Pair Host';
+          }
+        } catch (err) {
+          alert('Could not reach pair API: ' + err.message);
+          btnPair.textContent = '🔑 1-Click Auto-Pair Host';
+        }
+      };
+    }
+
+    if (btnFallback) {
+      btnFallback.onclick = () => {
+        modal.style.display = 'none';
+        startWebRTCStream(appId, title, opts);
+      };
+    }
+
+    if (btnClose) {
+      btnClose.onclick = () => { modal.style.display = 'none'; };
+    }
+    modal.onclick = (e) => {
+      if (e.target === modal) modal.style.display = 'none';
+    };
+
+    modal.style.display = 'flex';
+  }
+
+  async function startWebRTCStream(appId, title, opts) {
+    const w = opts?.width || 1920;
+    const h = opts?.height || 1080;
+    const quality = opts?.quality || 'remote';
 
     streamOpen = true;
     streamReplaced = false;
     streamViewport.classList.add('visible');
-    // Pre-unlock video playback on mobile/safari browsers during direct click gesture
     videoEl.play().catch(() => {});
-    setStepperState('starting', `Launching ${title || 'game'} in 1080p 60 FPS...`);
+    setStepperState('starting', `Launching ${title || 'game'} in 1080p 60 FPS (WebRTC)...`);
 
     const optInput = document.getElementById('game-launch-options-input');
     const customLaunchOpts = (optInput && optInput.value.trim()) ? optInput.value.trim() : (selectedGame ? selectedGame.launch_options : undefined);
 
-    const res = await fetch('/api/sessions/start', {
+    const res = await fetch(`${BASE_PREFIX}/api/sessions/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         app_id: String(appId),
         quality,
-        width: w || 1920,
-        height: h || 1080,
+        width: w,
+        height: h,
         fps: 60,
         launch_options: customLaunchOpts,
       }),
@@ -554,6 +631,66 @@
     const session = data.session;
     activeSessionId = session.session_id;
     handleSessionStateUpdate(session);
+  }
+
+  async function startOrResumeGame(appId, title) {
+    const savedRes = localStorage.getItem('ryoku_stream_resolution') || '1920x1080';
+    const chosenRes = (launchResolution && launchResolution.value) || (selectHudResolution && selectHudResolution.value) || savedRes;
+    const [w, h] = chosenRes.split('x').map(Number);
+    const savedQuality = localStorage.getItem('ryoku_stream_quality') || 'remote';
+    const quality = (selectHudQuality && selectHudQuality.value) || (launchQuality && launchQuality.value) || savedQuality;
+    if (selectHudQuality) selectHudQuality.value = quality;
+    if (selectHudResolution) selectHudResolution.value = `${w || 1920}x${h || 1080}`;
+    if (launchResolution) launchResolution.value = `${w || 1920}x${h || 1080}`;
+
+    const isNative = !!(
+      (window.ryokuNative && window.ryokuNative.isNative) ||
+      navigator.userAgent.includes('RyokuNativeClient') ||
+      window.ryokuIsNative
+    );
+
+    const activeEngine = localStorage.getItem('ryoku_engine') || (isNative ? 'moonlight' : 'moonlight');
+    const gameTitle = title || (selectedGame && selectedGame.title) || 'CyberArena 3D';
+
+    // Native Moonlight Client: 100% Direct Moonlight Launch (Zero WebRTC)
+    if (isNative) {
+      console.log(`[RYOKU CLIENT] Direct handoff to native Moonlight engine for '${gameTitle}' (120 FPS)...`);
+      if (window.ryokuNative && window.ryokuNative.launchMoonlight) {
+        window.ryokuNative.launchMoonlight({
+          appId: String(appId),
+          title: gameTitle,
+          width: w || 1920,
+          height: h || 1080,
+          fps: 120,
+          quality
+        });
+        return;
+      }
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ryokuNativeBridge) {
+        window.webkit.messageHandlers.ryokuNativeBridge.postMessage(JSON.stringify({
+          action: 'launch_moonlight',
+          opts: {
+            appId: String(appId),
+            title: gameTitle,
+            width: w || 1920,
+            height: h || 1080,
+            fps: 120,
+            quality
+          }
+        }));
+        return;
+      }
+      return;
+    }
+
+    if (activeEngine === 'moonlight') {
+      // Show Moonlight Connect Dialog if running in browser
+      showMoonlightLaunchModal(appId, gameTitle, { width: w || 1920, height: h || 1080, fps: 120, quality });
+      return;
+    }
+
+    // Explicit WebRTC In-Browser streaming
+    await startWebRTCStream(appId, gameTitle, { width: w || 1920, height: h || 1080, quality });
   }
 
   let currentSessionAppId = '0';
@@ -2376,6 +2513,99 @@
       modalDesktopApp.onclick = (e) => {
         if (e.target === modalDesktopApp) {
           modalDesktopApp.style.display = 'none';
+        }
+      };
+    }
+
+    function initEngineSelector() {
+      const isNative = !!(
+        (window.ryokuNative && window.ryokuNative.isNative) ||
+        navigator.userAgent.includes('RyokuNativeClient') ||
+        window.ryokuIsNative
+      );
+
+      const btnMoonlight = document.getElementById('btn-engine-moonlight');
+      const btnWebrtc = document.getElementById('btn-engine-webrtc');
+      const badge = document.getElementById('native-engine-badge');
+
+      if (isNative) {
+        localStorage.setItem('ryoku_engine', 'moonlight');
+        if (badge) badge.style.display = 'inline-block';
+        if (btnMoonlight) {
+          btnMoonlight.textContent = '⚡ MOONLIGHT 120 FPS';
+          btnMoonlight.classList.add('active');
+        }
+        if (btnWebrtc) {
+          btnWebrtc.style.display = 'none';
+        }
+        return;
+      }
+
+      let savedEngine = localStorage.getItem('ryoku_engine') || 'moonlight';
+
+      const updateBtns = (eng) => {
+        if (btnMoonlight && btnWebrtc) {
+          if (eng === 'moonlight') {
+            btnMoonlight.classList.add('active');
+            btnWebrtc.classList.remove('active');
+          } else {
+            btnWebrtc.classList.add('active');
+            btnMoonlight.classList.remove('active');
+          }
+        }
+        localStorage.setItem('ryoku_engine', eng);
+      };
+
+      updateBtns(savedEngine);
+
+      if (btnMoonlight) {
+        btnMoonlight.onclick = () => updateBtns('moonlight');
+      }
+      if (btnWebrtc) {
+        btnWebrtc.onclick = () => updateBtns('webrtc');
+      }
+    }
+
+    initEngineSelector();
+
+    // Manual Moonlight PIN Approval
+    const pinInput = document.getElementById('manual-pair-pin-input');
+    const btnSubmitPin = document.getElementById('btn-submit-manual-pin');
+    const pairFeedback = document.getElementById('pair-feedback-msg');
+
+    if (btnSubmitPin && pinInput) {
+      btnSubmitPin.onclick = async () => {
+        const pin = pinInput.value.trim();
+        if (!pin || pin.length !== 4) {
+          if (pairFeedback) pairFeedback.textContent = '⚠️ Enter a valid 4-digit PIN.';
+          return;
+        }
+        btnSubmitPin.disabled = true;
+        btnSubmitPin.textContent = 'Approving...';
+        try {
+          const res = await fetch(`${BASE_PREFIX}/api/client/pair`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin }),
+          });
+          const data = await res.json();
+          if (res.ok && data.ok) {
+            btnSubmitPin.textContent = '✓ Paired!';
+            pinInput.value = '';
+            if (pairFeedback) {
+              pairFeedback.innerHTML = '<strong style="color:var(--volt);">✓ Host paired successfully! Moonlight can now stream games.</strong>';
+            }
+          } else {
+            btnSubmitPin.disabled = false;
+            btnSubmitPin.textContent = 'Approve PIN';
+            if (pairFeedback) {
+              pairFeedback.textContent = `❌ ${data.error || 'Check Sunshine on host PC'}`;
+            }
+          }
+        } catch (err) {
+          btnSubmitPin.disabled = false;
+          btnSubmitPin.textContent = 'Approve PIN';
+          if (pairFeedback) pairFeedback.textContent = `Error: ${err.message}`;
         }
       };
     }

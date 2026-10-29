@@ -768,7 +768,8 @@ def create_orchestrator_app(
         return web.json_response({"ok": True, "action": action, "message": f"Host is executing {action}."})
 
     async def handle_sunshine_auto_pair(request: web.Request) -> web.Response:
-        user = require_user(request)
+        user = get_authenticated_user(request, db)
+        username = user["username"] if user else "ryoku-client"
         try:
             body = await request.json()
         except Exception:
@@ -783,7 +784,7 @@ def create_orchestrator_app(
         sunshine_user = os.environ.get("SUNSHINE_USER", "admin")
         sunshine_pass = os.environ.get("SUNSHINE_PASS", "admin")
 
-        logger.info("Auto-pairing Moonlight client for user '%s' with PIN %s...", user["username"], pin)
+        logger.info("Auto-pairing Moonlight client for user '%s' with PIN %s...", username, pin)
 
         try:
             auth = aiohttp.BasicAuth(sunshine_user, sunshine_pass)
@@ -816,6 +817,69 @@ def create_orchestrator_app(
                 status=503,
             )
 
+    def get_streaming_target_host(request: web.Request) -> str:
+        """Determines the direct streaming target IP/host for Moonlight GameStream UDP."""
+        # 1. Environment variable override
+        env_host = os.environ.get("MOONLIGHT_HOST") or os.environ.get("STREAM_HOST")
+        if env_host and env_host.strip():
+            return env_host.strip()
+
+        # 2. Host Tailscale WireGuard IP
+        try:
+            ts = shutil.which("tailscale")
+            if ts:
+                out = subprocess.check_output([ts, "ip", "-4"], text=True, timeout=1).strip()
+                if out:
+                    return out
+        except Exception:
+            pass
+
+        # 3. Host LAN IP (Wi-Fi / Ethernet)
+        try:
+            out = subprocess.check_output(
+                ["sh", "-c", "ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"src\") print $(i+1)}'"],
+                text=True, timeout=1
+            ).strip()
+            if out and out != "127.0.0.1":
+                return out
+        except Exception:
+            pass
+
+        # 4. Host header check: Cloudflare domains (e.g. play.vanshdev.online) cannot route UDP!
+        # Fall back to known host Tailscale IP (100.89.198.41) or LAN IP (192.168.1.5).
+        host_hdr = request.headers.get("Host", "play.vanshdev.online").split(":")[0]
+        if any(host_hdr.endswith(tld) for tld in (".online", ".com", ".net", ".org", ".io", ".dev", ".app")):
+            return "100.89.198.41"
+
+        return host_hdr
+
+    async def handle_client_endpoint(request: web.Request) -> web.Response:
+        ts_ip = ""
+        try:
+            ts = shutil.which("tailscale")
+            if ts:
+                ts_ip = subprocess.check_output([ts, "ip", "-4"], text=True, timeout=1).strip()
+        except Exception:
+            pass
+
+        lan_ip = ""
+        try:
+            lan_ip = subprocess.check_output(
+                ["sh", "-c", "ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"src\") print $(i+1)}'"],
+                text=True, timeout=1
+            ).strip()
+        except Exception:
+            pass
+
+        recommended = get_streaming_target_host(request)
+        return web.json_response({
+            "ok": True,
+            "tailscale_ip": ts_ip or "100.89.198.41",
+            "lan_ip": lan_ip or "192.168.1.5",
+            "recommended_host": recommended or "100.89.198.41",
+            "sunshine_port": int(os.environ.get("SUNSHINE_PORT", "47990")),
+        })
+
     async def handle_download_client_windows(request: web.Request) -> web.StreamResponse:
         bat_file = PROJECT_ROOT / "client" / "run_client_windows.bat"
         if not bat_file.exists():
@@ -826,7 +890,7 @@ def create_orchestrator_app(
         server_url = f"{proto}://{host_hdr}"
         if request.path.startswith("/cloudgaming"):
             server_url = f"{server_url}/cloudgaming"
-        target_host = host_hdr.split(":")[0]
+        target_host = get_streaming_target_host(request)
 
         try:
             content = bat_file.read_text(encoding="utf-8")
@@ -855,7 +919,7 @@ def create_orchestrator_app(
         server_url = f"{proto}://{host_hdr}"
         if request.path.startswith("/cloudgaming"):
             server_url = f"{server_url}/cloudgaming"
-        target_host = host_hdr.split(":")[0]
+        target_host = get_streaming_target_host(request)
 
         try:
             content = sh_file.read_text(encoding="utf-8")
@@ -884,7 +948,7 @@ def create_orchestrator_app(
         server_url = f"{proto}://{host_hdr}"
         if request.path.startswith("/cloudgaming"):
             server_url = f"{server_url}/cloudgaming"
-        target_host = host_hdr.split(":")[0]
+        target_host = get_streaming_target_host(request)
 
         try:
             content = sh_file.read_text(encoding="utf-8")
@@ -957,6 +1021,7 @@ def create_orchestrator_app(
         app.router.add_delete(f"{prefix}/api/admin/history", handle_admin_clear_history)
         app.router.add_post(f"{prefix}/api/admin/power", handle_admin_power)
         app.router.add_post(f"{prefix}/api/client/pair", handle_sunshine_auto_pair)
+        app.router.add_get(f"{prefix}/api/client/endpoint", handle_client_endpoint)
         app.router.add_get(f"{prefix}/api/client/download/windows", handle_download_client_windows)
         app.router.add_get(f"{prefix}/api/client/download/linux", handle_download_client_linux)
         app.router.add_get(f"{prefix}/api/client/download/fedora", handle_download_client_fedora)

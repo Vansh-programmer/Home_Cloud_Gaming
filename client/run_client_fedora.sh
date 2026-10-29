@@ -14,7 +14,7 @@ if [[ "$DEFAULT_SERVER_URL" == "__SERVER_URL__" ]]; then
   DEFAULT_SERVER_URL="https://play.vanshdev.online"
 fi
 if [[ "$DEFAULT_TARGET_HOST" == "__TARGET_HOST__" ]]; then
-  DEFAULT_TARGET_HOST="play.vanshdev.online"
+  DEFAULT_TARGET_HOST="100.89.198.41"
 fi
 
 SERVER_URL="${1:-$DEFAULT_SERVER_URL}"
@@ -24,17 +24,17 @@ echo "+-------------------------------------------------------------------------
 echo "| RYOKU CLOUD GAMING // FEDORA 1-CLICK NATIVE LAUNCHER (120 FPS SUB-2MS)     |"
 echo "+----------------------------------------------------------------------------+"
 echo "  Server URL  : $SERVER_URL"
-echo "  Target Host : $TARGET_HOST"
-echo ""
 
-# 1. Detect Tailscale mesh if available
-if command -v tailscale >/dev/null 2>&1; then
-  TS_IP=$(tailscale ip -4 2>/dev/null || true)
-  if [[ -n "$TS_IP" && "$TARGET_HOST" == "127.0.0.1" ]]; then
-    TARGET_HOST="$TS_IP"
-    echo "[OK] Tailscale WireGuard detected: $TARGET_HOST"
+# 1. Discover host's direct streaming IP if TARGET_HOST is a Cloudflare web domain
+if [[ "$TARGET_HOST" =~ \.(online|com|net|org|dev|app|io)$ || "$TARGET_HOST" == "127.0.0.1" ]]; then
+  DISCOVERED_HOST=$(curl -fsSL --connect-timeout 2 "$SERVER_URL/api/client/endpoint" 2>/dev/null | grep -o '"recommended_host": *"[^"]*"' | cut -d'"' -f4 || true)
+  if [[ -n "$DISCOVERED_HOST" && "$DISCOVERED_HOST" != "127.0.0.1" ]]; then
+    TARGET_HOST="$DISCOVERED_HOST"
   fi
 fi
+
+echo "  Target Host : $TARGET_HOST (Moonlight UDP)"
+echo ""
 
 # 2. Check for Moonlight (Native binary or Flathub Flatpak)
 HAS_MOONLIGHT=0
@@ -67,7 +67,22 @@ if [[ "$HAS_MOONLIGHT" -eq 0 ]]; then
 fi
 
 # 3. Check for PyGObject & WebKit2 dependencies on Fedora
-if ! python3 -c "import gi; gi.require_version('Gtk', '3.0'); (gi.require_version('WebKit2', '4.1') or gi.require_version('WebKit2', '4.0'))" 2>/dev/null; then
+has_webkit() {
+  python3 -c "
+import gi
+gi.require_version('Gtk', '3.0')
+for v in ['4.1', '4.0']:
+    try:
+        gi.require_version('WebKit2', v)
+        from gi.repository import Gtk, WebKit2
+        exit(0)
+    except Exception:
+        continue
+exit(1)
+" 2>/dev/null
+}
+
+if ! has_webkit; then
   echo "[RYOKU] Installing python3-gobject & webkit2gtk4.1 for dedicated Fedora client window..."
   if command -v dnf >/dev/null 2>&1; then
     sudo dnf install -y python3-gobject webkit2gtk4.1 || true
@@ -91,28 +106,11 @@ else
   fi
 fi
 
-# 5. Launch Native GTK Client Window if environment is supported
-if [[ -n "$CLIENT_PY" ]] && python3 -c "import gi; gi.require_version('Gtk', '3.0'); (gi.require_version('WebKit2', '4.1') or gi.require_version('WebKit2', '4.0'))" 2>/dev/null; then
+# 5. Launch Native Ryoku Moonlight Client (Zero WebRTC, Zero Browser)
+if [[ -n "$CLIENT_PY" ]]; then
   echo "[RYOKU] Starting native 120 FPS Ryoku client (Moonlight UDP)..."
-  exec python3 "$CLIENT_PY" --server "$SERVER_URL" --host "$TARGET_HOST"
-fi
-
-# 6. Fallback: Dedicated browser app mode (Chromium / Chrome / Brave / Firefox)
-echo "[RYOKU] Opening Ryoku Console in standalone application window..."
-if command -v google-chrome >/dev/null 2>&1; then
-  exec google-chrome --app="$SERVER_URL"
-elif command -v chromium >/dev/null 2>&1; then
-  exec chromium --app="$SERVER_URL"
-elif command -v chromium-browser >/dev/null 2>&1; then
-  exec chromium-browser --app="$SERVER_URL"
-elif command -v brave-browser >/dev/null 2>&1; then
-  exec brave-browser --app="$SERVER_URL"
-elif command -v firefox >/dev/null 2>&1; then
-  exec firefox --new-window "$SERVER_URL"
-elif command -v xdg-open >/dev/null 2>&1; then
-  exec xdg-open "$SERVER_URL"
+  exec python3 "$CLIENT_PY" --server "$SERVER_URL" --host "$TARGET_HOST" "$@"
 else
-  echo "[ERROR] Could not find a suitable browser or GTK runtime to launch Ryoku."
+  echo "[ERROR] Could not find Ryoku native client runtime."
   exit 1
 fi
-

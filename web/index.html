@@ -42,6 +42,11 @@
         <span>RESUME</span>
       </button>
 
+      <div class="console-engine-pill" id="engine-toggle-wrap" title="Select Streaming Engine">
+        <button type="button" class="engine-opt-btn active" id="btn-engine-moonlight">⚡ Moonlight 120 FPS</button>
+        <button type="button" class="engine-opt-btn" id="btn-engine-webrtc">🌐 WebRTC</button>
+      </div>
+
       <button class="console-app-btn" id="btn-show-desktop-app" title="Play with 120 FPS Native Moonlight Engine">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         <span>Desktop App</span>
@@ -140,6 +145,16 @@
           <div>
             <h1 class="library-main-title">Games</h1>
             <p class="library-main-sub">Click any game to stream at sub-2ms low latency</p>
+          </div>
+        </div>
+
+        <!-- Moonlight 1-Click Pairing Bar -->
+        <div class="moonlight-pair-bar" id="moonlight-pair-bar" style="margin-bottom:20px; background:rgba(200,255,0,0.04); border:1px solid rgba(200,255,0,0.2); border-radius:6px; padding:10px 14px;">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span style="font-family:var(--font-mono); font-size:11px; font-weight:800; color:var(--volt);">🔑 PAIR MOONLIGHT:</span>
+            <input type="text" id="manual-pair-pin-input" maxlength="4" placeholder="PIN" style="width:75px; text-align:center; font-family:var(--font-mono); font-size:13px; font-weight:800; background:#000; border:1px solid var(--volt); color:var(--volt); padding:5px 8px; border-radius:4px;" />
+            <button type="button" id="btn-submit-manual-pin" class="console-action-btn primary sm" style="padding:5px 14px;">Approve PIN</button>
+            <span id="pair-feedback-msg" style="font-size:11px; color:var(--fg-1); font-family:var(--font-mono);">Click "ryoku" in Moonlight ➔ enter PIN shown here ➔ Paired!</span>
           </div>
         </div>
 
@@ -398,6 +413,54 @@
     </div>
   </div>
 
-  <script src="/assets/app.js?v=21"></script>
+  <!-- MODAL: MOONLIGHT DIRECT CONNECT & LAUNCH -->
+  <div id="modal-moonlight-launch" class="stage-modal-backdrop" style="display:none; z-index:99999;">
+    <div class="stage-modal-card" style="max-width:540px; border-left:4px solid var(--volt);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span class="brand-sub" style="color:var(--volt); font-weight:800; font-size:11px;">⚡ MOONLIGHT UDP ENGINE // SUB-2MS</span>
+        <button id="btn-close-moonlight-modal" type="button" class="console-btn-subtle" style="font-size:18px; cursor:pointer;">&times;</button>
+      </div>
+
+      <h2 id="moonlight-modal-game-title" style="font-size:22px; font-weight:900; text-transform:uppercase; margin-bottom:6px;">CyberArena 3D</h2>
+      <p style="font-size:12px; color:var(--fg-1); line-height:1.5; margin-bottom:16px;">
+        Moonlight connects directly over raw UDP to the Sunshine host on your gaming PC at 120 FPS with hardware decoding.
+      </p>
+
+      <div style="background:var(--bg-1); border:1px solid var(--line); border-radius:6px; padding:12px; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:11px; color:var(--fg-1); font-family:var(--font-mono);">HOST STREAMING ENDPOINT:</span>
+          <span id="moonlight-host-badge" style="font-size:10px; font-weight:800; color:var(--volt); background:rgba(200,255,0,0.1); padding:2px 6px; border-radius:3px;">WIREGUARD MESH</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="text" id="moonlight-target-host-input" value="100.89.198.41" class="console-field-sm" style="flex:1; font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--volt); padding:6px 10px; background:#000; border:1px solid var(--line-bright);" />
+          <button type="button" id="btn-copy-moonlight-cmd" class="console-action-btn sm" style="white-space:nowrap; border-color:var(--line-bright);">📋 Copy CLI</button>
+        </div>
+        <div style="font-size:10px; color:var(--fg-1); margin-top:6px; font-family:var(--font-mono);">
+          • Tailscale IP: <code>100.89.198.41</code> | Home Wi-Fi: <code>192.168.1.5</code>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <a id="btn-open-moonlight-protocol" href="moonlight://stream?address=100.89.198.41&app=CyberArena%203D" class="console-action-btn primary" style="text-align:center; text-decoration:none; display:block; padding:12px; font-size:13px;">
+          ▶ Open in Moonlight Application
+        </a>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <button type="button" id="btn-moonlight-auto-pair" class="console-action-btn sm" style="border-color:var(--volt); color:var(--volt);">
+            🔑 1-Click Auto-Pair Host
+          </button>
+          <button type="button" id="btn-launch-webrtc-fallback" class="console-action-btn sm" style="border-color:var(--line-bright); color:var(--fg-0);">
+            🌐 Stream in Browser
+          </button>
+        </div>
+      </div>
+
+      <div id="moonlight-cli-helper-box" style="margin-top:14px; background:#000; border:1px solid var(--line); border-radius:4px; padding:10px; font-family:var(--font-mono); font-size:11px; color:var(--fg-1);">
+        <div style="font-size:10px; color:var(--volt); margin-bottom:4px; font-weight:700;">FEDORA / LINUX 1-CLICK TERMINAL COMMAND:</div>
+        <code id="moonlight-cli-command" style="word-break:break-all; color:#fff;">flatpak run com.moonlight_stream.Moonlight stream 100.89.198.41 "CyberArena 3D"</code>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/app.js?v=22"></script>
 </body>
 </html>

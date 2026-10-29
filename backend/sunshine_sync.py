@@ -118,8 +118,16 @@ def sync_apps(output_path: Path | None = None) -> Path:
         "apps": apps_list
     }
 
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(sunshine_data, f, indent=2)
+    try:
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(sunshine_data, f, indent=2)
+    except (OSError, PermissionError) as write_err:
+        fallback_path = PROJECT_ROOT / "data" / "sunshine" / "apps.json"
+        fallback_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(fallback_path, "w", encoding="utf-8") as f:
+            json.dump(sunshine_data, f, indent=2)
+        output_path = fallback_path
+        logger.info("Fell back to writable location: %s (%s)", output_path, write_err)
 
     logger.info("Successfully synced %d sandboxed games to %s", len(apps_list), output_path)
     logger.info("SECURITY CONFIRMED: 'Desktop' stream is completely disabled.")
