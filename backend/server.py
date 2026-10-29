@@ -145,6 +145,7 @@ def create_orchestrator_app(
                 html_text.replace('href="/assets/', 'href="/cloudgaming/assets/')
                 .replace('src="/assets/', 'src="/cloudgaming/assets/')
                 .replace('href="/offline"', 'href="/cloudgaming/offline"')
+                .replace('href="/api/client/download/', 'href="/cloudgaming/api/client/download/')
             )
             return web.Response(text=html_text, content_type="text/html")
         return web.FileResponse(target_html)
@@ -815,23 +816,63 @@ def create_orchestrator_app(
                 status=503,
             )
 
-    async def handle_download_client_windows(_request: web.Request) -> web.StreamResponse:
+    async def handle_download_client_windows(request: web.Request) -> web.StreamResponse:
         bat_file = PROJECT_ROOT / "client" / "run_client_windows.bat"
-        if bat_file.exists():
+        if not bat_file.exists():
+            return web.Response(text="Client script not found", status=404)
+
+        host_hdr = request.headers.get("Host", "play.vanshdev.online")
+        proto = request.headers.get("X-Forwarded-Proto", request.scheme or "https")
+        server_url = f"{proto}://{host_hdr}"
+        if request.path.startswith("/cloudgaming"):
+            server_url = f"{server_url}/cloudgaming"
+        target_host = host_hdr.split(":")[0]
+
+        try:
+            content = bat_file.read_text(encoding="utf-8")
+            content = content.replace("__SERVER_URL__", server_url).replace("__TARGET_HOST__", target_host)
+            return web.Response(
+                text=content,
+                content_type="application/x-bat",
+                headers={
+                    "Content-Disposition": 'attachment; filename="Ryoku_Launcher.bat"',
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                },
+            )
+        except Exception:
             return web.FileResponse(
                 bat_file,
                 headers={"Content-Disposition": 'attachment; filename="Ryoku_Launcher.bat"'},
             )
-        return web.Response(text="Client script not found", status=404)
 
-    async def handle_download_client_linux(_request: web.Request) -> web.StreamResponse:
+    async def handle_download_client_linux(request: web.Request) -> web.StreamResponse:
         sh_file = PROJECT_ROOT / "client" / "run_client.sh"
-        if sh_file.exists():
+        if not sh_file.exists():
+            return web.Response(text="Client script not found", status=404)
+
+        host_hdr = request.headers.get("Host", "play.vanshdev.online")
+        proto = request.headers.get("X-Forwarded-Proto", request.scheme or "https")
+        server_url = f"{proto}://{host_hdr}"
+        if request.path.startswith("/cloudgaming"):
+            server_url = f"{server_url}/cloudgaming"
+        target_host = host_hdr.split(":")[0]
+
+        try:
+            content = sh_file.read_text(encoding="utf-8")
+            content = content.replace("__SERVER_URL__", server_url).replace("__TARGET_HOST__", target_host)
+            return web.Response(
+                text=content,
+                content_type="application/x-sh",
+                headers={
+                    "Content-Disposition": 'attachment; filename="Ryoku_Launcher.sh"',
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                },
+            )
+        except Exception:
             return web.FileResponse(
                 sh_file,
                 headers={"Content-Disposition": 'attachment; filename="Ryoku_Launcher.sh"'},
             )
-        return web.Response(text="Client script not found", status=404)
 
     # Register Routes (both root `/` and subpath `/cloudgaming` for vanshdev.online/cloudgaming)
     app.router.add_get("/", handle_index)
@@ -889,5 +930,9 @@ def create_orchestrator_app(
         app.router.add_post(f"{prefix}/api/client/pair", handle_sunshine_auto_pair)
         app.router.add_get(f"{prefix}/api/client/download/windows", handle_download_client_windows)
         app.router.add_get(f"{prefix}/api/client/download/linux", handle_download_client_linux)
+        app.router.add_get(f"{prefix}/client/download/windows", handle_download_client_windows)
+        app.router.add_get(f"{prefix}/client/download/linux", handle_download_client_linux)
+        app.router.add_get(f"{prefix}/download/windows", handle_download_client_windows)
+        app.router.add_get(f"{prefix}/download/linux", handle_download_client_linux)
 
     return app

@@ -2301,6 +2301,15 @@
     const btnShowDesktopApp = document.getElementById('btn-show-desktop-app');
     const modalDesktopApp = document.getElementById('modal-desktop-app');
     const btnCloseDesktopModal = document.getElementById('btn-close-desktop-modal');
+    const btnDlWin = document.getElementById('btn-download-client-windows');
+    const btnDlLin = document.getElementById('btn-download-client-linux');
+
+    if (btnDlWin) {
+      btnDlWin.href = `${BASE_PREFIX}/api/client/download/windows`;
+    }
+    if (btnDlLin) {
+      btnDlLin.href = `${BASE_PREFIX}/api/client/download/linux`;
+    }
 
     if (btnShowDesktopApp && modalDesktopApp) {
       if (window.ryokuNative && window.ryokuNative.isNative) {
