@@ -6,17 +6,16 @@ tunnel: 43a598d8-3099-49ff-8e65-a28b63cafa05
 credentials-file: /home/vansh/.cloudflared/43a598d8-3099-49ff-8e65-a28b63cafa05.json
 
 ingress:
-  # 1. Subdomain tunnel endpoint (used directly OR as the origin for vanshdev.online/cloudgaming Worker)
+  # 1. Subdomain tunnel endpoint (used directly OR as the origin for vanshdev.online Worker)
   - hostname: play.vanshdev.online
-    service: http://127.0.0.1:8080
+    service: http://127.0.0.1:80
     originRequest:
       noTLSVerify: true
       connectTimeout: 5s
 
-  # 2. Direct root domain path match (if vanshdev.online DNS is routed directly to this tunnel)
+  # 2. Direct root domain match
   - hostname: vanshdev.online
-    path: ^/cloudgaming(/.*)?$
-    service: http://127.0.0.1:8080
+    service: http://127.0.0.1:80
     originRequest:
       noTLSVerify: true
       connectTimeout: 5s

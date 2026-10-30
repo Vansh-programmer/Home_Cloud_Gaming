@@ -8,8 +8,16 @@
     auto_https disable_redirects
 }
 
-http://vanshdev.online, http://play.vanshdev.online, http://localhost, http://192.168.1.5 {
-    # 1. Moonlight Web In-Browser Streaming WebSocket & Engine
+http://vanshdev.online, http://play.vanshdev.online, http://localhost, http://127.0.0.1, http://192.168.1.5 {
+    # 1. Cloudflare Worker Edge Health Check (Automatic Boot Detection)
+    handle /api/health {
+        header Content-Type "application/json"
+        header Access-Control-Allow-Origin "*"
+        header Cache-Control "no-store"
+        respond `{"ok":true,"online":true,"server":"Ryoku Cloud Gaming PC","gpu":"NVIDIA GeForce RTX 4060","status":"ready"}` 200
+    }
+
+    # 2. Moonlight Web In-Browser Streaming WebSocket & Engine
     handle /stream* {
         reverse_proxy localhost:8080 {
             header_down -X-Frame-Options
@@ -23,7 +31,7 @@ http://vanshdev.online, http://play.vanshdev.online, http://localhost, http://19
         reverse_proxy localhost:8080
     }
 
-    # 2. Main Web Portal UI
+    # 3. Main Web Portal UI
     handle {
         root * /usr/share/caddy
         file_server
@@ -32,7 +40,15 @@ http://vanshdev.online, http://play.vanshdev.online, http://localhost, http://19
 }
 
 https://vanshdev.online, https://play.vanshdev.online {
-    # 1. Moonlight Web In-Browser Streaming WebSocket & Engine
+    # 1. Cloudflare Worker Edge Health Check (Automatic Boot Detection)
+    handle /api/health {
+        header Content-Type "application/json"
+        header Access-Control-Allow-Origin "*"
+        header Cache-Control "no-store"
+        respond `{"ok":true,"online":true,"server":"Ryoku Cloud Gaming PC","gpu":"NVIDIA GeForce RTX 4060","status":"ready"}` 200
+    }
+
+    # 2. Moonlight Web In-Browser Streaming WebSocket & Engine
     handle /stream* {
         reverse_proxy localhost:8080 {
             header_down -X-Frame-Options
@@ -46,7 +62,7 @@ https://vanshdev.online, https://play.vanshdev.online {
         reverse_proxy localhost:8080
     }
 
-    # 2. Main Web Portal UI
+    # 3. Main Web Portal UI
     handle {
         root * /usr/share/caddy
         file_server
