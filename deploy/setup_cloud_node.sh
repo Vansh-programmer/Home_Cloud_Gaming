@@ -112,3 +112,4 @@ echo "Connect with Moonlight:"
 echo "  Add host IP: 100.89.198.41"
 echo "  Enter PIN in Wolf-Den Admin Console or via 'docker compose logs -f wolf'"
 echo "========================================================================"
+
