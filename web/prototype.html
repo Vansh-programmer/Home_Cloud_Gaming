@@ -3,18 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Ryoku Cloud — Isolated Session Player</title>
+  <title>Ryoku Cloud — Game Stream</title>
   <style>
     :root {
       --bg-dark: #070913;
-      --panel-bg: rgba(13, 18, 34, 0.86);
-      --panel-border: rgba(99, 179, 237, 0.24);
+      --panel-bg: rgba(15, 23, 42, 0.88);
+      --panel-border: rgba(255, 255, 255, 0.15);
       --accent: #38bdf8;
-      --accent-glow: rgba(56, 189, 248, 0.35);
-      --success: #34d399;
+      --success: #10b981;
       --warning: #fbbf24;
-      --danger: #f87171;
-      --text-main: #f1f5f9;
+      --danger: #ef4444;
+      --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
 
@@ -29,7 +28,7 @@
     html, body {
       width: 100%;
       height: 100%;
-      background: var(--bg-dark);
+      background: #000000;
       color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
       overflow: hidden;
@@ -42,68 +41,112 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at center, #0f172a 0%, #05070f 100%);
+      background: #000000;
+      overflow: hidden;
     }
 
     video#stream-video {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      background: #000;
+      background: #000000;
       cursor: crosshair;
     }
 
-    /* Top Floating HUD Bar */
-    .hud-bar {
+    /* Top Hover Trigger */
+    #hud-hover-trigger {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 32px;
+      z-index: 39;
+    }
+
+    /* Floating Top HUD */
+    .floating-hud {
       position: absolute;
       top: 14px;
       left: 50%;
       transform: translateX(-50%);
+      z-index: 40;
       display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 14px;
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 999px;
-      backdrop-filter: blur(12px);
-      z-index: 30;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
-      transition: opacity 0.25s ease;
-    }
-
-    .brand-badge {
-      display: flex;
+      flex-direction: column;
       align-items: center;
       gap: 8px;
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: 0.04em;
-      padding-right: 10px;
-      border-right: 1px solid rgba(255, 255, 255, 0.12);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      user-select: none;
+    }
+
+    #player-stage.hud-autohidden .floating-hud {
+      opacity: 0;
+      transform: translate(-50%, -120%);
+      pointer-events: none;
+    }
+
+    .hud-pill-handle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 999px;
+      padding: 6px 18px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #f8fafc;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      transition: all 0.2s ease;
+    }
+
+    .hud-pill-handle:hover {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
     }
 
     .status-dot {
-      width: 9px;
-      height: 9px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--warning);
-      box-shadow: 0 0 10px var(--warning);
+      box-shadow: 0 0 8px var(--warning);
     }
     .status-dot.playing {
       background: var(--success);
-      box-shadow: 0 0 10px var(--success);
+      box-shadow: 0 0 8px var(--success);
     }
     .status-dot.ended {
       background: var(--danger);
-      box-shadow: 0 0 10px var(--danger);
+      box-shadow: 0 0 8px var(--danger);
     }
 
-    .hud-btn, .hud-select {
-      background: rgba(30, 41, 59, 0.75);
-      color: var(--text-main);
-      border: 1px solid rgba(148, 163, 184, 0.25);
-      padding: 6px 12px;
+    .hud-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--panel-border);
+      border-radius: 999px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      transition: all 0.2s ease;
+    }
+
+    .hud-bar.collapsed {
+      display: none;
+    }
+
+    .hud-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 14px;
       border-radius: 999px;
       font-size: 12px;
       font-weight: 600;
@@ -111,41 +154,45 @@
       transition: all 0.15s ease;
     }
 
-    .hud-btn:hover, .hud-select:hover {
-      border-color: var(--accent);
-      background: rgba(56, 189, 248, 0.15);
+    .hud-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
     }
 
     .hud-btn.active {
       background: rgba(56, 189, 248, 0.25);
-      border-color: var(--accent);
-      color: #fff;
+      border-color: rgba(56, 189, 248, 0.5);
+      color: #38bdf8;
     }
 
     .hud-btn.danger {
-      border-color: rgba(248, 113, 113, 0.4);
-      color: #fca5a5;
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #f87171;
     }
     .hud-btn.danger:hover {
-      background: rgba(239, 68, 68, 0.25);
-      border-color: var(--danger);
-      color: #fff;
+      background: rgba(239, 68, 68, 0.35);
+      color: #ffffff;
     }
 
     /* Toggleable Real-Time Stats & Isolation Overlay */
     #stats-overlay {
       position: absolute;
-      top: 68px;
+      top: 56px;
       left: 18px;
-      width: 295px;
+      width: 260px;
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
       border-radius: 14px;
-      padding: 14px;
-      backdrop-filter: blur(12px);
+      padding: 14px 16px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       z-index: 25;
       font-size: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.55);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
     }
     #stats-overlay.hidden {
       display: none;
@@ -153,11 +200,13 @@
 
     .stats-title {
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--accent);
-      margin-bottom: 8px;
+      margin-bottom: 4px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -166,8 +215,8 @@
     .stat-row {
       display: flex;
       justify-content: space-between;
-      padding: 3px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      align-items: center;
+      padding: 2px 0;
     }
     .stat-label {
       color: var(--text-muted);
@@ -179,46 +228,53 @@
     }
 
     .iso-badge {
-      margin-top: 10px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(52, 211, 153, 0.35);
-      color: #6ee7b7;
+      margin-top: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
       font-size: 11px;
-      line-height: 1.4;
+      line-height: 1.3;
+      text-align: center;
     }
 
     /* Pointer lock prompt banner */
     #pointer-hint {
       position: absolute;
-      bottom: 22px;
+      bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      padding: 8px 18px;
+      padding: 8px 22px;
       border-radius: 999px;
-      background: rgba(15, 23, 42, 0.82);
-      border: 1px solid rgba(56, 189, 248, 0.35);
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       font-size: 12px;
       color: #e2e8f0;
       pointer-events: none;
       z-index: 20;
-      transition: opacity 0.2s ease;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      transition: opacity 0.5s ease, transform 0.5s ease;
     }
-    #pointer-hint.hidden {
+    #pointer-hint.hidden, #pointer-hint.fade-out {
       opacity: 0;
+      transform: translate(-50%, 15px);
     }
 
     /* Session Ended / Status Modal */
     #session-modal {
       position: absolute;
       inset: 0;
-      background: rgba(7, 9, 19, 0.88);
-      backdrop-filter: blur(10px);
+      background: rgba(10, 15, 29, 0.92);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 50;
+      padding: 24px;
     }
     #session-modal.hidden {
       display: none;
@@ -226,21 +282,24 @@
     .modal-card {
       background: rgba(15, 23, 42, 0.95);
       border: 1px solid var(--panel-border);
-      border-radius: 18px;
-      padding: 28px 32px;
-      max-width: 420px;
+      border-radius: 20px;
+      padding: 36px 30px;
+      max-width: 400px;
+      width: 100%;
       text-align: center;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
     }
     .modal-card h2 {
-      font-size: 20px;
-      margin-bottom: 10px;
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #ffffff;
     }
     .modal-card p {
       color: var(--text-muted);
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.5;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
 
     /* Mobile Touch Controls Overlay */
@@ -258,8 +317,8 @@
       position: absolute;
       bottom: 36px;
       left: 36px;
-      width: 150px;
-      height: 150px;
+      width: 140px;
+      height: 140px;
       border-radius: 50%;
       background: rgba(15, 23, 42, 0.45);
       border: 2px solid rgba(56, 189, 248, 0.4);
@@ -271,13 +330,13 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 54px;
-      height: 54px;
-      margin-left: -27px;
-      margin-top: -27px;
+      width: 50px;
+      height: 50px;
+      margin-left: -25px;
+      margin-top: -25px;
       border-radius: 50%;
       background: rgba(56, 189, 248, 0.75);
-      box-shadow: 0 0 16px var(--accent-glow);
+      box-shadow: 0 0 16px var(--accent);
       pointer-events: none;
     }
 
@@ -285,22 +344,22 @@
       position: absolute;
       bottom: 36px;
       right: 36px;
-      width: 170px;
-      height: 170px;
+      width: 160px;
+      height: 160px;
       pointer-events: auto;
       touch-action: none;
     }
 
     .touch-btn {
       position: absolute;
-      width: 56px;
-      height: 56px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       background: rgba(15, 23, 42, 0.65);
       border: 2px solid rgba(56, 189, 248, 0.55);
       color: #fff;
       font-weight: 700;
-      font-size: 12px;
+      font-size: 11px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -312,83 +371,77 @@
       color: #000;
       transform: scale(0.94);
     }
-    .btn-a { bottom: 0; left: 57px; border-color: #34d399; }
-    .btn-b { top: 57px; right: 0; border-color: #f87171; }
-    .btn-x { top: 57px; left: 0; border-color: #38bdf8; }
-    .btn-y { top: 0; left: 57px; border-color: #fbbf24; }
+    .btn-a { bottom: 0; left: 54px; border-color: #34d399; }
+    .btn-b { top: 54px; right: 0; border-color: #f87171; }
+    .btn-x { top: 54px; left: 0; border-color: #38bdf8; }
+    .btn-y { top: 0; left: 54px; border-color: #fbbf24; }
   </style>
 </head>
 <body>
   <div id="player-stage">
     <video id="stream-video" autoplay playsinline muted></video>
 
+    <!-- Top Hover Trigger -->
+    <div id="hud-hover-trigger"></div>
+
     <!-- Floating Top Control Bar -->
-    <div class="hud-bar">
-      <div class="brand-badge">
+    <div class="floating-hud">
+      <div class="hud-pill-handle" id="hud-pill-handle" title="Click to toggle controls">
         <span id="status-dot" class="status-dot"></span>
         <span id="status-text">CONNECTING...</span>
       </div>
 
-      <button id="btn-stats" class="hud-btn active" title="Toggle Stream Telemetry (Tab)">Stats</button>
-      <button id="btn-lock-mouse" class="hud-btn" title="Lock Mouse for 3D FPS Look (or Double-Click Video)">Lock Mouse</button>
+      <div class="hud-bar collapsed" id="hud-bar">
+        <button id="btn-lock-mouse" class="hud-btn" title="Lock Mouse for 3D FPS Aim (or Double-Click Video)">Lock Aim</button>
+        <button id="btn-stats" class="hud-btn" title="Toggle Stream Telemetry (Tab)">Stats</button>
+        <button id="btn-fullscreen" class="hud-btn" title="Toggle Fullscreen">Fullscreen</button>
+        <button id="btn-end" class="hud-btn danger" title="Terminate Isolated Session">End Session</button>
 
-      <select id="select-quality" class="hud-select" title="Stream Quality Preset">
-        <option value="low">Low (4 Mbps)</option>
-        <option value="medium">Medium (8 Mbps)</option>
-        <option value="high" selected>High (15 Mbps)</option>
-        <option value="ultra">Ultra (25 Mbps)</option>
-      </select>
-
-      <button id="btn-touch" class="hud-btn" title="Toggle On-Screen Touch Controller">Touch Pad</button>
-      <button id="btn-fullscreen" class="hud-btn" title="Toggle Fullscreen">Fullscreen</button>
-      <button id="btn-end" class="hud-btn danger" title="Terminate Isolated Session">End Session</button>
+        <!-- Hidden selectors preserved for state/API compatibility -->
+        <select id="select-quality" style="display:none;" title="Stream Quality Preset">
+          <option value="low">Low (4 Mbps)</option>
+          <option value="medium">Medium (8 Mbps)</option>
+          <option value="high" selected>High (15 Mbps)</option>
+          <option value="ultra">Ultra (25 Mbps)</option>
+        </select>
+        <button id="btn-touch" style="display:none;" title="Toggle On-Screen Touch Controller">Touch</button>
+      </div>
     </div>
 
     <!-- Real-Time Stream Stats & Isolation Verification Overlay -->
-    <div id="stats-overlay">
+    <div id="stats-overlay" class="hidden">
       <div class="stats-title">
         <span>Stream Telemetry</span>
         <span id="pad-indicator" style="color: var(--text-muted);">No Pad</span>
       </div>
       <div class="stat-row">
-        <span class="stat-label">User / AppID</span>
-        <span id="stat-user" class="stat-val">default / App 0</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">Saved High Score</span>
-        <span id="stat-save" class="stat-val">0 (Run #1)</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">Steam Login</span>
-        <span id="stat-steam" class="stat-val">In-Stream Only</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">State</span>
-        <span id="stat-state" class="stat-val">starting</span>
-      </div>
-      <div class="stat-row">
         <span class="stat-label">Resolution / FPS</span>
-        <span id="stat-res" class="stat-val">1280x720 @ 60</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">Bitrate</span>
-        <span id="stat-bitrate" class="stat-val">0.0 Mbps</span>
+        <span id="stat-res" class="stat-val">1080p @ 60</span>
       </div>
       <div class="stat-row">
         <span class="stat-label">Input RTT (Ping)</span>
         <span id="stat-rtt" class="stat-val">-- ms</span>
       </div>
       <div class="stat-row">
+        <span class="stat-label">Bitrate</span>
+        <span id="stat-bitrate" class="stat-val">0.0 Mbps</span>
+      </div>
+      <div class="stat-row">
         <span class="stat-label">Packet Loss</span>
         <span id="stat-loss" class="stat-val">0</span>
       </div>
       <div class="stat-row">
-        <span class="stat-label">Encoder</span>
-        <span class="stat-val">NVIDIA NVENC H.264</span>
+        <span class="stat-label">State</span>
+        <span id="stat-state" class="stat-val">starting</span>
       </div>
       <div id="iso-box" class="iso-badge">
-        Verifying session isolation...
+        Hardware Isolated (VIRTUAL-1)
       </div>
+
+      <!-- Retained hidden elements for script compatibility -->
+      <span id="stat-user" style="display:none;"></span>
+      <span id="stat-save" style="display:none;"></span>
+      <span id="stat-steam" style="display:none;"></span>
     </div>
 
     <!-- On-Screen Touch Controller for Mobile / Tablet -->
@@ -405,7 +458,7 @@
     </div>
 
     <div id="pointer-hint">
-      Click for UI / Steam Login • Double-Click or 'Lock Mouse' for 3D FPS Look • WASD to Move • F to Fire • Space to Jump
+      WASD Move • Space Jump • Shift Sprint • Click / 'Lock Aim' for 3D Camera Look
     </div>
 
     <!-- Session Ended Modal -->
@@ -413,10 +466,10 @@
       <div class="modal-card">
         <h2 id="modal-title">Session Ended</h2>
         <p id="modal-desc">
-          The game has exited and your isolated container environment has been completely deleted.
+          The game has exited and your isolated environment has been closed.
         </p>
-        <button id="btn-reconnect" class="hud-btn active" style="padding: 10px 20px; font-size: 14px;">
-          Reconnect
+        <button id="btn-reconnect" class="hud-btn active" style="padding: 10px 22px; font-size: 13px;">
+          Back to Library
         </button>
       </div>
     </div>
@@ -424,9 +477,12 @@
 
   <script>
     (() => {
+      const stage = document.getElementById('player-stage');
       const video = document.getElementById('stream-video');
       const statusDot = document.getElementById('status-dot');
       const statusText = document.getElementById('status-text');
+      const hudPillHandle = document.getElementById('hud-pill-handle');
+      const hudBar = document.getElementById('hud-bar');
       const statsOverlay = document.getElementById('stats-overlay');
       const statUser = document.getElementById('stat-user');
       const statSave = document.getElementById('stat-save');
@@ -460,6 +516,54 @@
       let lastBytesReceived = 0;
       let lastStatsTime = performance.now();
       let latestRttMs = null;
+      let hudHideTimeout = null;
+
+      function showHudTemporarily(durationMs = 3000) {
+        stage.classList.remove('hud-autohidden');
+        if (hudHideTimeout) {
+          clearTimeout(hudHideTimeout);
+          hudHideTimeout = null;
+        }
+        if (hudBar.classList.contains('collapsed')) {
+          hudHideTimeout = setTimeout(() => {
+            if (hudBar.classList.contains('collapsed')) {
+              stage.classList.add('hud-autohidden');
+            }
+          }, durationMs);
+        }
+      }
+
+      hudPillHandle.addEventListener('click', (e) => {
+        e.currentTarget.blur();
+        hudBar.classList.toggle('collapsed');
+        if (hudBar.classList.contains('collapsed')) {
+          showHudTemporarily(2500);
+        } else {
+          stage.classList.remove('hud-autohidden');
+          if (hudHideTimeout) clearTimeout(hudHideTimeout);
+        }
+      });
+
+      const hoverTrigger = document.getElementById('hud-hover-trigger');
+      if (hoverTrigger) {
+        hoverTrigger.addEventListener('mouseenter', () => {
+          showHudTemporarily(3500);
+        });
+      }
+
+      window.addEventListener('mousemove', (e) => {
+        if (document.pointerLockElement === video) return;
+        if (e.clientY < 36) {
+          showHudTemporarily(3000);
+        }
+      });
+
+      // Auto-fade bottom hint after 4 seconds of game starting
+      setTimeout(() => {
+        if (pointerHint) {
+          pointerHint.classList.add('fade-out');
+        }
+      }, 4000);
 
       function setStatus(state, label) {
         statState.textContent = state;
@@ -479,24 +583,17 @@
       function updateIsolationBadge(iso) {
         if (!iso) return;
         if (iso.all_passed) {
-          isoBox.innerHTML = '<strong>ISOLATION VERIFIED ✓</strong><br/>Host Home, Host Desktop, Physical Inputs &amp; Host Audio Blocked • Shared Library Read-Only';
+          isoBox.innerHTML = '<strong>HARDWARE ISOLATED</strong><br/>Host Desktop &amp; Files 100% Protected';
         } else {
-          isoBox.innerHTML = '<strong>ISOLATION ACTIVE</strong><br/>Mode: ' + (iso.sandbox_mode || 'isolated');
+          isoBox.innerHTML = '<strong>ISOLATION ACTIVE</strong>';
         }
       }
 
       function updateStatusTelemetry(st) {
         if (!st) return;
-        statUser.textContent = `${st.user_id || 'default'} / App ${st.app_id || '0'}`;
-        if (st.savegame) {
-          statSave.textContent = `${st.savegame.high_score || 0} (Run #${st.savegame.sessions_played || 1})`;
-        }
-        if (st.steam_login_remembered) {
-          statSteam.textContent = 'Remembered ✓';
-          statSteam.style.color = '#34d399';
-        } else {
-          statSteam.textContent = 'In-Stream Only';
-          statSteam.style.color = '#94a3b8';
+        if (statUser) statUser.textContent = `${st.user_id || 'default'} / App ${st.app_id || '0'}`;
+        if (st.savegame && statSave) {
+          statSave.textContent = `${st.savegame.high_score || 0} pts`;
         }
         updateIsolationBadge(st.isolation);
       }
@@ -504,7 +601,8 @@
       function attachDataChannel(channel) {
         dc = channel;
         dc.onopen = () => {
-          setStatus('playing', 'PLAYING (LOW-LATENCY DC)');
+          setStatus('playing', 'LIVE STREAM');
+          showHudTemporarily(3000);
         };
         dc.onmessage = (ev) => {
           try {
@@ -526,7 +624,7 @@
         ws = new WebSocket(`${proto}//${location.host}/ws`);
 
         ws.onopen = () => {
-          setStatus('ready', 'NEGOTIATING WEBRTC...');
+          setStatus('ready', 'STREAM READY');
         };
 
         ws.onmessage = async (event) => {
@@ -554,6 +652,7 @@
                 video.play().catch(() => {});
               }
               setStatus('playing', 'LIVE STREAM');
+              showHudTemporarily(3000);
             };
 
             pc.onicecandidate = (ev) => {
@@ -628,7 +727,6 @@
         return { x: +x.toFixed(4), y: +y.toFixed(4) };
       }
 
-      // Pointer Lock & Mouse Input (supports both normal UI cursor mode for Steam login & FPS Pointer Lock)
       btnLockMouse.addEventListener('click', () => {
         video.muted = false;
         video.play().catch(() => {});
@@ -647,8 +745,17 @@
 
       document.addEventListener('pointerlockchange', () => {
         const locked = document.pointerLockElement === video;
+        btnLockMouse.textContent = locked ? 'Unlock Aim' : 'Lock Aim';
         btnLockMouse.classList.toggle('active', locked);
-        pointerHint.classList.toggle('hidden', locked);
+        if (pointerHint) {
+          pointerHint.classList.toggle('hidden', locked);
+        }
+        if (locked) {
+          stage.classList.add('hud-autohidden');
+          hudBar.classList.add('collapsed');
+        } else {
+          showHudTemporarily(3000);
+        }
       });
 
       window.addEventListener('mousemove', (e) => {
@@ -685,7 +792,7 @@
 
       // Keyboard Input
       window.addEventListener('keydown', (e) => {
-        if (e.code === 'Tab' && document.pointerLockElement !== video) {
+        if ((e.code === 'Tab' || e.code === 'Backquote') && document.pointerLockElement !== video) {
           e.preventDefault();
           statsOverlay.classList.toggle('hidden');
           btnStats.classList.toggle('active', !statsOverlay.classList.contains('hidden'));
@@ -829,7 +936,11 @@
       });
 
       btnReconnect.addEventListener('click', () => {
-        location.reload();
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = '/';
+        }
       });
 
       // Periodic Ping + WebRTC GetStats Telemetry (1Hz)
