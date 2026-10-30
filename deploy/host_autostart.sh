@@ -58,18 +58,20 @@ setup_hardware() {
   # Ensure uinput kernel module is loaded
   if ! lsmod | grep -q "^uinput" 2>/dev/null; then
     echo "[HARDWARE] Loading uinput kernel module..."
-    if command -v sudo >/dev/null 2>&1; then
-      sudo modprobe uinput 2>/dev/null || true
-    else
+    if [[ $EUID -eq 0 ]]; then
       modprobe uinput 2>/dev/null || true
+    else
+      sudo -n modprobe uinput 2>/dev/null || true
     fi
   fi
 
   # Ensure /dev/uinput is writable so Sunshine and virtual gamepad drivers can simulate input
   if [[ -e /dev/uinput && ! -w /dev/uinput ]]; then
     echo "[HARDWARE] Granting write permissions to /dev/uinput..."
-    if command -v sudo >/dev/null 2>&1; then
-      sudo chmod 0666 /dev/uinput 2>/dev/null || true
+    if [[ $EUID -eq 0 ]]; then
+      chmod 0666 /dev/uinput 2>/dev/null || true
+    else
+      sudo -n chmod 0666 /dev/uinput 2>/dev/null || true
     fi
   fi
 
@@ -77,10 +79,14 @@ setup_hardware() {
   UDEV_RULE="/etc/udev/rules.d/85-sunshine-input.rules"
   if [[ -d /etc/udev/rules.d ]] && [[ ! -f "$UDEV_RULE" ]]; then
     echo "[HARDWARE] Installing persistent udev rule for virtual controllers..."
-    if command -v sudo >/dev/null 2>&1; then
-      echo 'KERNEL=="uinput", SUBSYSTEM=="misc", OPTIONS+="static_node=uinput", TAG+="uaccess", MODE="0666"' | sudo tee "$UDEV_RULE" >/dev/null 2>&1 || true
-      sudo udevadm control --reload-rules 2>/dev/null || true
-      sudo udevadm trigger 2>/dev/null || true
+    if [[ $EUID -eq 0 ]]; then
+      echo 'KERNEL=="uinput", SUBSYSTEM=="misc", OPTIONS+="static_node=uinput", TAG+="uaccess", MODE="0666"' > "$UDEV_RULE" 2>/dev/null || true
+      udevadm control --reload-rules 2>/dev/null || true
+      udevadm trigger 2>/dev/null || true
+    else
+      echo 'KERNEL=="uinput", SUBSYSTEM=="misc", OPTIONS+="static_node=uinput", TAG+="uaccess", MODE="0666"' | sudo -n tee "$UDEV_RULE" >/dev/null 2>&1 || true
+      sudo -n udevadm control --reload-rules 2>/dev/null || true
+      sudo -n udevadm trigger 2>/dev/null || true
     fi
   fi
 }
@@ -136,7 +142,11 @@ check_tailscale() {
     TS_IP=$(tailscale ip -4 2>/dev/null || true)
     if [[ -z "$TS_IP" ]]; then
       echo "[TAILSCALE] Starting Tailscale daemon..."
-      sudo systemctl start tailscaled 2>/dev/null || true
+      if [[ $EUID -eq 0 ]]; then
+        systemctl start tailscaled 2>/dev/null || true
+      else
+        sudo -n systemctl start tailscaled 2>/dev/null || true
+      fi
       TS_IP=$(tailscale ip -4 2>/dev/null || true)
     fi
     if [[ -n "$TS_IP" ]]; then

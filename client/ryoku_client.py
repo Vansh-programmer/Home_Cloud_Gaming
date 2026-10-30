@@ -104,26 +104,41 @@ class BaseRyokuClient:
             text=True
         )
 
-        # Give Moonlight 1s to open pairing socket with Sunshine
-        time.sleep(1.0)
+        # Submit PIN to Sunshine via Ryoku backend with retry
+        paired_ok = False
+        for attempt in range(4):
+            time.sleep(1.0)
+            if proc.poll() is not None:
+                break
+            try:
+                req = urllib.request.Request(
+                    f"{self.server_url}/api/client/pair",
+                    data=json.dumps({"pin": auto_pin}).encode("utf-8"),
+                    headers={"Content-Type": "application/json"}
+                )
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    resp_data = json.loads(resp.read().decode("utf-8"))
+                    if resp_data.get("ok"):
+                        print(f"[RYOKU PAIR] Sunshine accepted PIN {auto_pin} (HTTP {resp.status})")
+                        paired_ok = True
+                        break
+            except urllib.error.HTTPError as he:
+                err_body = he.read().decode("utf-8", errors="ignore")
+                print(f"[RYOKU PAIR] Server returned HTTP {he.code}: {err_body}")
+                if "No pending pairing request" in err_body and attempt < 3:
+                    continue
+                break
+            except Exception as e:
+                print(f"[RYOKU PAIR] Notice sending PIN to server: {e}")
+                if attempt < 3:
+                    continue
+                break
 
-        # Submit PIN to Sunshine via Ryoku backend
         try:
-            req = urllib.request.Request(
-                f"{self.server_url}/api/client/pair",
-                data=json.dumps({"pin": auto_pin}).encode("utf-8"),
-                headers={"Content-Type": "application/json"}
-            )
-            with urllib.request.urlopen(req, timeout=5) as resp:
-                print(f"[RYOKU PAIR] Sunshine accepted PIN {auto_pin} (HTTP {resp.status})")
-        except Exception as e:
-            print(f"[RYOKU PAIR] Notice sending PIN to server: {e}")
-
-        try:
-            stdout, stderr = proc.communicate(timeout=6)
+            stdout, stderr = proc.communicate(timeout=10)
             out = (stdout or "") + (stderr or "")
             print(f"[RYOKU PAIR] Moonlight output:\n{out}")
-            if "successfully paired" in out.lower() or proc.returncode == 0:
+            if "successfully paired" in out.lower() or proc.returncode == 0 or paired_ok:
                 print(f"[RYOKU PAIR] Host '{self.host_target}' successfully paired!")
                 return True
         except Exception as e:
