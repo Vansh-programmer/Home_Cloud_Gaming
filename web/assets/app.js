@@ -157,12 +157,18 @@
   // Helper: Fallback Cover SVG Data URI for Offline Steam Games
   // --------------------------------------------------------------------------
   function makeFallbackCoverSvg(title, appId) {
-    const safeTitle = (title || 'Steam Game').replace(/[<>&"']/g, '');
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900">
-      <rect width="600" height="900" fill="#0b1528"/>
-      <circle cx="300" cy="360" r="220" fill="#1e3a8a" fill-opacity="0.35"/>
-      <text x="300" y="420" fill="#38bdf8" font-family="sans-serif" font-size="34" font-weight="800" text-anchor="middle">${safeTitle.slice(0, 22)}</text>
-      <text x="300" y="475" fill="#94a3b8" font-family="sans-serif" font-size="20" font-weight="600" text-anchor="middle">STEAM APP #${appId}</text>
+    const safeTitle = (title || 'Game').replace(/[<>&"']/g, '');
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 750">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f8fafc"/>
+          <stop offset="100%" stop-color="#e2e8f0"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="750" fill="url(#bg)"/>
+      <circle cx="300" cy="330" r="160" fill="#00D09C" fill-opacity="0.12"/>
+      <text x="300" y="340" fill="#0f172a" font-family="'Plus Jakarta Sans', sans-serif" font-size="34" font-weight="800" text-anchor="middle">${safeTitle.slice(0, 22)}</text>
+      <text x="300" y="390" fill="#64748b" font-family="'Plus Jakarta Sans', sans-serif" font-size="18" font-weight="600" text-anchor="middle">App #${appId}</text>
     </svg>`;
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
   }
@@ -335,7 +341,10 @@
           <img alt="${cleanTitle}" src="${coverSrc}" loading="lazy" />
           ${badgeHtml}
           <div class="game-play-overlay">
-            <span class="game-play-btn">▶ Play</span>
+            <span class="game-play-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+              <span>Play</span>
+            </span>
           </div>
         </div>
         <div class="game-card-title ps5-card-title">${cleanTitle}</div>
@@ -451,7 +460,7 @@
         if (resp.ok) {
           selectedGame.launch_options = val;
           if (statusLaunchOpts) {
-            statusLaunchOpts.textContent = 'Saved ✓';
+            statusLaunchOpts.textContent = 'Saved';
             setTimeout(() => { statusLaunchOpts.textContent = 'Configured'; }, 2000);
           }
         }
@@ -547,8 +556,8 @@
         const host = (inputHost && inputHost.value.trim()) || streamingHost;
         const text = `flatpak run com.moonlight_stream.Moonlight stream ${host} "${title}"`;
         navigator.clipboard.writeText(text).then(() => {
-          btnCopy.textContent = '✓ Copied!';
-          setTimeout(() => { btnCopy.textContent = '📋 Copy CLI'; }, 2000);
+          btnCopy.textContent = 'Copied';
+          setTimeout(() => { btnCopy.textContent = 'Copy'; }, 2000);
         });
       };
     }
@@ -566,15 +575,15 @@
           });
           const d = await res.json();
           if (res.ok && d.ok) {
-            btnPair.textContent = '✓ Paired!';
-            alert('Host pairing approved! You can now launch the stream in Moonlight.');
+            btnPair.textContent = 'Paired';
+            alert('Host paired successfully. You can now launch Moonlight.');
           } else {
             alert('Pairing failed: ' + (d.error || 'Check that Sunshine is running on host'));
-            btnPair.textContent = '🔑 1-Click Auto-Pair Host';
+            btnPair.textContent = 'Pair Host';
           }
         } catch (err) {
           alert('Could not reach pair API: ' + err.message);
-          btnPair.textContent = '🔑 1-Click Auto-Pair Host';
+          btnPair.textContent = 'Pair Host';
         }
       };
     }
@@ -703,9 +712,9 @@
     if (s.savegame) {
       stSave.textContent = `${s.savegame.high_score || 0} pts (Run #${s.savegame.sessions_played || 1})`;
     }
-    stSteam.textContent = s.steam_login_remembered ? 'Remembered ✓' : 'In-Stream Only';
+    stSteam.textContent = s.steam_login_remembered ? 'Remembered' : 'In-Stream Only';
     if (s.isolation && s.isolation.all_passed) {
-      stIsoBox.innerHTML = '<strong>ISOLATION VERIFIED ✓</strong><br/>Host Home, Host Desktop, Physical Inputs &amp; Host Audio Blocked';
+      stIsoBox.innerHTML = '<strong>ISOLATION VERIFIED</strong><br/>Host Home, Host Desktop, Physical Inputs &amp; Host Audio Blocked';
     }
 
     if (!streamOpen || streamReplaced) return;
@@ -2075,10 +2084,10 @@
       const data = await res.json();
       if (res.ok && data.ok) {
         if (adminPowerFeedback) {
-          adminPowerFeedback.textContent = `✓ ${data.message || 'Action sent.'} Use the ESP8266 remote switch on the offline page to wake/boot.`;
+          adminPowerFeedback.textContent = data.message || 'Action sent.';
         }
       } else {
-        if (adminPowerFeedback) adminPowerFeedback.textContent = `⚠️ Error: ${data.error || 'Failed'}`;
+        if (adminPowerFeedback) adminPowerFeedback.textContent = `Error: ${data.error || 'Failed'}`;
       }
     } catch (err) {
       if (adminPowerFeedback) adminPowerFeedback.textContent = `Host unreachable or transitioning: ${err.message}`;
@@ -2313,7 +2322,7 @@
           <strong>${u.username}</strong>
           <span class="badge-pill ${u.active ? 'ok' : 'danger'}" style="margin-left:4px;">${u.active ? u.role : 'suspended'}</span>
           <div style="font-size:11px; color:var(--text-muted);">
-            High Score: ${(u.cyberarena_save && u.cyberarena_save.high_score) || 0} • Steam: ${u.steam_login_remembered ? 'Remembered ✓' : '—'}
+            High Score: ${(u.cyberarena_save && u.cyberarena_save.high_score) || 0} • Steam: ${u.steam_login_remembered ? 'Remembered' : '-'}
           </div>
         </div>
         ${u.username !== currentUser.username
@@ -2496,9 +2505,9 @@
 
     if (btnShowDesktopApp && modalDesktopApp) {
       if (window.ryokuNative && window.ryokuNative.isNative) {
-        btnShowDesktopApp.innerHTML = `<span>✓ NATIVE 120 FPS ACTIVE</span>`;
-        btnShowDesktopApp.style.borderColor = 'var(--ok)';
-        btnShowDesktopApp.style.color = 'var(--ok)';
+        btnShowDesktopApp.innerHTML = `<span>Native Active</span>`;
+        btnShowDesktopApp.style.borderColor = 'var(--brand-primary)';
+        btnShowDesktopApp.style.color = 'var(--brand-dark)';
       }
 
       btnShowDesktopApp.onclick = () => {
@@ -2532,7 +2541,7 @@
         localStorage.setItem('ryoku_engine', 'moonlight');
         if (badge) badge.style.display = 'inline-block';
         if (btnMoonlight) {
-          btnMoonlight.textContent = '⚡ MOONLIGHT 120 FPS';
+          btnMoonlight.textContent = 'Moonlight';
           btnMoonlight.classList.add('active');
         }
         if (btnWebrtc) {
@@ -2577,7 +2586,7 @@
       btnSubmitPin.onclick = async () => {
         const pin = pinInput.value.trim();
         if (!pin || pin.length !== 4) {
-          if (pairFeedback) pairFeedback.textContent = '⚠️ Enter a valid 4-digit PIN.';
+          if (pairFeedback) pairFeedback.textContent = 'Enter 4-digit PIN.';
           return;
         }
         btnSubmitPin.disabled = true;
@@ -2590,21 +2599,21 @@
           });
           const data = await res.json();
           if (res.ok && data.ok) {
-            btnSubmitPin.textContent = '✓ Paired!';
+            btnSubmitPin.textContent = 'Paired';
             pinInput.value = '';
             if (pairFeedback) {
-              pairFeedback.innerHTML = '<strong style="color:var(--volt);">✓ Host paired successfully! Moonlight can now stream games.</strong>';
+              pairFeedback.textContent = 'Host paired successfully.';
             }
           } else {
             btnSubmitPin.disabled = false;
-            btnSubmitPin.textContent = 'Approve PIN';
+            btnSubmitPin.textContent = 'Pair';
             if (pairFeedback) {
-              pairFeedback.textContent = `❌ ${data.error || 'Check Sunshine on host PC'}`;
+              pairFeedback.textContent = data.error || 'Check Sunshine on host PC';
             }
           }
         } catch (err) {
           btnSubmitPin.disabled = false;
-          btnSubmitPin.textContent = 'Approve PIN';
+          btnSubmitPin.textContent = 'Pair';
           if (pairFeedback) pairFeedback.textContent = `Error: ${err.message}`;
         }
       };

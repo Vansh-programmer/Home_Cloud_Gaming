@@ -124,7 +124,7 @@ class BaseRyokuClient:
             out = (stdout or "") + (stderr or "")
             print(f"[RYOKU PAIR] Moonlight output:\n{out}")
             if "successfully paired" in out.lower() or proc.returncode == 0:
-                print(f"[RYOKU PAIR] ✓ Host '{self.host_target}' successfully paired!")
+                print(f"[RYOKU PAIR] Host '{self.host_target}' successfully paired!")
                 return True
         except Exception as e:
             print(f"[RYOKU PAIR] Pair wait notice: {e}")
@@ -392,7 +392,7 @@ class RyokuNativeGTKWindow(Gtk.Window, BaseRyokuClient):
 
         settings = Gtk.Settings.get_default()
         if settings:
-            settings.set_property("gtk-application-prefer-dark-theme", True)
+            settings.set_property("gtk-application-prefer-dark-theme", False)
 
         self._resolve_streaming_host()
 
@@ -402,12 +402,12 @@ class RyokuNativeGTKWindow(Gtk.Window, BaseRyokuClient):
         # Header
         header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         emblem = Gtk.Label()
-        emblem.set_markup("<span font='18' weight='heavy' foreground='#c8ff00'>⚡ RYOKU</span>")
+        emblem.set_markup("<span font='18' weight='heavy' foreground='#00d09c'>ryoku_game</span>")
         header_box.pack_start(emblem, False, False, 0)
 
         sub_label = Gtk.Label()
         sub_label.set_markup(
-            f"<span font='11' foreground='#94a3b8'>Native Moonlight 120 FPS • Host: <span foreground='#c8ff00' weight='bold'>{self.host_target}</span></span>"
+            f"<span font='12' foreground='#475569'>Moonlight • Host: <span foreground='#00d09c' weight='bold'>{self.host_target}</span></span>"
         )
         header_box.pack_start(sub_label, False, False, 0)
         main_box.pack_start(header_box, False, False, 0)

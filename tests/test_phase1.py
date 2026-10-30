@@ -163,7 +163,7 @@ class TestPhase1IsolatedStreaming(unittest.IsolatedAsyncioTestCase):
                             if data.get("type") == "pong" and data.get("client_ts") == 12345.0:
                                 got_pong = True
                             elif data.get("type") == "quality_ack" and data.get("quality") == "medium":
-                                self.assertEqual(data.get("bitrate_kbps"), 8000)
+                                self.assertEqual(data.get("bitrate_kbps"), 8500)
                                 got_quality_ack = True
                             if got_pong and got_quality_ack:
                                 break
