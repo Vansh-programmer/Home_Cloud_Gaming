@@ -295,80 +295,286 @@
     ambientBackdrop.style.backgroundImage = `url("${fullUrl}")`;
   }
 
+  let rotatorCurrentIndex = 0;
+
   function renderGamesGrid() {
     if (!gamesGrid) return;
     gamesGrid.innerHTML = '';
+    gamesGrid.className = 'games-showcase-layout';
 
     const list = (allGames && allGames.length > 0) ? allGames : [];
 
-    if (list.length === 0) {
-      gamesGrid.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align:center; padding:60px 20px; color:var(--fg-1);">
-          <p style="font-size:15px; font-weight:600;">No games found.</p>
-          <p style="font-size:12px; margin-top:6px;">Connect your Steam account or add games to begin streaming.</p>
-        </div>
-      `;
-      return;
+    // 1. Identify Steam and Heroic Launchers
+    const steamData = list.find((g) => String(g.app_id) === '7' || (g.title && g.title.toLowerCase().includes('steam'))) || {
+      app_id: '7',
+      title: 'Steam',
+      cover_url: `${BASE_PREFIX}/assets/steam-tile.jpg`,
+      category: 'steam',
+    };
+
+    const heroicData = list.find((g) => String(g.app_id) === '8' || (g.title && g.title.toLowerCase().includes('heroic'))) || {
+      app_id: '8',
+      title: 'Heroic Game Launcher',
+      cover_url: `${BASE_PREFIX}/assets/heroic-tile.png`,
+      category: 'epic',
+    };
+
+    // 2. Filter Installed Games (excluding Launchers)
+    let installedGames = list.filter((g) => {
+      const isSteam = String(g.app_id) === '7' || (g.title && g.title.toLowerCase().includes('steam big picture'));
+      const isHeroic = String(g.app_id) === '8' || (g.title && g.title.toLowerCase().includes('heroic games launcher'));
+      return !isSteam && !isHeroic;
+    });
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase().trim();
+      installedGames = installedGames.filter((g) => (g.title || '').toLowerCase().includes(q));
     }
 
-    for (const g of list) {
-      const card = document.createElement('div');
-      card.className = 'game-card ps5-game-card';
-      card.dataset.appId = String(g.app_id);
-      const cleanTitle = getCleanTitle(g.title);
-      card.title = cleanTitle;
+    // --- LEFT BIG TILE: STEAM ---
+    const steamTile = document.createElement('div');
+    steamTile.className = 'launcher-big-tile steam-tile game-card';
+    steamTile.id = 'tile-launcher-steam';
+    steamTile.dataset.appId = '7';
+    steamTile.title = 'Steam';
+    steamTile.innerHTML = `
+      <div class="launcher-media">
+        <img alt="Steam" src="${BASE_PREFIX}/assets/steam-tile.jpg" loading="lazy" />
+        <div class="launcher-play-overlay">
+          <span class="launcher-play-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            <span>Launch</span>
+          </span>
+        </div>
+      </div>
+      <div class="launcher-meta">
+        <div class="launcher-title">Steam</div>
+      </div>
+    `;
+    steamTile.onmouseenter = () => {
+      setAmbientBackground(`${BASE_PREFIX}/assets/steam-tile.jpg`);
+    };
+    steamTile.onclick = () => {
+      startOrResumeGame('7', 'Steam Big Picture');
+    };
 
-      const isSteam = String(g.app_id) === '7' || g.category === 'steam';
-      const isEpic = g.category === 'epic' || String(g.app_id).startsWith('epic_') || String(g.app_id) === '8';
+    // --- RIGHT BIG TILE: HEROIC GAME LAUNCHER ---
+    const heroicTile = document.createElement('div');
+    heroicTile.className = 'launcher-big-tile heroic-tile game-card';
+    heroicTile.id = 'tile-launcher-heroic';
+    heroicTile.dataset.appId = '8';
+    heroicTile.title = 'Heroic Game Launcher';
+    heroicTile.innerHTML = `
+      <div class="launcher-media">
+        <img alt="Heroic Game Launcher" src="${BASE_PREFIX}/assets/heroic-tile.png" loading="lazy" />
+        <div class="launcher-play-overlay">
+          <span class="launcher-play-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            <span>Launch</span>
+          </span>
+        </div>
+      </div>
+      <div class="launcher-meta">
+        <div class="launcher-title">Heroic Game Launcher</div>
+      </div>
+    `;
+    heroicTile.onmouseenter = () => {
+      setAmbientBackground(`${BASE_PREFIX}/assets/heroic-tile.png`);
+    };
+    heroicTile.onclick = () => {
+      startOrResumeGame('8', 'Heroic Game Launcher');
+    };
 
-      let coverSrc = (g.cover_url && g.cover_url.startsWith('/assets/'))
-        ? (BASE_PREFIX + g.cover_url)
-        : (g.cover_url || makeFallbackCoverSvg(cleanTitle, g.app_id));
+    // --- MIDDLE ROTATOR: INSTALLED GAMES ROTATE ONE BY ONE ---
+    const middleRotator = document.createElement('div');
+    middleRotator.className = 'middle-games-rotator';
+    middleRotator.id = 'middle-games-rotator';
 
-      if (String(g.app_id) === '7') {
-        coverSrc = `${BASE_PREFIX}/assets/steam-banner.svg`;
-      }
+    middleRotator.innerHTML = `
+      <div class="rotator-container">
+        <button type="button" class="rotator-arrow-btn prev" id="rotator-btn-prev" aria-label="Previous Game" title="Previous Game">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <div class="rotator-viewport" id="rotator-viewport">
+          <div class="rotator-track" id="rotator-track"></div>
+        </div>
+        <button type="button" class="rotator-arrow-btn next" id="rotator-btn-next" aria-label="Next Game" title="Next Game">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div>
+      <div class="rotator-dots" id="rotator-dots"></div>
+    `;
 
-      let badgeHtml = '';
-      if (isEpic) {
-        badgeHtml = '<span class="game-badge epic">EPIC</span>';
-      } else if (isSteam) {
-        badgeHtml = '<span class="game-badge steam">STEAM</span>';
-      }
+    const track = middleRotator.querySelector('#rotator-track');
+    const dotsWrap = middleRotator.querySelector('#rotator-dots');
+    const prevBtn = middleRotator.querySelector('#rotator-btn-prev');
+    const nextBtn = middleRotator.querySelector('#rotator-btn-next');
+    const viewport = middleRotator.querySelector('#rotator-viewport');
 
-      card.innerHTML = `
-        <div class="game-card-media ps5-card-media">
-          <img alt="${cleanTitle}" src="${coverSrc}" loading="lazy" />
-          ${badgeHtml}
-          <div class="game-play-overlay">
-            <span class="game-play-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-              <span>Play</span>
-            </span>
+    if (installedGames.length === 0) {
+      track.innerHTML = `
+        <div class="rotator-empty-card">
+          <div class="rotator-empty-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="6" width="20" height="12" rx="2"/>
+              <path d="M6 12h4m-2-2v4m11-2h.01m-3 0h.01"/>
+            </svg>
           </div>
+          <div class="rotator-empty-title">No Games Installed</div>
+          <div class="rotator-empty-text">Launch Steam or Heroic to download games.</div>
         </div>
-        <div class="game-card-title ps5-card-title">${cleanTitle}</div>
       `;
+      prevBtn.style.display = 'none';
+      nextBtn.style.display = 'none';
+      dotsWrap.style.display = 'none';
+    } else {
+      // Build game cards
+      installedGames.forEach((g, idx) => {
+        const card = document.createElement('div');
+        card.className = 'rotator-game-card game-card';
+        card.dataset.appId = String(g.app_id);
+        const cleanTitle = getCleanTitle(g.title);
+        card.title = cleanTitle;
 
-      const img = card.querySelector('img');
-      img.onerror = () => {
-        img.onerror = null;
-        img.src = makeFallbackCoverSvg(cleanTitle, g.app_id);
-      };
+        let coverSrc = (g.cover_url && g.cover_url.startsWith('/assets/'))
+          ? (BASE_PREFIX + g.cover_url)
+          : (g.cover_url || makeFallbackCoverSvg(cleanTitle, g.app_id));
 
-      card.onmouseenter = () => {
-        setAmbientBackground(g.header_url || g.cover_url);
-      };
+        card.innerHTML = `
+          <div class="rotator-card-media">
+            <img alt="${cleanTitle}" src="${coverSrc}" loading="lazy" />
+            <div class="game-play-overlay">
+              <span class="game-play-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                <span>Play</span>
+              </span>
+            </div>
+          </div>
+          <div class="rotator-card-meta">
+            <div class="rotator-card-title">${cleanTitle}</div>
+          </div>
+        `;
 
-      card.onclick = () => {
-        startOrResumeGame(g.app_id, cleanTitle);
-      };
+        const img = card.querySelector('img');
+        img.onerror = () => {
+          img.onerror = null;
+          img.src = makeFallbackCoverSvg(cleanTitle, g.app_id);
+        };
 
-      gamesGrid.appendChild(card);
+        card.onmouseenter = () => {
+          setAmbientBackground(g.header_url || g.cover_url);
+        };
+
+        card.onclick = () => {
+          startOrResumeGame(g.app_id, cleanTitle);
+        };
+
+        track.appendChild(card);
+
+        // Dot indicator
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'rotator-dot' + (idx === 0 ? ' active' : '');
+        dot.setAttribute('aria-label', `Go to ${cleanTitle}`);
+        dot.onclick = () => {
+          rotatorCurrentIndex = idx;
+          updateRotator();
+        };
+        dotsWrap.appendChild(dot);
+      });
+
+      function updateRotator() {
+        const total = installedGames.length;
+        if (total === 0) return;
+
+        if (rotatorCurrentIndex < 0) rotatorCurrentIndex = total - 1;
+        if (rotatorCurrentIndex >= total) rotatorCurrentIndex = 0;
+
+        const firstCard = track.querySelector('.rotator-game-card');
+        const cardWidth = firstCard ? firstCard.getBoundingClientRect().width : ((viewport.clientWidth - 20) / 2);
+        const gap = 20;
+        const shift = rotatorCurrentIndex * (cardWidth + gap);
+
+        track.style.transform = `translateX(-${shift}px)`;
+
+        const dots = dotsWrap.querySelectorAll('.rotator-dot');
+        dots.forEach((d, i) => {
+          d.classList.toggle('active', i === rotatorCurrentIndex);
+        });
+
+        if (installedGames[rotatorCurrentIndex]) {
+          setAmbientBackground(installedGames[rotatorCurrentIndex].header_url || installedGames[rotatorCurrentIndex].cover_url);
+        }
+      }
+
+      if (installedGames.length <= 1) {
+        track.classList.add('single-card');
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+        dotsWrap.style.display = 'none';
+      } else {
+        track.classList.remove('single-card');
+        prevBtn.style.display = 'flex';
+        nextBtn.style.display = 'flex';
+        dotsWrap.style.display = 'flex';
+        prevBtn.onclick = (e) => {
+          e.stopPropagation();
+          rotatorCurrentIndex = (rotatorCurrentIndex - 1 + installedGames.length) % installedGames.length;
+          updateRotator();
+        };
+
+        nextBtn.onclick = (e) => {
+          e.stopPropagation();
+          rotatorCurrentIndex = (rotatorCurrentIndex + 1) % installedGames.length;
+          updateRotator();
+        };
+
+        // Touch swipe support for smooth mobile interaction
+        let startX = 0;
+        viewport.addEventListener('touchstart', (e) => {
+          if (e.changedTouches && e.changedTouches[0]) {
+            startX = e.changedTouches[0].screenX;
+          }
+        }, { passive: true });
+
+        viewport.addEventListener('touchend', (e) => {
+          if (e.changedTouches && e.changedTouches[0]) {
+            const endX = e.changedTouches[0].screenX;
+            const diff = startX - endX;
+            if (Math.abs(diff) > 40) {
+              if (diff > 0) {
+                rotatorCurrentIndex = (rotatorCurrentIndex + 1) % installedGames.length;
+              } else {
+                rotatorCurrentIndex = (rotatorCurrentIndex - 1 + installedGames.length) % installedGames.length;
+              }
+              updateRotator();
+            }
+          }
+        }, { passive: true });
+
+        window.addEventListener('resize', () => {
+          updateRotator();
+        }, { passive: true });
+      }
+
+      // Initial update
+      updateRotator();
     }
 
-    if (list.length > 0) {
-      setAmbientBackground(list[0].header_url || list[0].cover_url);
+    // Append 3 columns: Steam (left), Middle Rotator, Heroic (right)
+    gamesGrid.appendChild(steamTile);
+    gamesGrid.appendChild(middleRotator);
+    gamesGrid.appendChild(heroicTile);
+
+    // Initial ambient backdrop
+    if (installedGames.length > 0) {
+      setAmbientBackground(installedGames[0].header_url || installedGames[0].cover_url);
+    } else {
+      setAmbientBackground(`${BASE_PREFIX}/assets/steam-tile.jpg`);
     }
 
     if (steamFeaturedCard) {

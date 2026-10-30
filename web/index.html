@@ -157,20 +157,21 @@
       <div class="ps5-ambient-backdrop" id="ps5-ambient-backdrop"></div>
 
       <div class="library-container">
-        <!-- Top bar with Title & Minimal Moonlight Pairing Tool -->
-        <div class="library-top-bar">
+        <!-- Top bar with Centered Title -->
+        <div class="library-top-bar centered">
           <h1 class="library-main-title">Games</h1>
-
-          <div class="moonlight-pair-bar" id="moonlight-pair-bar">
-            <span class="pair-label">Moonlight PIN</span>
-            <input type="text" id="manual-pair-pin-input" maxlength="4" placeholder="0000" />
-            <button type="button" id="btn-submit-manual-pin" class="console-action-btn primary sm">Pair</button>
-            <span id="pair-feedback-msg" class="pair-feedback-text"></span>
-          </div>
         </div>
 
         <div class="games-grid-showcase" id="games-grid"></div>
         <div id="steam-featured-card" style="display:none;"></div>
+
+        <!-- Moonlight PIN Tool moved to bottom, centered and enlarged -->
+        <div class="moonlight-pair-bar-bottom" id="moonlight-pair-bar">
+          <span class="pair-label">Moonlight PIN</span>
+          <input type="text" id="manual-pair-pin-input" maxlength="4" placeholder="0000" />
+          <button type="button" id="btn-submit-manual-pin" class="console-action-btn primary lg">Pair</button>
+          <span id="pair-feedback-msg" class="pair-feedback-text"></span>
+        </div>
       </div>
     </div>
 
