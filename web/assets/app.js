@@ -704,7 +704,16 @@
       stageModal.classList.add('hidden');
       hudBar.classList.add('collapsed');
       updateHudPillSummary();
-      showStreamHudTemporarily(4000);
+      showStreamHudTemporarily(3500);
+      const controlsBar = document.getElementById('stream-controls-bar');
+      if (controlsBar) {
+        controlsBar.classList.remove('fade-out');
+        setTimeout(() => {
+          if (controlsBar && streamOpen) {
+            controlsBar.classList.add('fade-out');
+          }
+        }, 4000);
+      }
     } else if (state === 'ended' || isError) {
       stageModal.classList.remove('hidden');
       stageTitle.textContent = isError ? 'Stream Connection Notice' : 'Session Ended';
@@ -1402,11 +1411,8 @@
   streamViewport.addEventListener('mousemove', (e) => {
     if (!streamOpen) return;
     if (document.pointerLockElement === videoEl) return;
-    if (e.clientY < 48) {
-      streamViewport.classList.remove('hud-autohidden');
-      if (hudHideTimeout) clearTimeout(hudHideTimeout);
-    } else {
-      showStreamHudTemporarily(2800);
+    if (e.clientY < 40) {
+      showStreamHudTemporarily(3000);
     }
   });
 

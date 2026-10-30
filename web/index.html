@@ -269,29 +269,31 @@
   <div class="stream-viewport" id="stream-viewport">
     <div class="hud-hover-trigger" id="hud-hover-trigger"></div>
     <div class="floating-hud">
-      <div class="hud-pill-handle" id="hud-pill-handle">
+      <div class="hud-pill-handle" id="hud-pill-handle" title="Click to toggle controls">
         <span class="hud-live-indicator"></span>
-        <span id="hud-pill-summary">Stream Controls</span>
+        <span id="hud-pill-summary">1080p • 60 FPS</span>
       </div>
       <div class="hud-bar collapsed" id="hud-bar">
-        <button class="btn btn-hud" id="btn-hud-lock-mouse">Lock Aim</button>
-        <button class="btn btn-hud active" id="btn-hud-mute">Audio On</button>
-        <select class="btn btn-hud" id="select-hud-resolution" aria-label="Resolution">
+        <button class="btn btn-hud" id="btn-hud-lock-mouse" title="Lock Mouse for 3D Camera Controls">Lock Aim</button>
+        <button class="btn btn-hud active" id="btn-hud-mute" title="Toggle Game Audio">Audio</button>
+        <button class="btn btn-hud" id="btn-hud-fullscreen" title="Toggle Fullscreen">Fullscreen</button>
+        <button class="btn btn-hud" id="btn-hud-stats" title="Toggle Telemetry Stats">Stats</button>
+        <button class="btn btn-hud btn-danger" id="btn-hud-quit" title="Exit Stream">Exit</button>
+
+        <!-- Hidden selectors preserved for state/API compatibility -->
+        <select class="btn btn-hud" id="select-hud-resolution" style="display:none;" aria-label="Resolution">
           <option value="1920x1080" selected>1080p 60</option>
           <option value="1280x720">720p 60</option>
         </select>
-        <select class="btn btn-hud" id="select-hud-quality" aria-label="Bitrate">
+        <select class="btn btn-hud" id="select-hud-quality" style="display:none;" aria-label="Bitrate">
           <option value="low">3.5 Mbps</option>
           <option value="remote" selected>6 Mbps</option>
           <option value="medium">8.5 Mbps</option>
-          <option value="high">15 Mbps</option>
+          <option value="high" id="select-hud-quality-high" selected>15 Mbps</option>
           <option value="ultra">25 Mbps</option>
         </select>
-        <button class="btn btn-hud" id="btn-hud-stats">Stats</button>
-        <button class="btn btn-hud" id="btn-hud-touch">Touch</button>
-        <button class="btn btn-hud" id="btn-hud-fullscreen">Fullscreen</button>
-        <button class="btn btn-hud" id="btn-hud-minimize">Minimize</button>
-        <button class="btn btn-hud btn-danger" id="btn-hud-quit">Quit</button>
+        <button class="btn btn-hud" id="btn-hud-touch" style="display:none;">Touch</button>
+        <button class="btn btn-hud" id="btn-hud-minimize" style="display:none;">Minimize</button>
       </div>
     </div>
 
@@ -299,48 +301,39 @@
       <aside class="stream-stats-overlay" id="stream-stats-overlay">
         <div class="stats-heading">
           <span class="stats-live-dot"></span>
-          <span>TELEMETRY</span>
+          <span>STREAM TELEMETRY</span>
         </div>
         <div class="stats-row"><span>State</span><span class="stats-val" id="st-state">Ready</span></div>
-        <div class="stats-row"><span>Route</span><span class="stats-val" id="st-route">Direct</span></div>
         <div class="stats-row"><span>Latency</span><span class="stats-val" id="st-rtt">-- ms</span></div>
-        <div class="stats-row"><span>Jitter</span><span class="stats-val" id="st-jitter">-- ms</span></div>
         <div class="stats-row"><span>FPS</span><span class="stats-val" id="st-fps">60</span></div>
         <div class="stats-row"><span>Bitrate</span><span class="stats-val" id="st-bitrate">-- Mbps</span></div>
-        <div class="stats-row"><span>Resolution</span><span class="stats-val" id="st-res">1280x720</span></div>
+        <div class="stats-row"><span>Resolution</span><span class="stats-val" id="st-res">1080p</span></div>
         <div class="stats-row"><span>Packet Loss</span><span class="stats-val" id="st-loss">0</span></div>
-        <div class="stats-row"><span>Input Mode</span><span class="stats-val" id="st-input-mode">Cursor</span></div>
-        <div class="stats-row"><span>Player</span><span class="stats-val" id="st-user">-</span></div>
-        <div class="stats-row"><span>Best Score</span><span class="stats-val" id="st-save">0</span></div>
-        <div class="stats-row"><span>Steam Auth</span><span class="stats-val" id="st-steam">Active</span></div>
-        <div class="isolation-verified-box" id="st-iso-box">Sandbox Protected</div>
+        <div class="isolation-verified-box" id="st-iso-box">Hardware Isolated</div>
+
+        <!-- Hidden elements retained for app.js references -->
+        <span id="st-route" style="display:none;"></span>
+        <span id="st-jitter" style="display:none;"></span>
+        <span id="st-input-mode" style="display:none;"></span>
+        <span id="st-user" style="display:none;"></span>
+        <span id="st-save" style="display:none;"></span>
+        <span id="st-steam" style="display:none;"></span>
       </aside>
 
       <div class="session-stage-modal hidden" id="session-stage-modal">
         <div class="stage-card">
-          <h3 id="stage-title">Launching Session</h3>
-          <p id="stage-desc">Preparing environment...</p>
-          <div class="stage-steps">
-            <div class="stage-step done" id="step-1">
-              <span class="step-num">1</span>
-              <span>Container Mount</span>
-            </div>
-            <div class="stage-step active" id="step-2">
-              <span class="step-num">2</span>
-              <span>Virtual Display</span>
-            </div>
-            <div class="stage-step" id="step-3">
-              <span class="step-num">3</span>
-              <span>Process Launch</span>
-            </div>
-            <div class="stage-step" id="step-4">
-              <span class="step-num">4</span>
-              <span>Video Pipeline</span>
-            </div>
+          <div class="stage-spinner"></div>
+          <h3 id="stage-title">Connecting Stream</h3>
+          <p id="stage-desc">Launching game environment...</p>
+          <div class="stage-steps" style="display:none;">
+            <div class="stage-step done" id="step-1"></div>
+            <div class="stage-step active" id="step-2"></div>
+            <div class="stage-step" id="step-3"></div>
+            <div class="stage-step" id="step-4"></div>
           </div>
-          <div id="stage-actions" style="display:none; gap:8px; justify-content:flex-end; margin-top:20px;">
-            <button class="btn btn-ghost" id="btn-stage-retry">Retry</button>
-            <button class="btn btn-primary" id="btn-stage-library">Library</button>
+          <div id="stage-actions" style="display:none; gap:10px; justify-content:center; margin-top:20px;">
+            <button class="btn btn-hud" id="btn-stage-retry">Retry</button>
+            <button class="btn btn-hud active" id="btn-stage-library">Back to Library</button>
           </div>
         </div>
       </div>
