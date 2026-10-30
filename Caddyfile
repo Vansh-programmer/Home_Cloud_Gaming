@@ -1,0 +1,55 @@
+# =============================================================================
+# Ryoku Cloud Gaming - Caddy Gateway
+# Automated HTTPS & WebCodecs WebSocket Proxy
+# =============================================================================
+
+{
+    # Global options
+    auto_https disable_redirects
+}
+
+http://vanshdev.online, http://play.vanshdev.online, http://localhost, http://192.168.1.5 {
+    # 1. Moonlight Web In-Browser Streaming WebSocket & Engine
+    handle /stream* {
+        reverse_proxy localhost:8080 {
+            header_down -X-Frame-Options
+            header_down -Content-Security-Policy
+        }
+    }
+    handle /ws* {
+        reverse_proxy localhost:8080
+    }
+    handle /api* {
+        reverse_proxy localhost:8080
+    }
+
+    # 2. Main Web Portal UI
+    handle {
+        root * /usr/share/caddy
+        file_server
+        try_files {path} /index.html
+    }
+}
+
+https://vanshdev.online, https://play.vanshdev.online {
+    # 1. Moonlight Web In-Browser Streaming WebSocket & Engine
+    handle /stream* {
+        reverse_proxy localhost:8080 {
+            header_down -X-Frame-Options
+            header_down -Content-Security-Policy
+        }
+    }
+    handle /ws* {
+        reverse_proxy localhost:8080
+    }
+    handle /api* {
+        reverse_proxy localhost:8080
+    }
+
+    # 2. Main Web Portal UI
+    handle {
+        root * /usr/share/caddy
+        file_server
+        try_files {path} /index.html
+    }
+}

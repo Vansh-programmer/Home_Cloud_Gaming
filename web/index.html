@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ryoku Cloud Gaming | vanshdev.online</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <span class="brand-badge">CLOUD</span>
+        <span class="brand-title">RYOKU</span>
+        <span class="domain-pill">vanshdev.online</span>
+      </div>
+      
+      <div class="system-status">
+        <div class="status-indicator">
+          <span class="status-dot pulse"></span>
+          <span class="status-text">RTX 4060 NODE ONLINE</span>
+        </div>
+        <div class="user-chip">
+          <span class="user-avatar">P</span>
+          <span class="user-name">Player 1</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Library View -->
+  <main class="main-content">
+    <section class="hero-section">
+      <div class="hero-text">
+        <h1 class="hero-title">High-Performance Cloud Gaming</h1>
+        <p class="hero-subtitle">Stream full PC games directly inside your web browser with low-latency NVENC hardware acceleration.</p>
+      </div>
+      <div class="hero-specs">
+        <div class="spec-card">
+          <span class="spec-label">GPU</span>
+          <span class="spec-val">RTX 4060 (NVENC)</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-label">STREAMING</span>
+          <span class="spec-val">WebCodecs + WASM</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-label">STORAGE</span>
+          <span class="spec-val">Shared Master (RO)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Game Library Grid -->
+    <section class="library-section">
+      <div class="section-header">
+        <h2>Available Cloud Launchers</h2>
+        <span class="library-count">3 Launchers Ready</span>
+      </div>
+
+      <div class="grid-container">
+        <!-- Steam Card -->
+        <div class="game-card" data-app-name="Steam Cloud Gaming" data-app-type="steam">
+          <div class="card-media steam-bg">
+            <div class="card-overlay">
+              <span class="badge badge-accent">Valve Steam</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">Steam Cloud Gaming</h3>
+            <p class="card-desc">Full Steam client in an isolated Sway Wayland sandbox. Play your Steam library with shared storage and private cloud saves.</p>
+            <div class="card-tags">
+              <span class="tag">Proton 9.0</span>
+              <span class="tag">Isolated Saves</span>
+              <span class="tag">Read-Only Common</span>
+            </div>
+            <button class="btn btn-primary launch-btn" onclick="launchGame('Steam Cloud Gaming')">
+              Play in Browser
+            </button>
+          </div>
+        </div>
+
+        <!-- Heroic Games Launcher Card -->
+        <div class="game-card" data-app-name="Heroic Games Launcher (Epic & GOG)" data-app-type="heroic">
+          <div class="card-media heroic-bg">
+            <div class="card-overlay">
+              <span class="badge badge-heroic">Epic & GOG</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">Heroic Games Launcher</h3>
+            <p class="card-desc">Access your Epic Games Store and GOG libraries. Includes cloud sync, Wine/Proton runners, and shared game asset mounting.</p>
+            <div class="card-tags">
+              <span class="tag">Epic Games</span>
+              <span class="tag">GOG Galaxy</span>
+              <span class="tag">Anti-Tamper RO</span>
+            </div>
+            <button class="btn btn-primary launch-btn" onclick="launchGame('Heroic Games Launcher (Epic & GOG)')">
+              Play in Browser
+            </button>
+          </div>
+        </div>
+
+        <!-- Diagnostic Stream Test Card -->
+        <div class="game-card" data-app-name="Test ball" data-app-type="test">
+          <div class="card-media test-bg">
+            <div class="card-overlay">
+              <span class="badge badge-test">Diagnostic</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">Stream Benchmark</h3>
+            <p class="card-desc">Instantaneous video/audio test pattern directly from NVENC encoder. Test in-browser WebCodecs decoding and controller latency.</p>
+            <div class="card-tags">
+              <span class="tag">60 FPS</span>
+              <span class="tag">Zero Download</span>
+              <span class="tag">Gamepad Test</span>
+            </div>
+            <button class="btn btn-secondary launch-btn" onclick="launchGame('Test ball')">
+              Launch Diagnostic
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- In-Browser Stream Modal / Player Overlay -->
+  <div id="stream-modal" class="stream-modal hidden">
+    <div class="stream-bar">
+      <div class="stream-info">
+        <span class="stream-dot pulse"></span>
+        <span id="active-game-title" class="stream-title">Streaming Session</span>
+      </div>
+      <div class="stream-controls">
+        <button class="ctrl-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶ Fullscreen</button>
+        <button class="ctrl-btn btn-exit" onclick="closeStream()" title="Exit Stream">✕ Exit Game</button>
+      </div>
+    </div>
+    <div class="stream-viewport">
+      <iframe id="moonlight-frame" src="" allow="gamepad; fullscreen; microphone; autoplay"></iframe>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Powered by <strong>Ryoku Cloud Architecture</strong> | Self-Hosted on Arch Linux (CachyOS) & NVIDIA RTX 4060 | <code>vanshdev.online</code></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

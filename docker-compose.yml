@@ -61,8 +61,28 @@ services:
     volumes:
       - mw-data:/data
 
+  # ============================================================================
+  # 3. GATEWAY // CADDY EDGE REVERSE PROXY & AUTOMATED SSL (vanshdev.online)
+  # ============================================================================
+  # Serves the clean web portal on port 80/443 and reverse proxies WebCodecs streams
+  # ============================================================================
+  gateway:
+    image: caddy:alpine
+    container_name: ryoku-gateway
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./web:/usr/share/caddy:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
 volumes:
   mw-data:
     name: ryoku-mw-data
   user-storage:
     name: ryoku-user-storage
+  caddy-data:
+    name: ryoku-caddy-data
+  caddy-config:
+    name: ryoku-caddy-config
