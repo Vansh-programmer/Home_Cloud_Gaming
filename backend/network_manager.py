@@ -178,6 +178,9 @@ class NetworkConfigManager:
             self.turn_url = str(updates["turn_url"]).strip()
         if "turn_secret" in updates and updates["turn_secret"] is not None:
             self.turn_secret = str(updates["turn_secret"]).strip()
+            if self.turn_secret and "turn_username" not in updates and "turn_password" not in updates:
+                self.turn_username = ""
+                self.turn_password = ""
         if "turn_username" in updates and updates["turn_username"] is not None:
             self.turn_username = str(updates["turn_username"]).strip()
         if "turn_password" in updates and updates["turn_password"] is not None:
@@ -392,16 +395,35 @@ class NetworkConfigManager:
         }
 
     @staticmethod
+    def _resolve_host_ip(host_part: str) -> str:
+        """Resolve hostname to IPv4 address to eliminate inside-container DNS lookups."""
+        try:
+            if not host_part:
+                return host_part
+            base_part, q_sep, query = host_part.partition("?")
+            raw_host, sep, port_part = base_part.partition(":")
+            parts = raw_host.split(".")
+            if not (len(parts) == 4 and all(p.isdigit() for p in parts)):
+                ip = socket.gethostbyname(raw_host)
+                resolved_base = f"{ip}:{port_part}" if port_part else ip
+                return f"{resolved_base}{q_sep}{query}" if q_sep else resolved_base
+        except Exception:
+            pass
+        return host_part
+
+    @staticmethod
     def format_gstreamer_stun_uri(stun_url: str) -> str:
         """Convert W3C `stun:host:port` into GStreamer `webrtcbin` `stun://host:port`."""
         clean = stun_url.strip()
         if not clean:
             return ""
         if clean.startswith("stun://"):
-            return clean
+            bare = clean[len("stun://") :]
+            return f"stun://{NetworkConfigManager._resolve_host_ip(bare)}"
         if clean.startswith("stun:"):
-            return "stun://" + clean[len("stun:") :]
-        return f"stun://{clean}"
+            bare = clean[len("stun:") :]
+            return f"stun://{NetworkConfigManager._resolve_host_ip(bare)}"
+        return f"stun://{NetworkConfigManager._resolve_host_ip(clean)}"
 
     @staticmethod
     def parse_turn_urls(raw: str) -> List[str]:
@@ -465,6 +487,7 @@ class NetworkConfigManager:
             .removeprefix("turns:")
             .removeprefix("turn:")
         )
+        resolved_host = NetworkConfigManager._resolve_host_ip(host_part)
         if username and password:
             # GStreamer webrtcbin parses turn-server via gst_uri_from_string_escaped,
             # which escapes '%' into '%25'. Therefore '=', '+', and ':' in passwords
@@ -472,8 +495,8 @@ class NetworkConfigManager:
             # '%253D', breaking authentication on providers like ExpressTURN / coturn.
             enc_u = urllib.parse.quote(username, safe="=+:!$&'()*+,;-._~")
             enc_p = urllib.parse.quote(password, safe="=+:!$&'()*+,;-._~")
-            return f"{scheme}://{enc_u}:{enc_p}@{host_part}"
-        return f"{scheme}://{host_part}"
+            return f"{scheme}://{enc_u}:{enc_p}@{resolved_host}"
+        return f"{scheme}://{resolved_host}"
 
     def _cloudflare_gstreamer_turn_uris(self) -> List[str]:
         """Build GStreamer turn URIs from Cloudflare credentials (both UDP and TCP)."""

@@ -135,6 +135,12 @@ class UserStorageManager:
             steam_root_dir / "steamapps" / "compatdata",
             steam_root_dir / "steamapps" / "shadercache",
             local_share_dir / "cyberarena",
+            config_dir / "heroic",
+            config_dir / "heroic" / "GamesConfig",
+            config_dir / "legendary",
+            local_share_dir / "heroic",
+            home_persist / "Games",
+            home_persist / "Games" / "Heroic",
         ):
             d.mkdir(parents=True, exist_ok=True)
         os.chmod(user_root, 0o700)
@@ -161,6 +167,13 @@ class UserStorageManager:
 
         # Link any shared appmanifests and common game folders into the user's steamapps
         self._sync_shared_library_links(steam_root_dir / "steamapps")
+
+        # Automatically provision Goldberg Steam LAN profiles for seamless multi-instance co-op
+        try:
+            from engine.goldberg_manager import provision_goldberg_lan_profile
+            provision_goldberg_lan_profile(uid, user_root)
+        except Exception:
+            pass
 
         return UserStoragePaths(
             user_id=uid,

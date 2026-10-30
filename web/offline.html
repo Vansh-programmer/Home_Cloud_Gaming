@@ -10,13 +10,18 @@
       --bg-panel: #111318;
       --bg-input: #0c0e12;
       --border-dim: #222631;
+      --border-bright: #3a4154;
       --accent: #c8ff00;
+      --accent-glow: rgba(200, 255, 0, 0.25);
       --warn: #ffb800;
+      --warn-glow: rgba(255, 184, 0, 0.2);
+      --danger: #ff3344;
       --ok: #00e676;
+      --ok-glow: rgba(0, 230, 118, 0.25);
       --text-main: #f1f5f9;
       --text-sub: #94a3b8;
-      --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+      --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -27,7 +32,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 20px;
+      line-height: 1.4;
     }
     .offline-card {
       max-width: 480px;
@@ -36,15 +42,34 @@
       border: 1px solid var(--border-dim);
       border-top: 3px solid var(--warn);
       padding: 28px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
     }
     .brand-row {
-      display: inline-block;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .brand-title {
       font-family: var(--font-mono);
       font-size: 11px;
       font-weight: 800;
       letter-spacing: 0.12em;
       color: var(--accent);
-      margin-bottom: 14px;
+    }
+    .settings-btn {
+      background: transparent;
+      border: 1px solid var(--border-dim);
+      color: var(--text-sub);
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 3px 8px;
+      transition: all 0.2s ease;
+    }
+    .settings-btn:hover {
+      border-color: var(--text-main);
+      color: var(--text-main);
     }
     .status-badge {
       display: inline-flex;
@@ -58,11 +83,26 @@
       font-size: 11px;
       font-weight: 800;
       margin-bottom: 16px;
+      transition: all 0.3s ease;
     }
     .status-dot {
       width: 7px;
       height: 7px;
       background: var(--warn);
+      box-shadow: 0 0 8px var(--warn-glow);
+      animation: pulse 2s infinite ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .status-badge.booting {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .status-badge.booting .status-dot {
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
     }
     .status-badge.online {
       border-color: var(--ok);
@@ -70,23 +110,27 @@
     }
     .status-badge.online .status-dot {
       background: var(--ok);
+      box-shadow: 0 0 10px var(--ok-glow);
+      animation: none;
     }
     h1 {
       font-size: 22px;
       font-weight: 900;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
     }
     p.lead {
       color: var(--text-sub);
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: 11px;
+      letter-spacing: 0.04em;
       margin-bottom: 20px;
     }
     .specs-box {
       background: var(--bg-input);
       border: 1px solid var(--border-dim);
-      padding: 14px;
+      padding: 12px 14px;
       margin-bottom: 20px;
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -99,91 +143,432 @@
       color: var(--text-sub);
       font-size: 10px;
       margin-bottom: 2px;
+      text-transform: uppercase;
     }
     .spec-item span.value {
       font-weight: 700;
       color: var(--text-main);
     }
+    .actions-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
     button.btn {
       cursor: pointer;
       width: 100%;
-      padding: 10px 16px;
+      padding: 12px 16px;
+      font-family: var(--font-mono);
       font-size: 12px;
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      border: 1px solid var(--accent);
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    button.btn-primary {
       background: var(--accent);
       color: #000;
-      border-radius: 0;
+      border-color: var(--accent);
     }
-    .poll-note {
-      margin-top: 12px;
+    button.btn-primary:hover {
+      box-shadow: 0 0 16px var(--accent-glow);
+      filter: brightness(1.08);
+    }
+    button.btn-primary:active {
+      transform: translateY(1px);
+    }
+    button.btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+    }
+    button.btn-outline {
+      background: transparent;
+      border-color: var(--border-bright);
+      color: var(--text-main);
+    }
+    button.btn-outline:hover {
+      border-color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    button.btn-danger-outline {
+      background: transparent;
+      border-color: rgba(255, 51, 68, 0.4);
+      color: var(--danger);
+      font-size: 10px;
+      padding: 8px 12px;
+    }
+    button.btn-danger-outline:hover {
+      border-color: var(--danger);
+      background: rgba(255, 51, 68, 0.1);
+    }
+    .status-log {
+      background: var(--bg-input);
+      border: 1px solid var(--border-dim);
+      padding: 10px 12px;
       font-family: var(--font-mono);
       font-size: 11px;
       color: var(--text-sub);
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      word-break: break-all;
+    }
+    .status-log.highlight {
+      color: var(--accent);
+      border-color: rgba(200, 255, 0, 0.4);
+    }
+    .status-log.error {
+      color: var(--danger);
+      border-color: rgba(255, 51, 68, 0.4);
+    }
+    .config-panel {
+      display: none;
+      background: var(--bg-input);
+      border: 1px solid var(--border-dim);
+      padding: 16px;
+      margin-top: 14px;
+      margin-bottom: 14px;
+    }
+    .config-panel.open {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .config-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .config-field {
+      margin-bottom: 12px;
+    }
+    .config-field label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .config-field input {
+      width: 100%;
+      background: #000;
+      border: 1px solid var(--border-dim);
+      color: var(--text-main);
+      padding: 8px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+    .config-field input:focus {
+      border-color: var(--accent);
+    }
+    .config-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .config-note {
+      font-size: 10px;
+      color: var(--text-sub);
+      font-family: var(--font-mono);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+    .spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(0, 0, 0, 0.2);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
   <main class="offline-card">
-    <div class="brand-row">RYOKU // CLOUD CLIENT</div>
+    <div class="brand-row">
+      <span class="brand-title">RYOKU // CLOUD CLIENT</span>
+      <button class="settings-btn" id="toggle-config-btn" type="button" title="Hardware Switch Configuration">⚙️ SWITCH CONFIG</button>
+    </div>
+
     <div>
       <div id="status-badge" class="status-badge">
         <span class="status-dot"></span>
         <span id="status-badge-text">HOST NODE OFFLINE</span>
       </div>
     </div>
+
     <h1 id="headline">Gaming PC is Currently Powered Off</h1>
-    <p class="lead" id="subtext">AUTO-CONNECTS WHEN HOST BOOTS.</p>
+    <p class="lead" id="subtext">PRESS TURN ON TO BOOT VIA HARDWARE SWITCH.</p>
+
+    <!-- Config Panel (Settings Drawer) -->
+    <div class="config-panel" id="config-panel">
+      <div class="config-title">⚡ ESP8266 Switch Settings</div>
+      <div class="config-field">
+        <label for="cfg-bot-token">Telegram Bot Token</label>
+        <input type="password" id="cfg-bot-token" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" autocomplete="off" />
+      </div>
+      <div class="config-field">
+        <label for="cfg-chat-id">Telegram Chat ID (Numeric)</label>
+        <input type="text" id="cfg-chat-id" placeholder="987654321" autocomplete="off" />
+      </div>
+      <div class="config-actions">
+        <button class="btn btn-primary" id="save-config-btn" type="button" style="padding:8px 12px; font-size:11px;">SAVE SETTINGS</button>
+        <button class="btn btn-outline" id="test-pulse-btn" type="button" style="padding:8px 12px; font-size:11px;">TEST PULSE</button>
+      </div>
+      <div class="config-note">
+        Token from <strong>@BotFather</strong>, Chat ID from <strong>@userinfobot</strong>.<br/>
+        Saved locally in your browser. Zero port forwarding required.
+      </div>
+    </div>
 
     <div class="specs-box">
       <div class="spec-item">
-        <span class="label">GPU</span>
-        <span class="value">RTX 4060 NVENC</span>
+        <span class="label">Hardware Switch</span>
+        <span class="value" id="switch-status-label">ESP8266 (DIRECT)</span>
       </div>
       <div class="spec-item">
-        <span class="label">POLL INTERVAL</span>
+        <span class="label">Poll Interval</span>
         <span class="value" id="poll-counter">5 SECONDS</span>
       </div>
     </div>
 
-    <button class="btn" id="check-now-btn" type="button">PING HOST NOW</button>
-    <div class="poll-note" id="last-checked">WAITING FOR HEARTBEAT...</div>
+    <div class="actions-grid">
+      <button class="btn btn-primary" id="power-on-btn" type="button">
+        <span id="power-btn-spinner" style="display:none;" class="spinner"></span>
+        <span id="power-btn-text">⚡ TURN ON PC</span>
+      </button>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <button class="btn btn-outline" id="check-now-btn" type="button">PING HOST NOW</button>
+        <button class="btn btn-danger-outline" id="force-off-btn" type="button" title="Simulates holding power switch 5 seconds for hard shut-off">⚠️ FORCE 5s OFF</button>
+      </div>
+    </div>
+
+    <div class="status-log" id="last-checked">READY. WAITING FOR COMMAND...</div>
   </main>
 
   <script>
     (function () {
+      const STORAGE_KEY_TOKEN = "ryoku_esp_bot_token";
+      const STORAGE_KEY_CHAT  = "ryoku_esp_chat_id";
+
       const badge = document.getElementById("status-badge");
       const badgeText = document.getElementById("status-badge-text");
       const headline = document.getElementById("headline");
       const subtext = document.getElementById("subtext");
       const lastChecked = document.getElementById("last-checked");
       const checkBtn = document.getElementById("check-now-btn");
+      const powerBtn = document.getElementById("power-on-btn");
+      const powerBtnText = document.getElementById("power-btn-text");
+      const powerBtnSpinner = document.getElementById("power-btn-spinner");
+      const forceOffBtn = document.getElementById("force-off-btn");
+      const toggleConfigBtn = document.getElementById("toggle-config-btn");
+      const configPanel = document.getElementById("config-panel");
+      const cfgBotToken = document.getElementById("cfg-bot-token");
+      const cfgChatId = document.getElementById("cfg-chat-id");
+      const saveConfigBtn = document.getElementById("save-config-btn");
+      const testPulseBtn = document.getElementById("test-pulse-btn");
+      const pollCounter = document.getElementById("poll-counter");
 
+      let pollTimer = null;
+      let currentIntervalMs = 5000;
+      let isBooting = false;
+      let bootStartTimestamp = 0;
+
+      // Base path detection (/cloudgaming support)
+      const basePrefix = window.location.pathname.startsWith("/cloudgaming") ? "/cloudgaming" : "";
+
+      // Load saved settings
+      function loadSettings() {
+        const savedToken = localStorage.getItem(STORAGE_KEY_TOKEN) || "";
+        const savedChat = localStorage.getItem(STORAGE_KEY_CHAT) || "";
+        if (savedToken) cfgBotToken.value = savedToken;
+        if (savedChat) cfgChatId.value = savedChat;
+        return { token: savedToken, chatId: savedChat };
+      }
+
+      function saveSettings() {
+        const token = cfgBotToken.value.trim();
+        const chatId = cfgChatId.value.trim();
+        if (!token || !chatId) {
+          logMessage("Please enter both Bot Token and Chat ID.", "error");
+          return false;
+        }
+        localStorage.setItem(STORAGE_KEY_TOKEN, token);
+        localStorage.setItem(STORAGE_KEY_CHAT, chatId);
+        logMessage("✓ Hardware switch settings saved successfully!", "highlight");
+        configPanel.classList.remove("open");
+        return true;
+      }
+
+      function logMessage(msg, type = "normal") {
+        lastChecked.textContent = msg;
+        lastChecked.className = "status-log " + (type === "highlight" ? "highlight" : type === "error" ? "error" : "");
+      }
+
+      // Check host health
       async function checkHealth() {
-        lastChecked.textContent = "PINGING HOST...";
         try {
-          const res = await fetch("/api/health", { cache: "no-store" });
+          const res = await fetch(basePrefix + "/api/health", { cache: "no-store" });
           const data = await res.json();
           if (res.ok && data && data.online === true) {
-            badge.classList.add("online");
+            badge.className = "status-badge online";
             badgeText.textContent = "HOST ONLINE";
             headline.textContent = "HOST NODE ONLINE";
-            subtext.textContent = "REDIRECTING...";
+            subtext.textContent = "PC BOOTED. REDIRECTING...";
+            logMessage("✓ Host node is reachable! Loading interface...", "highlight");
+            clearInterval(pollTimer);
             setTimeout(() => {
-              window.location.href = "/";
-            }, 400);
+              window.location.href = basePrefix || "/";
+            }, 500);
             return;
           }
-          lastChecked.textContent = "CHECKED " + new Date().toLocaleTimeString() + " // OFFLINE";
         } catch (_err) {
-          lastChecked.textContent = "CHECKED " + new Date().toLocaleTimeString() + " // UNREACHABLE";
+          // PC is offline / unreachable
+        }
+
+        const now = new Date().toLocaleTimeString();
+        if (isBooting) {
+          const elapsedSec = Math.floor((Date.now() - bootStartTimestamp) / 1000);
+          logMessage(`BOOTING PC... WAITING FOR HOST (${elapsedSec}s) // CHECKED ${now}`);
+        } else {
+          logMessage(`CHECKED ${now} // HOST OFFLINE`);
         }
       }
 
-      checkBtn.addEventListener("click", checkHealth);
-      setInterval(checkHealth, 5000);
+      function setPollRate(ms) {
+        currentIntervalMs = ms;
+        pollCounter.textContent = `${(ms / 1000).toFixed(0)} SECONDS`;
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(checkHealth, ms);
+      }
+
+      // Send Command to ESP8266 via Telegram Bot API
+      async function sendTelegramCommand(commandText, userFeedback) {
+        const { token, chatId } = loadSettings();
+        if (!token || !chatId) {
+          configPanel.classList.add("open");
+          logMessage("⚠️ Enter your Telegram Bot Token & Chat ID first.", "error");
+          return false;
+        }
+
+        logMessage(`Relaying command [${commandText}] to ESP8266...`, "highlight");
+
+        try {
+          let delivered = false;
+
+          // 1. First try Edge Proxy on same domain (bypasses ad-blockers and firewall restrictions)
+          try {
+            const edgeRes = await fetch(basePrefix + "/api/power_on", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token, chat_id: chatId, command: commandText })
+            });
+            if (edgeRes.ok) delivered = true;
+          } catch (_edgeErr) {}
+
+          // 2. Direct Telegram API fallback if opened locally as a static file
+          if (!delivered) {
+            const tgUrl = `https://api.telegram.org/bot${encodeURIComponent(token)}/sendMessage?chat_id=${encodeURIComponent(chatId)}&text=${encodeURIComponent(commandText)}`;
+            await fetch(tgUrl, { mode: "no-cors" });
+          }
+
+          logMessage(userFeedback, "highlight");
+          return true;
+        } catch (err) {
+          logMessage("Network error sending command: " + err.message, "error");
+          return false;
+        }
+      }
+
+      // Event Handlers
+      toggleConfigBtn.addEventListener("click", () => {
+        configPanel.classList.toggle("open");
+      });
+
+      saveConfigBtn.addEventListener("click", () => {
+        saveSettings();
+      });
+
+      testPulseBtn.addEventListener("click", async () => {
+        if (!saveSettings()) return;
+        await sendTelegramCommand("/status", "✓ Sent /status query to ESP8266 switch.");
+      });
+
+      powerBtn.addEventListener("click", async () => {
+        const { token, chatId } = loadSettings();
+        if (!token || !chatId) {
+          configPanel.classList.add("open");
+          logMessage("⚠️ Please enter your Bot Token & Chat ID below to enable power-on.", "error");
+          return;
+        }
+
+        powerBtn.disabled = true;
+        powerBtnSpinner.style.display = "inline-block";
+        powerBtnText.textContent = "SIGNALING...";
+
+        const success = await sendTelegramCommand(
+          "/power",
+          "⚡ Power pulse sent to ESP8266! Host PC is powering on..."
+        );
+
+        if (success) {
+          isBooting = true;
+          bootStartTimestamp = Date.now();
+          badge.className = "status-badge booting";
+          badgeText.textContent = "BOOT SIGNAL SENT";
+          headline.textContent = "Powering Up Gaming PC...";
+          subtext.textContent = "PULSED MOTHERBOARD PWR_SW. AUTO-CONNECTING...";
+          setPollRate(2000); // Poll every 2s while booting
+        }
+
+        setTimeout(() => {
+          powerBtn.disabled = false;
+          powerBtnSpinner.style.display = "none";
+          powerBtnText.textContent = "⚡ TURN ON PC (RE-PULSE)";
+        }, 6000);
+      });
+
+      forceOffBtn.addEventListener("click", async () => {
+        const confirmed = confirm(
+          "⚠️ WARNING: This sends a 5-second power button hold to the motherboard to immediately cut power.\n\nOnly use this if the PC is completely frozen. Proceed?"
+        );
+        if (!confirmed) return;
+
+        await sendTelegramCommand(
+          "/force_off",
+          "⚠️ Force power-off signal sent (5s hold). PC should turn off."
+        );
+      });
+
+      checkBtn.addEventListener("click", () => {
+        logMessage("PINGING HOST NODE...");
+        checkHealth();
+      });
+
+      // Init
+      loadSettings();
+      setPollRate(5000);
       checkHealth();
     })();
   </script>

@@ -13,13 +13,67 @@ Features:
 
 from __future__ import annotations
 
+import json
 import os
 import re
+import shlex
+import shutil
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 KV_PATTERN = re.compile(r'"([^"]+)"\s+"([^"]*)"')
+
+DEFAULT_ONLINEFIX_DLL_OVERRIDES = (
+    "OnlineFix64=n;OnlineFix=n;SteamOverlay64=n;SteamOverlay=n;winmm=n,b;dnet=n;steam_api64=n;steam_api=n;PhotonBridge=n;version=n,b"
+)
+DEFAULT_GOLDBERG_DLL_OVERRIDES = "steam_api64=n,b;steam_api=n,b;winmm=b"
+
+
+def parse_launch_options(
+    launch_options: Optional[str],
+    base_cmd: List[str],
+    base_env: Optional[Dict[str, str]] = None,
+) -> Tuple[List[str], Dict[str, str]]:
+    """
+    Parse a Steam launch options string like:
+    WINEDLLOVERRIDES="OnlineFix64=n;steam_api64=n" gamemoderun %command% -force-d3d11
+
+    Extracts:
+    1. Environment variables (KEY=VAL) -> injected into env dict.
+    2. Command wrappers (e.g. gamemoderun, mangohud) -> prepended to base_cmd.
+    3. Arguments after %command% -> appended to base_cmd.
+    """
+    env = dict(base_env or {})
+    if not launch_options or not launch_options.strip() or launch_options.strip().lower() in ("none", "null"):
+        return list(base_cmd), env
+
+    tokens = shlex.split(launch_options.strip())
+    if "%command%" in tokens:
+        idx = tokens.index("%command%")
+        before = tokens[:idx]
+        after = tokens[idx + 1 :]
+    else:
+        before = []
+        after = tokens
+
+    cmd_prefix: List[str] = []
+    for tok in before:
+        if "=" in tok and not tok.startswith("-"):
+            k, v = tok.split("=", 1)
+            env[k.strip()] = v.strip()
+        else:
+            cmd_prefix.append(tok)
+
+    cmd_suffix: List[str] = []
+    for tok in after:
+        if "=" in tok and not tok.startswith("-") and not before:
+            k, v = tok.split("=", 1)
+            env[k.strip()] = v.strip()
+        else:
+            cmd_suffix.append(tok)
+
+    return [*cmd_prefix, *base_cmd, *cmd_suffix], env
 
 
 @dataclass
@@ -32,6 +86,7 @@ class GameEntry:
     header_url: str
     category: str  # "builtin" | "steam"
     custom_exec: Optional[str] = None
+    launch_options: Optional[str] = None
 
     def to_dict(self) -> Dict[str, object]:
         return asdict(self)
@@ -100,17 +155,37 @@ class SteamLibraryManager:
                     ),
                     GameEntry(
                         app_id="7",
-                        title="Steam Big Picture (Account Login & Library)",
+                        title="Steam Big Picture",
                         install_dir="steam",
                         size_bytes=0,
                         cover_url="/assets/steam-cover.svg",
-                        header_url="/assets/steam-cover.svg",
+                        header_url="/assets/steam-banner.svg",
                         category="steam",
+                    ),
+                    GameEntry(
+                        app_id="8",
+                        title="Heroic Games Launcher (Epic & GOG)",
+                        install_dir="heroic",
+                        size_bytes=0,
+                        cover_url="/assets/heroic-cover.svg",
+                        header_url="/assets/heroic-banner.svg",
+                        category="epic",
+                    ),
+                    GameEntry(
+                        app_id="1966720",
+                        title="Lethal Company (Co-op 4P LAN)",
+                        install_dir="Lethal Company",
+                        size_bytes=1073741824,
+                        cover_url="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1966720/library_600x900.jpg",
+                        header_url="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1966720/header.jpg",
+                        category="steam",
+                        custom_exec="Lethal Company.exe",
+                        launch_options=f'WINEDLLOVERRIDES="{DEFAULT_GOLDBERG_DLL_OVERRIDES}" %command%',
                     ),
                 ]
             )
 
-        seen_ids = {"0", "7"}
+        seen_ids = {"0", "7", "1966720", "739630"}
         search_dirs = [self.shared_steam_dir / "steamapps"] + self.extra_steamapps_dirs
 
         try:
@@ -137,6 +212,29 @@ class SteamLibraryManager:
                     seen_ids.add(entry.app_id)
                     games.append(entry)
 
+        # 3. Discover installed Epic Games / GOG titles from Heroic & Legendary
+        try:
+            from engine.heroic_manager import HeroicLibraryManager
+            heroic_mgr = HeroicLibraryManager(self.shared_steam_dir.parent)
+            for hg in heroic_mgr.list_games():
+                hid = str(hg["app_id"])
+                if hid not in seen_ids:
+                    seen_ids.add(hid)
+                    games.append(
+                        GameEntry(
+                            app_id=hid,
+                            title=str(hg.get("title", hid)),
+                            install_dir=str(hg.get("install_dir", "")),
+                            size_bytes=int(hg.get("size_bytes", 0)),
+                            cover_url=str(hg.get("cover_url", "/assets/heroic-cover.svg")),
+                            header_url=str(hg.get("header_url", "/assets/heroic-banner.svg")),
+                            category="epic",
+                            custom_exec=hg.get("custom_exec"),
+                        )
+                    )
+        except Exception as exc:
+            logger.debug("Heroic game discovery warning: %s", exc)
+
         return games
 
     discover_games = list_games
@@ -146,6 +244,37 @@ class SteamLibraryManager:
             if g.app_id == str(app_id):
                 return g
         return None
+
+    @property
+    def launch_options_file(self) -> Path:
+        return self.shared_steam_dir.parent / "game_launch_options.json"
+
+    def get_custom_launch_options(self, app_id: str) -> Optional[str]:
+        clean_id = str(app_id).strip()
+        if self.launch_options_file.exists():
+            try:
+                data = json.loads(self.launch_options_file.read_text(encoding="utf-8"))
+                if clean_id in data and data[clean_id]:
+                    return str(data[clean_id])
+            except Exception:
+                pass
+        entry = self.get_game(clean_id)
+        if entry and entry.launch_options:
+            return entry.launch_options
+        if clean_id in ("1966720", "739630"):
+            return f'WINEDLLOVERRIDES="{DEFAULT_GOLDBERG_DLL_OVERRIDES}" %command%'
+        return None
+
+    def set_custom_launch_options(self, app_id: str, options: str) -> None:
+        clean_id = str(app_id).strip()
+        data = {}
+        if self.launch_options_file.exists():
+            try:
+                data = json.loads(self.launch_options_file.read_text(encoding="utf-8"))
+            except Exception:
+                data = {}
+        data[clean_id] = options.strip()
+        self.launch_options_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
     def build_launch_command(self, app_id: str, inside_container: bool = True) -> List[str]:
         """
@@ -161,27 +290,150 @@ class SteamLibraryManager:
             return [
                 "/usr/bin/steam",
                 "-gamepadui",
+                "-cef-disable-gpu",
                 "-nochatui",
                 "-nofriendsui",
+                "-nointro",
+                "-no-cef-sandbox",
+                "--no-sandbox",
             ]
 
+        if clean_id in ("8", "heroic", "epic") or clean_id.startswith("epic_"):
+            from engine.heroic_manager import HeroicLibraryManager
+            return HeroicLibraryManager(self.shared_steam_dir.parent).build_launch_command(clean_id)
+
+        KNOWN_GAME_DEFAULTS = {
+            "1091500": ("Cyberpunk 2077", "bin/x64/Cyberpunk2077.exe", ["--launcher-skip"]),
+            "292030": ("The Witcher 3", "bin/x64/witcher3.exe", ["--launcher-skip"]),
+            "203160": ("Tomb Raider", "TombRaider.exe", ["-nolauncher"]),
+            "391220": ("Rise of the Tomb Raider", "RiseOfTheTombRaider.sh", []),
+            "1966720": ("Lethal Company", "Lethal Company.exe", []),
+            "1086940": ("Baldur's Gate 3", "bin/bg3.exe", ["--skip-launcher"]),
+        }
+
         entry = self.get_game(clean_id)
-        if entry and entry.custom_exec:
-            if inside_container:
-                exec_path = f"/steam_shared/steamapps/common/{entry.install_dir}/{entry.custom_exec}"
-            else:
-                exec_path = str(
-                    self.shared_steam_dir / "steamapps" / "common" / entry.install_dir / entry.custom_exec
-                )
-            return [exec_path]
+        install_dir = entry.install_dir if entry else None
+        exec_name = entry.custom_exec if entry else None
+        extra_args: List[str] = []
+
+        if clean_id in KNOWN_GAME_DEFAULTS:
+            default_dir, default_exec, default_args = KNOWN_GAME_DEFAULTS[clean_id]
+            if not install_dir:
+                install_dir = default_dir
+            if not exec_name:
+                exec_name = default_exec
+            extra_args = list(default_args)
+
+        if install_dir:
+            common_base = Path("/steam_shared/steamapps/common") if inside_container else (self.shared_steam_dir / "steamapps" / "common")
+            game_folder = common_base / install_dir
+
+            # Auto-detect executable if not explicitly set
+            if not exec_name and game_folder.exists():
+                candidates = [
+                    f"{install_dir}.exe",
+                    f"{install_dir}.sh",
+                    f"{entry.title if entry else ''}.exe",
+                    f"{entry.title if entry else ''}.sh",
+                    "Launcher.exe",
+                    "Lethal Company.exe",
+                    "Phasmophobia_Launcher.exe",
+                    "Photon Launcher.exe",
+                ]
+                for candidate in candidates:
+                    if candidate and (game_folder / candidate).exists():
+                        exec_name = candidate
+                        break
+
+                if not exec_name:
+                    for p in game_folder.glob("**/*.exe"):
+                        p_lower = p.name.lower()
+                        if not any(ign in p_lower for ign in ("crash", "redist", "setup", "unins", "installer", "errorreporter", "touchup", "benchmark", "7za", "unitycrashhandler")):
+                            exec_name = str(p.relative_to(game_folder))
+                            break
+
+                if not exec_name:
+                    for p in game_folder.glob("*.sh"):
+                        exec_name = str(p.relative_to(game_folder))
+                        break
+
+            if exec_name:
+                if inside_container:
+                    exec_path = f"/steam_shared/steamapps/common/{install_dir}/{exec_name}"
+                else:
+                    exec_path = str(game_folder / exec_name)
+
+                if exec_path.lower().endswith(".exe"):
+                    # Search for Proton runtime or Wine
+                    proton_bin = None
+                    search_roots = [
+                        common_base,
+                        Path("/steam_shared/steamapps/common"),
+                        Path(os.environ.get("HOME", "/home/gamer")) / ".local" / "share" / "Steam" / "steamapps" / "common",
+                        Path("/usr/share/steam/compatibilitytools.d"),
+                        Path.home() / ".local" / "share" / "Steam" / "steamapps" / "common",
+                    ]
+                    for sroot in search_roots:
+                        if sroot.exists():
+                            for p in sorted(sroot.glob("**/proton"), reverse=True):
+                                if p.is_file() and os.access(p, os.X_OK):
+                                    proton_bin = p
+                                    break
+                        if proton_bin:
+                            break
+
+                    if proton_bin:
+                        return [str(proton_bin), "run", exec_path, *extra_args]
+                    if Path("/usr/bin/steam").exists():
+                        return [
+                            "/usr/bin/steam",
+                            "-silent",
+                            "-cef-disable-gpu",
+                            "-nochatui",
+                            "-nofriendsui",
+                            "-nointro",
+                            "-no-cef-sandbox",
+                            "--no-sandbox",
+                            "-applaunch",
+                            clean_id,
+                            *extra_args,
+                        ]
+                    if shutil.which("wine"):
+                        return ["wine", exec_path, *extra_args]
+
+                elif exec_path.lower().endswith(".sh"):
+                    # Native Linux script: search for SteamLinuxRuntime runner
+                    runtime_roots = [
+                        common_base / "SteamLinuxRuntime" / "steam-runtime" / "run.sh",
+                        Path("/steam_shared/steamapps/common/SteamLinuxRuntime/steam-runtime/run.sh"),
+                        Path.home() / ".local" / "share" / "Steam" / "steamapps" / "common" / "SteamLinuxRuntime" / "steam-runtime" / "run.sh",
+                    ]
+                    for r_script in runtime_roots:
+                        if r_script.is_file() and os.access(r_script, os.X_OK):
+                            return [str(r_script), "--", exec_path, *extra_args]
+                    return ["bash", exec_path, *extra_args]
+
+                return [exec_path]
 
         if not clean_id.isdigit():
             raise ValueError(f"Unknown or invalid Steam AppID: {app_id}")
 
+        if clean_id in ("1091500", "292030"):  # Cyberpunk 2077, The Witcher 3 (REDlauncher)
+            extra_args = ["--launcher-skip"]
+        elif clean_id in ("1086940",):  # Baldur's Gate 3 (Larian Launcher)
+            extra_args = ["--skip-launcher"]
+
         return [
             "/usr/bin/steam",
-            "-gamepadui",
+            "-silent",
+            "-cef-disable-gpu",
+            "-nochatui",
+            "-nofriendsui",
+            "-nointro",
+            "-no-cef-sandbox",
+            "--no-sandbox",
             "-applaunch",
             clean_id,
+            *extra_args,
         ]
 

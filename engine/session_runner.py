@@ -54,14 +54,16 @@ class IsolatedSessionRuntime:
     def __init__(
         self,
         session_id: str,
-        width: int = 1280,
-        height: int = 720,
+        width: int = 1920,
+        height: int = 1080,
         fps: int = 60,
         quality: str = "high",
         game_cmd: Optional[List[str]] = None,
         port: int = 8080,
         user_id: str = "default",
         app_id: str = "0",
+        display_num: int = 0,
+        launch_options: Optional[str] = None,
     ) -> None:
         self.session_id = session_id
         self.width = width
@@ -71,6 +73,7 @@ class IsolatedSessionRuntime:
         self.port = port
         self.user_id = user_id or os.environ.get("CLOUD_USER_ID", "default")
         self.app_id = str(app_id or os.environ.get("CLOUD_APP_ID", "0"))
+        self.launch_options = launch_options or os.environ.get("CLOUD_LAUNCH_OPTIONS", "")
         os.environ["CLOUD_USER_ID"] = self.user_id
         os.environ["CLOUD_APP_ID"] = self.app_id
 
@@ -99,8 +102,12 @@ class IsolatedSessionRuntime:
             os.chmod(self.xdg_dir, 0o700)
         os.environ["XDG_RUNTIME_DIR"] = str(self.xdg_dir)
 
-        self.display_name = ":99"
-        self.pulse_source = "cloud_sink.monitor"
+        # Dynamic display and audio sink allocation for multi-instance support
+        self.use_unix_display = self._can_use_unix_x11_socket()
+        self.display_num = self._resolve_display_num(int(display_num or 0))
+        self.display_name = f":{self.display_num}" if self.use_unix_display else f"127.0.0.1:{self.display_num}"
+        self.sink_name = f"cloud_sink_{self.display_num}"
+        self.pulse_source = f"{self.sink_name}.monitor"
         self.audio_available = False
 
         self._procs: List[subprocess.Popen] = []
@@ -116,6 +123,29 @@ class IsolatedSessionRuntime:
         self._glib_loop = GLib.MainLoop()
         self._glib_thread = threading.Thread(target=self._glib_loop.run, daemon=True)
         self._glib_thread.start()
+
+    def _resolve_display_num(self, requested: int = 0) -> int:
+        """Resolve a non-conflicting display number for isolated Xwayland."""
+        if requested > 0:
+            return requested
+        if self.use_unix_display:
+            for disp in range(99, 160):
+                sock = Path(f"/tmp/.X11-unix/X{disp}")
+                lock = Path(f"/tmp/.X{disp}-lock")
+                if not sock.exists() and not lock.exists():
+                    return disp
+            return 99
+        else:
+            start_disp = 90 + (self.port % 50)
+            for offset in range(60):
+                cand = 90 + ((start_disp - 90 + offset) % 60)
+                try:
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        s.bind(("0.0.0.0", 6000 + cand))
+                    return cand
+                except OSError:
+                    continue
+            return start_disp
 
     def _can_use_unix_x11_socket(self) -> bool:
         if os.getuid() != 0:
@@ -195,7 +225,7 @@ class IsolatedSessionRuntime:
                     "pactl",
                     "load-module",
                     "module-null-sink",
-                    "sink_name=cloud_sink",
+                    f"sink_name={self.sink_name}",
                     "sink_properties=device.description=CloudGamingIsolatedAudio",
                 ],
                 env=env,
@@ -205,16 +235,16 @@ class IsolatedSessionRuntime:
             )
             if res.returncode == 0:
                 subprocess.run(
-                    ["pactl", "set-default-sink", "cloud_sink"],
+                    ["pactl", "set-default-sink", self.sink_name],
                     env=env,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                     timeout=2,
                 )
-                os.environ["PULSE_SINK"] = "cloud_sink"
-                os.environ["PULSE_SOURCE"] = "cloud_sink.monitor"
+                os.environ["PULSE_SINK"] = self.sink_name
+                os.environ["PULSE_SOURCE"] = self.pulse_source
                 self.audio_available = True
-                logger.info("Isolated PipeWire-Pulse virtual sink 'cloud_sink' initialized")
+                logger.info("Isolated PipeWire-Pulse virtual sink '%s' initialized", self.sink_name)
             else:
                 logger.warning("pactl load-module returned %d; using silent fallback", res.returncode)
         except Exception as exc:
@@ -224,7 +254,7 @@ class IsolatedSessionRuntime:
         """Start headless Weston kiosk compositor and rootful Xwayland server."""
         env = os.environ.copy()
         env["XDG_RUNTIME_DIR"] = str(self.xdg_dir)
-        wayland_socket = "wayland-cloud-0"
+        wayland_socket = f"wayland-cloud-{self.display_num}"
 
         weston_cmd = [
             "weston",
@@ -235,6 +265,7 @@ class IsolatedSessionRuntime:
             f"--socket={wayland_socket}",
             f"--width={self.width}",
             f"--height={self.height}",
+            f"--refresh-rate={self.fps * 1000}",
         ]
         weston_proc = subprocess.Popen(
             weston_cmd,
@@ -254,13 +285,10 @@ class IsolatedSessionRuntime:
         env["WAYLAND_DISPLAY"] = wayland_socket
         os.environ["WAYLAND_DISPLAY"] = wayland_socket
 
-        use_unix = self._can_use_unix_x11_socket()
-        display_num = 99
-        if use_unix:
-            self.display_name = f":{display_num}"
+        if self.use_unix_display:
             xw_cmd = [
                 "Xwayland",
-                f":{display_num}",
+                f":{self.display_num}",
                 "-ac",
                 "-noreset",
                 "-nolisten",
@@ -269,22 +297,9 @@ class IsolatedSessionRuntime:
                 f"{self.width}x{self.height}",
             ]
         else:
-            # Find a genuinely bindable TCP port for X11 (6000 + display_num) when /tmp/.X11-unix is read-only.
-            # Using bind() instead of connect_ex() avoids picking a port in TCP TIME_WAIT from a prior session.
-            start_disp = 90 + (self.port % 50)
-            for offset in range(60):
-                candidate = 90 + ((start_disp - 90 + offset) % 60)
-                try:
-                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        s.bind(("0.0.0.0", 6000 + candidate))
-                    display_num = candidate
-                    break
-                except OSError:
-                    continue
-            self.display_name = f"127.0.0.1:{display_num}"
             xw_cmd = [
                 "Xwayland",
-                f":{display_num}",
+                f":{self.display_num}",
                 "-ac",
                 "-noreset",
                 "-nolisten",
@@ -309,8 +324,8 @@ class IsolatedSessionRuntime:
             raise RuntimeError(f"Failed to connect IsolatedInputManager to Xwayland ({self.display_name})")
         logger.info("Isolated Xwayland display ready on %s (%dx%d)", self.display_name, self.width, self.height)
 
-    def start_game(self) -> None:
-        """Launch the single target game process inside the isolated display and audio environment."""
+    def _build_game_env(self) -> Dict[str, str]:
+        """Construct the ultra-low latency execution environment for the game process."""
         env = os.environ.copy()
         env["DISPLAY"] = self.display_name
         env["WAYLAND_DISPLAY"] = ""  # Force X11/Xwayland so ximagesrc & XTest work uniformly
@@ -320,15 +335,238 @@ class IsolatedSessionRuntime:
         env["PRESSURE_VESSEL_FILESYSTEMS_RO"] = "/steam_shared:/game"
         env["STEAM_COMPAT_MOUNTS"] = "/steam_shared:/game"
         env["STEAM_COMPAT_LIBRARY_PATHS"] = "/home/gamer/.local/share/Steam:/steam_shared"
+        # Ultra-low latency frame pacing & driver tuning (Moonlight-class responsiveness)
+        env["DXVK_FRAME_RATE"] = str(self.fps)
+        env["DXVK_ASYNC"] = "1"
+        env["__GL_MaxFramesAllowed"] = "1"
+        env["__GL_THREADED_OPTIMIZATIONS"] = "1"
+        env["__GL_SYNC_TO_VBLANK"] = "0"
+        env["PROTON_ENABLE_NVAPI"] = "1"
+        env["PROTON_HIDE_NVIDIA_GPU"] = "0"
+        env["PIPEWIRE_LATENCY"] = "128/48000"
+        env["PULSE_LATENCY_MSEC"] = "10"
+        env["vblank_mode"] = "0"
         if self.audio_available:
-            env["PULSE_SINK"] = "cloud_sink"
+            env["PULSE_SINK"] = self.sink_name
             env["SDL_AUDIODRIVER"] = "pulseaudio"
         else:
             env["SDL_AUDIODRIVER"] = "dummy"
+        return env
 
-        logger.info("Launching isolated game command: %s", self.game_cmd)
+    def start_game(self) -> None:
+        """Launch the single target game process inside the isolated display and audio environment."""
+        env = self._build_game_env()
+
+        # Apply Steam launch options, command wrappers, and DLL overrides
+        from engine.steam_manager import (
+            DEFAULT_GOLDBERG_DLL_OVERRIDES,
+            DEFAULT_ONLINEFIX_DLL_OVERRIDES,
+            SteamLibraryManager,
+            parse_launch_options,
+        )
+        launch_opts = self.launch_options
+        if not launch_opts:
+            shared_dir = Path("/steam_shared") if Path("/steam_shared").exists() else (PROJECT_ROOT / "data" / "shared_steam_library")
+            steam_mgr = SteamLibraryManager(shared_dir)
+            launch_opts = steam_mgr.get_custom_launch_options(self.app_id)
+
+        target_cmd, env = parse_launch_options(launch_opts, self.game_cmd, env)
+
+        # Automatic detection for LAN / Goldberg / OnlineFix games: ensure appropriate DLL overrides
+        if "WINEDLLOVERRIDES" not in env:
+            if (
+                self.app_id in ("1966720", "739630")
+                or "lethal" in str(target_cmd).lower()
+                or "phasmophobia" in str(target_cmd).lower()
+            ):
+                env["WINEDLLOVERRIDES"] = DEFAULT_GOLDBERG_DLL_OVERRIDES
+                logger.info("Automatically injected WINEDLLOVERRIDES for LAN/Goldberg game: %s", self.app_id)
+            elif "onlinefix" in str(target_cmd).lower():
+                env["WINEDLLOVERRIDES"] = DEFAULT_ONLINEFIX_DLL_OVERRIDES
+                logger.info("Automatically injected WINEDLLOVERRIDES for online-fix game: %s", self.app_id)
+
+        # Determine working directory for game executable
+        game_cwd = None
+        for tok in reversed(target_cmd):
+            if str(tok).lower().endswith(".exe"):
+                cand_dir = Path(tok).parent
+                if cand_dir.exists():
+                    game_cwd = str(cand_dir)
+                    break
+
+        # Setup Proton compatibility environment variables if running Windows executables or Steam games
+        is_steam_app = str(self.app_id).isdigit() and str(self.app_id) not in ("0", "7")
+        is_proton = any("proton" in str(tok).lower() for tok in target_cmd)
+        is_windows_exe = any(str(tok).lower().endswith(".exe") for tok in target_cmd)
+        if is_proton or is_windows_exe or is_steam_app:
+            home_path = Path(env.get("HOME", os.path.expanduser("~")))
+            steam_dir = home_path / ".local" / "share" / "Steam"
+            compat_data_path = steam_dir / "steamapps" / "compatdata" / str(self.app_id)
+            try:
+                compat_data_path.mkdir(parents=True, exist_ok=True)
+            except Exception:
+                pass
+            env.setdefault("STEAM_COMPAT_DATA_PATH", str(compat_data_path))
+            env.setdefault("STEAM_COMPAT_CLIENT_INSTALL_PATH", str(steam_dir))
+            env.setdefault("STEAM_COMPAT_APP_ID", str(self.app_id))
+            env.setdefault("SteamAppId", str(self.app_id))
+            env.setdefault("SteamGameId", str(self.app_id))
+            try:
+                if game_cwd and Path(game_cwd).exists():
+                    (Path(game_cwd) / "steam_appid.txt").write_text(f"{self.app_id}\n", encoding="utf-8")
+                c_drive = compat_data_path / "pfx" / "drive_c"
+                if c_drive.exists():
+                    (c_drive / "steam_appid.txt").write_text(f"{self.app_id}\n", encoding="utf-8")
+            except Exception as exc:
+                logger.debug("Writing steam_appid.txt skipped: %s", exc)
+            try:
+                from engine.goldberg_manager import derive_user_steam_id
+                steam_id = derive_user_steam_id(self.user_id)
+                settings_dirs = [
+                    home_path / ".local" / "share" / "Goldberg SteamEmu Saves" / "settings",
+                    home_path / ".local" / "share" / "Goldberg SteamEmu Saves" / str(self.app_id) / "settings",
+                ]
+                for ucand in ("steamuser", "gamer", self.user_id):
+                    pfx_appdata = compat_data_path / "pfx" / "drive_c" / "users" / ucand / "AppData" / "Roaming" / "Goldberg SteamEmu Saves"
+                    settings_dirs.append(pfx_appdata / "settings")
+                    settings_dirs.append(pfx_appdata / str(self.app_id) / "settings")
+                for s_dir in settings_dirs:
+                    s_dir.mkdir(parents=True, exist_ok=True)
+                    (s_dir / "account_name.txt").write_text(self.user_id, encoding="utf-8")
+                    (s_dir / "user_steam_id.txt").write_text(steam_id, encoding="utf-8")
+                    (s_dir / "language.txt").write_text("english", encoding="utf-8")
+                    (s_dir / "broadcast_net.txt").write_text("1", encoding="utf-8")
+                    (s_dir / "custom_broadcasts.txt").write_text("127.0.0.1\n255.255.255.255\n", encoding="utf-8")
+            except Exception as exc:
+                logger.debug("Inside-container Goldberg profile provisioning skipped: %s", exc)
+
+            # Cyberpunk 2077 & CD Projekt Red resolution synchronization
+            clean_app_id = str(self.app_id).strip()
+            if clean_app_id in ("1091500", "292030") or any("cyberpunk" in str(tok).lower() for tok in target_cmd):
+                try:
+                    target_res = f"{self.width}x{self.height}"
+                    template_path = PROJECT_ROOT / "engine" / "templates" / "cyberpunk_UserSettings.json"
+                    for ucand in ("steamuser", "gamer", self.user_id, "default"):
+                        cp_user_dir = compat_data_path / "pfx" / "drive_c" / "users" / ucand / "AppData" / "Local" / "CD Projekt Red" / "Cyberpunk 2077"
+                        settings_path = cp_user_dir / "UserSettings.json"
+                        if not settings_path.exists() and template_path.exists():
+                            try:
+                                cp_user_dir.mkdir(parents=True, exist_ok=True)
+                                import shutil
+                                shutil.copy2(template_path, settings_path)
+                            except Exception:
+                                pass
+                        if settings_path.exists():
+                            import json
+                            with open(settings_path, "r", encoding="utf-8") as f:
+                                cp_data = json.load(f)
+                            cp_mod = False
+                            for group in cp_data.get("data", []):
+                                if group.get("group_name") == "/video/display":
+                                    for opt in group.get("options", []):
+                                        if opt.get("name") == "Resolution":
+                                            if opt.get("value") != target_res:
+                                                opt["value"] = target_res
+                                                opt["index"] = 0 if self.width >= 1920 else 1
+                                                cp_mod = True
+                                        elif opt.get("name") == "WindowMode":
+                                            if opt.get("value") != "BorderlessWindowed":
+                                                opt["value"] = "BorderlessWindowed"
+                                                opt["index"] = 1
+                                                cp_mod = True
+                            if cp_mod:
+                                with open(settings_path, "w", encoding="utf-8") as f:
+                                    json.dump(cp_data, f, indent=2)
+                                logger.info(
+                                    "Synchronized Cyberpunk 2077 UserSettings.json to %s (BorderlessWindowed)",
+                                    target_res,
+                                )
+                except Exception as exc:
+                    logger.warning("Could not patch Cyberpunk UserSettings.json: %s", exc)
+
+            # The Witcher 3 user.settings resolution synchronization
+            if clean_app_id in ("292030",) or any("witcher3" in str(tok).lower() for tok in target_cmd):
+                try:
+                    for ucand in ("steamuser", "gamer", self.user_id):
+                        w3_settings = compat_data_path / "pfx" / "drive_c" / "users" / ucand / "Documents" / "The Witcher 3" / "user.settings"
+                        if w3_settings.exists():
+                            import re
+                            w3_content = w3_settings.read_text(encoding="utf-8", errors="ignore")
+                            w3_content = re.sub(r'Resolution="[^"]+"', f'Resolution="{self.width}x{self.height}"', w3_content)
+                            w3_content = re.sub(r'FullScreenMode=\d+', 'FullScreenMode=2', w3_content)
+                            w3_settings.write_text(w3_content, encoding="utf-8")
+                            logger.info("Synchronized The Witcher 3 user.settings resolution to %dx%d", self.width, self.height)
+                except Exception as exc:
+                    logger.debug("Could not patch Witcher 3 user.settings: %s", exc)
+
+            logger.info(
+                "Configured Proton compat environment: STEAM_COMPAT_DATA_PATH=%s, SteamAppId=%s (cwd=%s)",
+                compat_data_path,
+                self.app_id,
+                game_cwd,
+            )
+
+        # Unity engine resolution enforcement (ensures games like Lethal Company launch strictly in requested resolution)
+        is_unity = bool(
+            game_cwd
+            and (
+                any(Path(game_cwd).glob("*_Data"))
+                or (Path(game_cwd) / "UnityPlayer.dll").exists()
+            )
+        )
+        if is_unity:
+            has_screen_args = any("-screen-width" in str(tok).lower() for tok in target_cmd)
+            if not has_screen_args:
+                target_cmd.extend([
+                    "-screen-width", str(self.width),
+                    "-screen-height", str(self.height),
+                    "-screen-fullscreen", "1",
+                ])
+                logger.info(
+                    "Appended Unity resolution flags: -screen-width %d -screen-height %d -screen-fullscreen 1",
+                    self.width,
+                    self.height,
+                )
+            if is_proton or is_windows_exe:
+                try:
+                    user_reg_path = compat_data_path / "pfx" / "user.reg"
+                    if user_reg_path.exists():
+                        import re
+                        reg_content = user_reg_path.read_text(encoding="utf-8", errors="ignore")
+                        w_hex = f"{self.width:08x}"
+                        h_hex = f"{self.height:08x}"
+                        new_content = re.sub(
+                            r'("Screenmanager Resolution Width[^"]*"=dword:)[0-9a-fA-F]+',
+                            rf'\g<1>{w_hex}',
+                            reg_content,
+                        )
+                        new_content = re.sub(
+                            r'("Screenmanager Resolution Height[^"]*"=dword:)[0-9a-fA-F]+',
+                            rf'\g<1>{h_hex}',
+                            new_content,
+                        )
+                        if new_content != reg_content:
+                            user_reg_path.write_text(new_content, encoding="utf-8")
+                            logger.info(
+                                "Synchronized Unity Screenmanager resolution in user.reg to %dx%d (%s x %s)",
+                                self.width,
+                                self.height,
+                                w_hex,
+                                h_hex,
+                            )
+                except Exception as exc:
+                    logger.debug("Could not patch user.reg Screenmanager resolution: %s", exc)
+
+        env.pop("ELECTRON_RUN_AS_NODE", None)
+        logger.info(
+            "Launching isolated game command: %s (cwd=%s, WINEDLLOVERRIDES: %s)",
+            target_cmd,
+            game_cwd,
+            env.get("WINEDLLOVERRIDES", "none"),
+        )
         self.game_proc = subprocess.Popen(
-            self.game_cmd,
+            target_cmd,
+            cwd=game_cwd,
             env=env,
             stdout=sys.stdout,
             stderr=sys.stderr,
@@ -342,17 +580,75 @@ class IsolatedSessionRuntime:
             time.sleep(0.1)
         self.state = "ready"
 
+    def is_game_active_in_container(self) -> bool:
+        """Check if any game process or mapped game window is still active inside the isolated container."""
+        # 1. Check mapped X11 viewable game windows
+        if self.input_manager and self.input_manager.has_viewable_game_window():
+            return True
+
+        # 2. Check active container processes in /proc
+        try:
+            current_pid = str(os.getpid())
+            for pid_entry in Path("/proc").glob("[0-9]*"):
+                if pid_entry.name == current_pid:
+                    continue
+                try:
+                    comm_file = pid_entry / "comm"
+                    cmdline_file = pid_entry / "cmdline"
+                    comm = comm_file.read_text(encoding="utf-8", errors="ignore").strip().lower() if comm_file.exists() else ""
+                    cmdline = cmdline_file.read_text(encoding="utf-8", errors="ignore").replace("\x00", " ").strip().lower() if cmdline_file.exists() else ""
+                    combined = f"{comm} {cmdline}"
+                    if any(
+                        marker in combined
+                        for marker in (
+                            "wineserver",
+                            "wine",
+                            "wine64",
+                            "wine-preloader",
+                            "wine64-preloader",
+                            ".exe",
+                            "steam",
+                            "steamwebhelper",
+                            "heroic",
+                            "legendary",
+                            "arena3d",
+                        )
+                    ):
+                        return True
+                except (FileNotFoundError, PermissionError, ProcessLookupError):
+                    continue
+        except Exception as exc:
+            logger.debug("Process scan error in container: %s", exc)
+
+        return False
+
     async def monitor_game_lifecycle(self) -> None:
-        """Watch the game process; terminate the session immediately when the game exits."""
+        """Watch the game process; terminate the session when all game processes and windows have exited."""
+        consecutive_inactive_checks = 0
         while not self._shutdown_event.is_set():
             if self.game_proc is not None:
                 ret = self.game_proc.poll()
                 if ret is not None:
-                    logger.info("Game process exited with code %d; ending isolated session", ret)
-                    self.state = "ended"
-                    self._shutdown_event.set()
-                    break
-            await asyncio.sleep(0.3)
+                    # Initial launcher, Steam wrapper, or Proton script may have exited;
+                    # check if child game processes (Wine, .exe, steamwebhelper) or game windows are still active
+                    if self.is_game_active_in_container():
+                        consecutive_inactive_checks = 0
+                        await asyncio.sleep(1.0)
+                        continue
+                    else:
+                        consecutive_inactive_checks += 1
+                        # Allow a 5-second grace period for Wine or child executables to initialize and map windows
+                        if consecutive_inactive_checks < 5:
+                            await asyncio.sleep(1.0)
+                            continue
+
+                        logger.info("Game process and container workloads exited with code %d; ending isolated session", ret)
+                        self.state = "ended"
+                        self._shutdown_event.set()
+                        break
+                else:
+                    consecutive_inactive_checks = 0
+            await asyncio.sleep(0.5)
 
     def stop_all(self) -> None:
         """Cleanly stop WebRTC pipeline, input manager, game process, compositor, and audio daemons."""
@@ -468,6 +764,13 @@ def create_web_app(runtime: IsolatedSessionRuntime) -> web.Application:
             info = {"quality": runtime.quality, **QUALITY_PRESETS[runtime.quality]}
         return web.json_response({"ok": True, **info})
 
+    async def handle_keyframe(_request: web.Request) -> web.Response:
+        runtime.last_input_at = time.time()
+        forced = False
+        if runtime.active_peer:
+            forced = runtime.active_peer.force_keyframe()
+        return web.json_response({"ok": True, "forced": forced})
+
     async def handle_stop(_request: web.Request) -> web.Response:
         runtime.state = "ended"
         runtime._shutdown_event.set()
@@ -555,6 +858,9 @@ def create_web_app(runtime: IsolatedSessionRuntime) -> web.Application:
                         q_info = peer.set_quality(str(data.get("quality", "high")))
                         runtime.quality = str(q_info["quality"])
                         await ws.send_json({"type": "quality_ack", **q_info})
+                    elif mtype in ("request_keyframe", "keyframe", "pli"):
+                        forced = peer.force_keyframe()
+                        await ws.send_json({"type": "keyframe_ack", "forced": forced})
                     elif mtype == "ping":
                         await ws.send_json(
                             {
@@ -588,6 +894,7 @@ def create_web_app(runtime: IsolatedSessionRuntime) -> web.Application:
         app.router.add_static("/assets", path=web_dir / "assets", show_index=False)
     app.router.add_get("/api/session/status", handle_status)
     app.router.add_post("/api/session/quality", handle_quality)
+    app.router.add_post("/api/session/keyframe", handle_keyframe)
     app.router.add_post("/api/session/stop", handle_stop)
     app.router.add_get("/ws", handle_ws)
     return app
@@ -605,6 +912,8 @@ async def run_session_async(args: argparse.Namespace) -> int:
         port=args.port,
         user_id=args.user_id,
         app_id=args.app_id,
+        display_num=getattr(args, "display_num", 0),
+        launch_options=getattr(args, "launch_options", None),
     )
 
     state_dir = os.environ.get("SESSION_STATE_DIR")
@@ -667,12 +976,14 @@ def main() -> int:
     parser.add_argument("--session-id", default="phase1-demo", help="Unique session identifier")
     parser.add_argument("--host", default="0.0.0.0", help="Bind host for HTTP/WebSocket server")
     parser.add_argument("--port", type=int, default=8080, help="Bind port for HTTP/WebSocket server")
-    parser.add_argument("--width", type=int, default=1280, help="Stream width")
-    parser.add_argument("--height", type=int, default=720, help="Stream height")
+    parser.add_argument("--width", type=int, default=1920, help="Stream width")
+    parser.add_argument("--height", type=int, default=1080, help="Stream height")
     parser.add_argument("--fps", type=int, default=60, help="Target stream framerate")
     parser.add_argument("--quality", default="high", choices=list(QUALITY_PRESETS.keys()))
     parser.add_argument("--user-id", default="default", help="User identifier for persistent saves/Steam profile")
     parser.add_argument("--app-id", default="0", help="Steam AppID or 0 for CyberArena 3D, 7 for Steam GamepadUI")
+    parser.add_argument("--display-num", type=int, default=0, help="Explicit display number (0 = auto-detect free display)")
+    parser.add_argument("--launch-options", default="", help="Steam launch options (e.g. WINEDLLOVERRIDES=... %%command%%)")
     parser.add_argument("--game-cmd", default="", help="Optional custom game command")
     args = parser.parse_args()
 

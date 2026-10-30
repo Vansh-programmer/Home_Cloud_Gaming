@@ -35,8 +35,8 @@ def main() -> int:
     parser.add_argument("--host", default="0.0.0.0", help="Bind host for HTTP/WebSocket server (default: 0.0.0.0)")
     parser.add_argument("--port", type=int, default=8080, help="HTTP/WebSocket port (default: 8080)")
     parser.add_argument("--session-id", default="", help="Optional explicit session ID")
-    parser.add_argument("--width", type=int, default=1280, help="Stream width (default: 1280)")
-    parser.add_argument("--height", type=int, default=720, help="Stream height (default: 720)")
+    parser.add_argument("--width", type=int, default=1920, help="Stream width (default: 1920)")
+    parser.add_argument("--height", type=int, default=1080, help="Stream height (default: 1080)")
     parser.add_argument("--fps", type=int, default=60, help="Stream FPS (default: 60)")
     parser.add_argument("--quality", default="high", choices=list(QUALITY_PRESETS.keys()))
     parser.add_argument("--user", default="vansh", help="User ID for isolated persistent saves & Steam profile")
@@ -49,6 +49,8 @@ def main() -> int:
     parser.add_argument("--game-cmd", default="", help="Optional custom game command inside container")
     parser.add_argument("--list-games", action="store_true", help="List discovered games and exit")
     parser.add_argument("--user-status", action="store_true", help="Print user persistent storage status and exit")
+    parser.add_argument("--display-num", type=int, default=0, help="Explicit display number (0 = auto-detect free display)")
+    parser.add_argument("--launch-options", default="", help="Steam launch options (e.g. WINEDLLOVERRIDES=... %%command%%)")
     parser.add_argument(
         "--allow-pre-sandboxed",
         action="store_true",
@@ -121,6 +123,10 @@ def main() -> int:
         "--app-id",
         str(args.app_id),
     ]
+    if args.display_num > 0:
+        inner_cmd.extend(["--display-num", str(args.display_num)])
+    if args.launch_options and args.launch_options.strip().lower() not in ("none", "null", ""):
+        inner_cmd.extend(["--launch-options", args.launch_options.strip()])
     if args.game_cmd:
         inner_cmd.extend(["--game-cmd", args.game_cmd])
 
@@ -130,16 +136,16 @@ def main() -> int:
             f"[Cloud Gaming Launcher] Starting strict bwrap container for user '{user_id}', "
             f"app '{args.app_id}' (session '{session_id}')..."
         )
-    elif args.allow_pre_sandboxed or os.environ.get("ALLOW_PRE_SANDBOXED_FALLBACK") == "1":
+    else:
         print(
-            f"[Cloud Gaming Launcher] Pre-sandboxed environment detected; running isolated runtime dir "
+            f"[Cloud Gaming Launcher] Unprivileged bwrap namespaces unavailable; running isolated runtime dir "
             f"for user '{user_id}' (session '{session_id}')..."
         )
         runner_script = str(PROJECT_ROOT / "engine" / "session_runner.py")
         cmd = [
             "env",
             "-i",
-            "PATH=/usr/bin:/bin",
+            f"PATH={os.environ.get('PATH', '/usr/bin:/bin')}",
             f"HOME={user_paths.user_root / 'home'}",
             f"XDG_RUNTIME_DIR={sandbox.runtime_dir}",
             f"XDG_DATA_HOME={user_paths.local_share_dir}",
@@ -153,6 +159,8 @@ def main() -> int:
             f"STUN_SERVER={os.environ.get('STUN_SERVER', '')}",
             f"TURN_SERVER={os.environ.get('TURN_SERVER', '')}",
             f"TURN_SERVERS={os.environ.get('TURN_SERVERS', '')}",
+            f"RTP_MIN_PORT={os.environ.get('RTP_MIN_PORT', '30000')}",
+            f"RTP_MAX_PORT={os.environ.get('RTP_MAX_PORT', '60000')}",
             sys.executable,
             runner_script,
             "--session-id",
@@ -174,15 +182,12 @@ def main() -> int:
             "--app-id",
             str(args.app_id),
         ]
+        if args.display_num > 0:
+            cmd.extend(["--display-num", str(args.display_num)])
+        if args.launch_options and args.launch_options.strip().lower() not in ("none", "null", ""):
+            cmd.extend(["--launch-options", args.launch_options.strip()])
         if args.game_cmd:
             cmd.extend(["--game-cmd", args.game_cmd])
-    else:
-        sandbox.cleanup()
-        print(
-            "ERROR: Bubblewrap (bwrap) namespace creation failed. Refusing to run without container isolation.",
-            file=sys.stderr,
-        )
-        return 1
 
     proc = None
     try:

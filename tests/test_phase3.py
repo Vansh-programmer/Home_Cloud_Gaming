@@ -70,6 +70,7 @@ class TestPhase3BackendOrchestrator(unittest.IsolatedAsyncioTestCase):
             idle_timeout_sec=idle_timeout_sec,
             disconnect_grace_sec=disconnect_grace_sec,
             allow_pre_sandboxed=True,
+            max_concurrent_sessions=1,
         )
         app = create_orchestrator_app(
             db=db,

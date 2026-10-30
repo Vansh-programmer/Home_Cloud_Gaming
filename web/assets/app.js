@@ -88,6 +88,7 @@
   const hudBar = document.getElementById('hud-bar');
   const btnHudLockMouse = document.getElementById('btn-hud-lock-mouse');
   const btnHudMute = document.getElementById('btn-hud-mute');
+  const selectHudResolution = document.getElementById('select-hud-resolution');
   const selectHudQuality = document.getElementById('select-hud-quality');
   const btnHudStats = document.getElementById('btn-hud-stats');
   const btnHudTouch = document.getElementById('btn-hud-touch');
@@ -147,6 +148,10 @@
   let lastStatsTs = performance.now();
   let latestRttMs = null;
   let latestFps = 0;
+  let lastKeyframeRequestTs = 0;
+  let lowFpsStreak = 0;
+  let autoRecoverCooloff = 0;
+  let lastPacketsLost = 0;
 
   // --------------------------------------------------------------------------
   // Helper: Fallback Cover SVG Data URI for Offline Steam Games
@@ -268,112 +273,192 @@
   };
 
   // --------------------------------------------------------------------------
-  // Game Library, Search, Filter & Hero Spotlight
+  // PS5-Style Console Home Layout (Games on Left, Steam on Right)
   // --------------------------------------------------------------------------
-  function selectHeroGame(game) {
-    selectedGame = game;
-    if (!game) return;
-    heroTitle.textContent = game.title;
-    if (game.app_id === '0') {
-      heroTag.textContent = 'NATIVE // 60 FPS OPENGL';
-      heroDesc.textContent = 'Direct NVENC stream • Low-latency input • Persistent saves.';
-    } else if (game.app_id === '7') {
-      heroTag.textContent = 'VALVE // STEAM CLIENT';
-      heroDesc.textContent = 'Direct in-stream Steam login • Persistent session token.';
-    } else {
-      heroTag.textContent = `STEAM // APPID ${game.app_id}`;
-      heroDesc.textContent = `${formatBytes(game.size_bytes)} • Shared library mount • Private save profile.`;
-    }
-    heroBtnPlay.onclick = () => startOrResumeGame(game.app_id, game.title);
+  const steamFeaturedCard = document.getElementById('steam-featured-card');
+  const ambientBackdrop = document.getElementById('ps5-ambient-backdrop');
+
+  function getCleanTitle(title) {
+    if (!title) return '';
+    return title.replace(/\s*\([^)]*\)/g, '').trim() || title;
+  }
+
+  function setAmbientBackground(url) {
+    if (!ambientBackdrop || !url) return;
+    const fullUrl = url.startsWith('/assets/') ? (BASE_PREFIX + url) : url;
+    ambientBackdrop.style.backgroundImage = `url("${fullUrl}")`;
   }
 
   function renderGamesGrid() {
+    if (!gamesGrid) return;
     gamesGrid.innerHTML = '';
-    const q = searchQuery.trim().toLowerCase();
-    const filtered = allGames.filter((g) => {
-      if (activeCategory === 'steam' && (g.category !== 'steam' || g.app_id === '7')) return false;
-      if (activeCategory === 'builtin' && g.category !== 'builtin') return false;
-      if (activeCategory === 'account' && g.app_id !== '7') return false;
-      if (q && !g.title.toLowerCase().includes(q) && !String(g.app_id).includes(q)) return false;
-      return true;
-    });
 
-    if (filtered.length === 0) {
-      gamesGrid.innerHTML = `<div style="grid-column:1/-1; color:var(--text-muted); padding:24px; text-align:center; background:var(--bg-panel); border:1px solid var(--border-dim); font-family:var(--font-mono); font-size:12px;">
-        NO MATCHING TITLES
-      </div>`;
+    const list = (allGames && allGames.length > 0) ? allGames : [];
+
+    if (list.length === 0) {
+      gamesGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align:center; padding:60px 20px; color:var(--fg-1);">
+          <p style="font-size:15px; font-weight:600;">No games found.</p>
+          <p style="font-size:12px; margin-top:6px;">Connect your Steam account or add games to begin streaming.</p>
+        </div>
+      `;
       return;
     }
 
-    for (const g of filtered) {
+    for (const g of list) {
       const card = document.createElement('div');
-      card.className = 'game-card';
-      const catLabel = g.app_id === '0'
-        ? 'NATIVE 3D'
-        : (g.app_id === '7' ? 'STEAM CLIENT' : 'STEAM');
+      card.className = 'game-card ps5-game-card';
+      card.dataset.appId = String(g.app_id);
+      const cleanTitle = getCleanTitle(g.title);
+      card.title = cleanTitle;
 
-      const coverSrc = (g.cover_url && g.cover_url.startsWith('/assets/'))
+      const isSteam = String(g.app_id) === '7' || g.category === 'steam';
+      const isEpic = g.category === 'epic' || String(g.app_id).startsWith('epic_') || String(g.app_id) === '8';
+
+      let coverSrc = (g.cover_url && g.cover_url.startsWith('/assets/'))
         ? (BASE_PREFIX + g.cover_url)
-        : g.cover_url;
+        : (g.cover_url || makeFallbackCoverSvg(cleanTitle, g.app_id));
+
+      if (String(g.app_id) === '7') {
+        coverSrc = `${BASE_PREFIX}/assets/steam-banner.svg`;
+      }
+
+      let badgeHtml = '';
+      if (isEpic) {
+        badgeHtml = '<span class="game-badge epic">EPIC</span>';
+      } else if (isSteam) {
+        badgeHtml = '<span class="game-badge steam">STEAM</span>';
+      }
 
       card.innerHTML = `
-        <div class="game-cover-wrap">
-          <img alt="${g.title}" src="${coverSrc}" />
-          <div class="game-cover-overlay">
-            <div class="game-card-cat">${catLabel}</div>
-            <div class="game-card-title">${g.title}</div>
-            <div class="game-card-meta">
-              <span>#${g.app_id}</span>
-              <span>${formatBytes(g.size_bytes)}</span>
-            </div>
-            <button class="btn btn-primary" style="width:100%;">▶ PLAY</button>
+        <div class="game-card-media ps5-card-media">
+          <img alt="${cleanTitle}" src="${coverSrc}" loading="lazy" />
+          ${badgeHtml}
+          <div class="game-play-overlay">
+            <span class="game-play-btn">▶ Play</span>
           </div>
         </div>
+        <div class="game-card-title ps5-card-title">${cleanTitle}</div>
       `;
 
       const img = card.querySelector('img');
       img.onerror = () => {
         img.onerror = null;
-        img.src = makeFallbackCoverSvg(g.title, g.app_id);
+        img.src = makeFallbackCoverSvg(cleanTitle, g.app_id);
       };
 
-      card.onclick = (ev) => {
-        if (ev.target.tagName.toLowerCase() === 'button') {
-          ev.stopPropagation();
-          selectHeroGame(g);
-          startOrResumeGame(g.app_id, g.title);
-        } else {
-          selectHeroGame(g);
-        }
+      card.onmouseenter = () => {
+        setAmbientBackground(g.header_url || g.cover_url);
+      };
+
+      card.onclick = () => {
+        startOrResumeGame(g.app_id, cleanTitle);
       };
 
       gamesGrid.appendChild(card);
     }
+
+    if (list.length > 0) {
+      setAmbientBackground(list[0].header_url || list[0].cover_url);
+    }
+
+    if (steamFeaturedCard) {
+      steamFeaturedCard.onclick = () => {
+        startOrResumeGame('7', 'Steam Big Picture');
+      };
+    }
   }
 
-  searchInput.oninput = () => {
-    searchQuery = searchInput.value;
-    renderGamesGrid();
-  };
-
-  filterChips.forEach((chip) => {
-    chip.onclick = () => {
-      filterChips.forEach((c) => c.classList.remove('active'));
-      chip.classList.add('active');
-      activeCategory = chip.dataset.filter || 'all';
+  if (searchInput) {
+    searchInput.oninput = () => {
+      searchQuery = searchInput.value;
       renderGamesGrid();
     };
-  });
+  }
+
+  if (filterChips && filterChips.length > 0) {
+    filterChips.forEach((chip) => {
+      chip.onclick = () => {
+        filterChips.forEach((c) => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeCategory = chip.dataset.filter || 'all';
+        renderGamesGrid();
+      };
+    });
+  }
 
   async function loadGamesLibrary() {
     const res = await fetch('/api/games');
     if (!res.ok) return;
     const data = await res.json();
     allGames = data.games || [];
-    if (!selectedGame && allGames.length > 0) {
-      selectHeroGame(allGames[0]);
-    }
     renderGamesGrid();
+  }
+
+  // --------------------------------------------------------------------------
+  // Console Digital Clock & Controller Navigation
+  // --------------------------------------------------------------------------
+  function updateConsoleClock() {
+    const clockEl = document.getElementById('console-clock');
+    if (clockEl) {
+      const now = new Date();
+      clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+  }
+  setInterval(updateConsoleClock, 1000);
+  updateConsoleClock();
+
+  function navigateConsoleShelf(direction) {
+    const cards = Array.from(document.querySelectorAll('.ps5-game-card'));
+    if (cards.length === 0) return;
+    let curr = cards.findIndex(c => c.classList.contains('active-focused'));
+    if (curr === -1) curr = 0;
+    let next = curr + direction;
+    if (next < 0) next = cards.length - 1;
+    if (next >= cards.length) next = 0;
+    cards.forEach(c => c.classList.remove('active-focused'));
+    cards[next].classList.add('active-focused');
+    cards[next].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+
+  // --------------------------------------------------------------------------
+  // Launch Options Drawer & Controller Config
+  // --------------------------------------------------------------------------
+  const btnHeroOptions = document.getElementById('hero-btn-options');
+  const drawerHeroOptions = document.getElementById('hero-options-drawer');
+  const btnSaveLaunchOpts = document.getElementById('btn-save-launch-options');
+  const inputLaunchOpts = document.getElementById('game-launch-options-input');
+  const statusLaunchOpts = document.getElementById('hero-options-status');
+
+  if (btnHeroOptions && drawerHeroOptions) {
+    btnHeroOptions.onclick = () => {
+      const isClosed = drawerHeroOptions.style.display === 'none';
+      drawerHeroOptions.style.display = isClosed ? 'block' : 'none';
+    };
+  }
+
+  if (btnSaveLaunchOpts && inputLaunchOpts) {
+    btnSaveLaunchOpts.onclick = async () => {
+      if (!selectedGame) return;
+      const val = inputLaunchOpts.value.trim();
+      try {
+        const resp = await fetch(`/api/games/${selectedGame.app_id}/launch-options`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ launch_options: val }),
+        });
+        if (resp.ok) {
+          selectedGame.launch_options = val;
+          if (statusLaunchOpts) {
+            statusLaunchOpts.textContent = 'Saved ✓';
+            setTimeout(() => { statusLaunchOpts.textContent = 'Configured'; }, 2000);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to save launch options:', err);
+      }
+    };
   }
 
   // --------------------------------------------------------------------------
@@ -402,6 +487,9 @@
       step3.className = 'stage-step done';
       step4.className = 'stage-step done';
       stageModal.classList.add('hidden');
+      hudBar.classList.add('collapsed');
+      updateHudPillSummary();
+      showStreamHudTemporarily(4000);
     } else if (state === 'ended' || isError) {
       stageModal.classList.remove('hidden');
       stageTitle.textContent = isError ? 'Stream Connection Notice' : 'Session Ended';
@@ -410,27 +498,128 @@
     }
   }
 
-  async function startOrResumeGame(appId, title) {
-    const [w, h] = (launchResolution.value || '1280x720').split('x').map(Number);
-    const quality = launchQuality.value || 'high';
-    selectHudQuality.value = quality;
+  let streamingHost = '100.89.198.41';
+
+  async function resolveStreamingHost() {
+    try {
+      const res = await fetch(`${BASE_PREFIX}/api/client/endpoint`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.recommended_host) {
+          streamingHost = data.recommended_host;
+        }
+      }
+    } catch (e) {}
+  }
+  resolveStreamingHost();
+
+  function showMoonlightLaunchModal(appId, title, opts) {
+    const modal = document.getElementById('modal-moonlight-launch');
+    if (!modal) return;
+
+    const modalTitle = document.getElementById('moonlight-modal-game-title');
+    const inputHost = document.getElementById('moonlight-target-host-input');
+    const protoBtn = document.getElementById('btn-open-moonlight-protocol');
+    const cliCmd = document.getElementById('moonlight-cli-command');
+    const btnCopy = document.getElementById('btn-copy-moonlight-cmd');
+    const btnPair = document.getElementById('btn-moonlight-auto-pair');
+    const btnFallback = document.getElementById('btn-launch-webrtc-fallback');
+    const btnClose = document.getElementById('btn-close-moonlight-modal');
+
+    if (modalTitle) modalTitle.textContent = title;
+    if (inputHost) inputHost.value = streamingHost;
+
+    const updateCommands = () => {
+      const host = (inputHost && inputHost.value.trim()) || streamingHost;
+      if (protoBtn) {
+        protoBtn.href = `moonlight://stream?address=${encodeURIComponent(host)}&app=${encodeURIComponent(title)}`;
+      }
+      if (cliCmd) {
+        cliCmd.textContent = `flatpak run com.moonlight_stream.Moonlight stream ${host} "${title}"`;
+      }
+    };
+
+    updateCommands();
+    if (inputHost) inputHost.oninput = updateCommands;
+
+    if (btnCopy) {
+      btnCopy.onclick = () => {
+        const host = (inputHost && inputHost.value.trim()) || streamingHost;
+        const text = `flatpak run com.moonlight_stream.Moonlight stream ${host} "${title}"`;
+        navigator.clipboard.writeText(text).then(() => {
+          btnCopy.textContent = '✓ Copied!';
+          setTimeout(() => { btnCopy.textContent = '📋 Copy CLI'; }, 2000);
+        });
+      };
+    }
+
+    if (btnPair) {
+      btnPair.onclick = async () => {
+        const pin = prompt('Enter 4-digit pairing PIN shown by Moonlight on your device:', '1234');
+        if (!pin || pin.length !== 4) return;
+        btnPair.textContent = 'Pairing...';
+        try {
+          const res = await fetch(`${BASE_PREFIX}/api/client/pair`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin }),
+          });
+          const d = await res.json();
+          if (res.ok && d.ok) {
+            btnPair.textContent = '✓ Paired!';
+            alert('Host pairing approved! You can now launch the stream in Moonlight.');
+          } else {
+            alert('Pairing failed: ' + (d.error || 'Check that Sunshine is running on host'));
+            btnPair.textContent = '🔑 1-Click Auto-Pair Host';
+          }
+        } catch (err) {
+          alert('Could not reach pair API: ' + err.message);
+          btnPair.textContent = '🔑 1-Click Auto-Pair Host';
+        }
+      };
+    }
+
+    if (btnFallback) {
+      btnFallback.onclick = () => {
+        modal.style.display = 'none';
+        startWebRTCStream(appId, title, opts);
+      };
+    }
+
+    if (btnClose) {
+      btnClose.onclick = () => { modal.style.display = 'none'; };
+    }
+    modal.onclick = (e) => {
+      if (e.target === modal) modal.style.display = 'none';
+    };
+
+    modal.style.display = 'flex';
+  }
+
+  async function startWebRTCStream(appId, title, opts) {
+    const w = opts?.width || 1920;
+    const h = opts?.height || 1080;
+    const quality = opts?.quality || 'remote';
 
     streamOpen = true;
     streamReplaced = false;
     streamViewport.classList.add('visible');
-    // Pre-unlock video playback on mobile/safari browsers during direct click gesture
     videoEl.play().catch(() => {});
-    setStepperState('starting', `Launching ${title || 'game'} in isolated sandbox...`);
+    setStepperState('starting', `Launching ${title || 'game'} in 1080p 60 FPS (WebRTC)...`);
 
-    const res = await fetch('/api/sessions/start', {
+    const optInput = document.getElementById('game-launch-options-input');
+    const customLaunchOpts = (optInput && optInput.value.trim()) ? optInput.value.trim() : (selectedGame ? selectedGame.launch_options : undefined);
+
+    const res = await fetch(`${BASE_PREFIX}/api/sessions/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         app_id: String(appId),
         quality,
-        width: w || 1280,
-        height: h || 720,
+        width: w,
+        height: h,
         fps: 60,
+        launch_options: customLaunchOpts,
       }),
     });
     const data = await res.json();
@@ -442,6 +631,66 @@
     const session = data.session;
     activeSessionId = session.session_id;
     handleSessionStateUpdate(session);
+  }
+
+  async function startOrResumeGame(appId, title) {
+    const savedRes = localStorage.getItem('ryoku_stream_resolution') || '1920x1080';
+    const chosenRes = (launchResolution && launchResolution.value) || (selectHudResolution && selectHudResolution.value) || savedRes;
+    const [w, h] = chosenRes.split('x').map(Number);
+    const savedQuality = localStorage.getItem('ryoku_stream_quality') || 'remote';
+    const quality = (selectHudQuality && selectHudQuality.value) || (launchQuality && launchQuality.value) || savedQuality;
+    if (selectHudQuality) selectHudQuality.value = quality;
+    if (selectHudResolution) selectHudResolution.value = `${w || 1920}x${h || 1080}`;
+    if (launchResolution) launchResolution.value = `${w || 1920}x${h || 1080}`;
+
+    const isNative = !!(
+      (window.ryokuNative && window.ryokuNative.isNative) ||
+      navigator.userAgent.includes('RyokuNativeClient') ||
+      window.ryokuIsNative
+    );
+
+    const activeEngine = localStorage.getItem('ryoku_engine') || (isNative ? 'moonlight' : 'moonlight');
+    const gameTitle = title || (selectedGame && selectedGame.title) || 'CyberArena 3D';
+
+    // Native Moonlight Client: 100% Direct Moonlight Launch (Zero WebRTC)
+    if (isNative) {
+      console.log(`[RYOKU CLIENT] Direct handoff to native Moonlight engine for '${gameTitle}' (120 FPS)...`);
+      if (window.ryokuNative && window.ryokuNative.launchMoonlight) {
+        window.ryokuNative.launchMoonlight({
+          appId: String(appId),
+          title: gameTitle,
+          width: w || 1920,
+          height: h || 1080,
+          fps: 120,
+          quality
+        });
+        return;
+      }
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ryokuNativeBridge) {
+        window.webkit.messageHandlers.ryokuNativeBridge.postMessage(JSON.stringify({
+          action: 'launch_moonlight',
+          opts: {
+            appId: String(appId),
+            title: gameTitle,
+            width: w || 1920,
+            height: h || 1080,
+            fps: 120,
+            quality
+          }
+        }));
+        return;
+      }
+      return;
+    }
+
+    if (activeEngine === 'moonlight') {
+      // Show Moonlight Connect Dialog if running in browser
+      showMoonlightLaunchModal(appId, gameTitle, { width: w || 1920, height: h || 1080, fps: 120, quality });
+      return;
+    }
+
+    // Explicit WebRTC In-Browser streaming
+    await startWebRTCStream(appId, gameTitle, { width: w || 1920, height: h || 1080, quality });
   }
 
   let currentSessionAppId = '0';
@@ -480,6 +729,10 @@
   function teardownWebRTC() {
     clearTimeout(reconnectTimer);
     wsConnectingForSession = null;
+    lowFpsStreak = 0;
+    autoRecoverCooloff = 0;
+    lastPacketsLost = 0;
+    lastKeyframeRequestTs = 0;
     if (dc) {
       try { dc.close(); } catch (_) {}
       dc = null;
@@ -500,7 +753,15 @@
   function closeStreamViewport() {
     streamOpen = false;
     pointerLockPreferred = true;
+    if (hudHideTimeout) {
+      clearTimeout(hudHideTimeout);
+      hudHideTimeout = null;
+    }
+    streamViewport.classList.remove('hud-autohidden');
     teardownWebRTC();
+    if (navigator.keyboard && navigator.keyboard.unlock) {
+      try { navigator.keyboard.unlock(); } catch (_) {}
+    }
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     }
@@ -509,26 +770,60 @@
 
   function sendInputPacket(payload) {
     if (!streamOpen || streamReplaced) return;
-    const raw = JSON.stringify(payload);
     if (dc && dc.readyState === 'open') {
-      dc.send(raw);
+      // If network backpressure occurs, drop stale high-frequency mouse movements to prevent input lag backlog
+      if (payload.type === 'mousemove' && dc.bufferedAmount > 16384) {
+        return;
+      }
+      dc.send(JSON.stringify(payload));
     } else if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(raw);
+      ws.send(JSON.stringify(payload));
+    }
+  }
+
+  function requestKeyframe(reason = 'auto') {
+    const now = performance.now();
+    if (now - lastKeyframeRequestTs < 1500) return; // Rate limit 1.5s
+    lastKeyframeRequestTs = now;
+    console.debug(`[Stream] Requesting keyframe (${reason})`);
+    if (dc && dc.readyState === 'open') {
+      sendInputPacket({ type: 'request_keyframe', reason });
+    } else if (ws && ws.readyState === WebSocket.OPEN) {
+      try {
+        ws.send(JSON.stringify({ type: 'request_keyframe', reason }));
+      } catch (_) {}
+    } else {
+      fetch('/api/sessions/keyframe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      }).catch(() => {});
     }
   }
 
   function bindDataChannel(channel) {
     dc = channel;
-    dc.onopen = () => {
+    const markPlaying = () => {
+      mediaFlowing = true;
+      if (typeof noMediaTimer !== 'undefined') clearTimeout(noMediaTimer);
       setStepperState('playing');
     };
+
+    if (dc.readyState === 'open') {
+      markPlaying();
+    }
+    dc.onopen = () => {
+      markPlaying();
+    };
     dc.onmessage = (ev) => {
+      markPlaying();
       try {
         const msg = JSON.parse(ev.data);
         if (msg.type === 'pong' && msg.client_ts) {
           latestRttMs = Math.max(1, Math.round(performance.now() - msg.client_ts));
           stRtt.textContent = latestRttMs + ' ms';
           updateHudPillSummary();
+        } else if (msg.type === 'keyframe_ack') {
+          console.debug('[Stream] Host acknowledged keyframe refresh');
         }
       } catch (_) {}
     };
@@ -670,9 +965,13 @@
             if (event.receiver && 'playoutDelayHint' in event.receiver) {
               event.receiver.playoutDelayHint = 0;
             }
+            if (event.receiver && 'jitterBufferTarget' in event.receiver) {
+              event.receiver.jitterBufferTarget = 0;
+            }
             if (pc && pc.getReceivers) {
               pc.getReceivers().forEach((r) => {
                 if ('playoutDelayHint' in r) r.playoutDelayHint = 0;
+                if ('jitterBufferTarget' in r) r.jitterBufferTarget = 0;
               });
             }
           } catch (_) {}
@@ -686,8 +985,13 @@
             }
             videoEl.srcObject.addTrack(event.track);
           }
-          videoEl.play().catch(() => {
-            // Autoplay with audio was blocked by browser policy; mute and retry automatically
+          videoEl.muted = true;
+          videoEl.play().then(() => {
+            // Unmute if browser policy allows it, otherwise remain muted with UNMUTE button
+            videoEl.muted = false;
+            btnHudMute.textContent = 'AUDIO ON';
+            btnHudMute.classList.add('active');
+          }).catch(() => {
             videoEl.muted = true;
             btnHudMute.textContent = 'UNMUTE';
             btnHudMute.classList.remove('active');
@@ -695,6 +999,33 @@
           });
           setStepperState('playing');
         };
+
+        videoEl.onloadeddata = () => {
+          mediaFlowing = true;
+          clearTimeout(noMediaTimer);
+          setStepperState('playing');
+        };
+        videoEl.onplaying = () => {
+          mediaFlowing = true;
+          clearTimeout(noMediaTimer);
+          setStepperState('playing');
+        };
+        videoEl.ontimeupdate = () => {
+          if (videoEl.currentTime > 0) {
+            mediaFlowing = true;
+            clearTimeout(noMediaTimer);
+            setStepperState('playing');
+          }
+        };
+
+        // Safety fallback: if ICE is connected or DataChannel is open, dismiss loading modal
+        setTimeout(() => {
+          if (streamOpen && !streamReplaced && (mediaFlowing || (pc && (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed' || pc.connectionState === 'connected')) || (dc && dc.readyState === 'open'))) {
+            mediaFlowing = true;
+            clearTimeout(noMediaTimer);
+            setStepperState('playing');
+          }
+        }, 2200);
 
         pc.onicecandidate = (event) => {
           if (event.candidate && ws && ws.readyState === WebSocket.OPEN) {
@@ -764,17 +1095,90 @@
     const rttTxt = latestRttMs !== null ? `${latestRttMs} ms` : '-- ms';
     const fpsTxt = latestFps ? `${latestFps} FPS` : '60 FPS';
     const collapsed = hudBar.classList.contains('collapsed');
-    hudPillSummary.textContent = `RYOKU HUD ${collapsed ? '▾' : '▴'} • ${fpsTxt} • ${rttTxt}`;
+    let resLabel = '1080p';
+    if (stRes && stRes.textContent && stRes.textContent.includes('x')) {
+      resLabel = stRes.textContent.startsWith('1920') ? '1080p' : (stRes.textContent.startsWith('1280') ? '720p' : stRes.textContent);
+    } else if (selectHudResolution && selectHudResolution.value) {
+      resLabel = selectHudResolution.value === '1920x1080' ? '1080p' : '720p';
+    }
+    hudPillSummary.textContent = `${resLabel} • ${fpsTxt} • ${rttTxt} ${collapsed ? '▾' : '▴'}`;
   }
 
   // --------------------------------------------------------------------------
-  // In-Stream HUD Controls (Collapse, Pointer Lock, Mute, Quality, Stats, Touch, Fullscreen)
+  // In-Stream Minimal HUD Engine (Auto-Hide, Floating Pill, Hover Reveals)
   // --------------------------------------------------------------------------
+  let hudHideTimeout = null;
+
+  function showStreamHudTemporarily(durationMs = 3000) {
+    if (!streamOpen) return;
+    streamViewport.classList.remove('hud-autohidden');
+    if (hudHideTimeout) {
+      clearTimeout(hudHideTimeout);
+      hudHideTimeout = null;
+    }
+    // Only auto-hide if HUD bar is collapsed (don't hide while user is clicking tools)
+    if (hudBar.classList.contains('collapsed')) {
+      hudHideTimeout = setTimeout(() => {
+        if (streamOpen && hudBar.classList.contains('collapsed')) {
+          streamViewport.classList.add('hud-autohidden');
+        }
+      }, durationMs);
+    }
+  }
+
+  function hideStreamHudImmediately() {
+    if (!streamOpen) return;
+    if (hudHideTimeout) {
+      clearTimeout(hudHideTimeout);
+      hudHideTimeout = null;
+    }
+    hudBar.classList.add('collapsed');
+    updateHudPillSummary();
+    streamViewport.classList.add('hud-autohidden');
+  }
+
   hudPillHandle.onclick = (e) => {
     e.currentTarget.blur();
     hudBar.classList.toggle('collapsed');
     updateHudPillSummary();
+    if (hudBar.classList.contains('collapsed')) {
+      showStreamHudTemporarily(2500);
+    } else {
+      streamViewport.classList.remove('hud-autohidden');
+      if (hudHideTimeout) clearTimeout(hudHideTimeout);
+    }
   };
+
+  const hudHoverTrigger = document.getElementById('hud-hover-trigger');
+  if (hudHoverTrigger) {
+    hudHoverTrigger.addEventListener('mouseenter', () => {
+      showStreamHudTemporarily(3500);
+    });
+  }
+
+  const floatingHudEl = document.querySelector('.floating-hud');
+  if (floatingHudEl) {
+    floatingHudEl.addEventListener('mouseenter', () => {
+      streamViewport.classList.remove('hud-autohidden');
+      if (hudHideTimeout) clearTimeout(hudHideTimeout);
+    });
+    floatingHudEl.addEventListener('mouseleave', () => {
+      if (hudBar.classList.contains('collapsed')) {
+        showStreamHudTemporarily(2000);
+      }
+    });
+  }
+
+  streamViewport.addEventListener('mousemove', (e) => {
+    if (!streamOpen) return;
+    if (document.pointerLockElement === videoEl) return;
+    if (e.clientY < 48) {
+      streamViewport.classList.remove('hud-autohidden');
+      if (hudHideTimeout) clearTimeout(hudHideTimeout);
+    } else {
+      showStreamHudTemporarily(2800);
+    }
+  });
 
   let pointerLockPreferred = true;
 
@@ -793,9 +1197,17 @@
 
   document.addEventListener('pointerlockchange', () => {
     const locked = document.pointerLockElement === videoEl;
-    btnHudLockMouse.textContent = locked ? 'UNLOCK (ESC)' : 'LOCK AIM';
+    btnHudLockMouse.textContent = locked ? 'UNLOCK ([)' : 'LOCK AIM';
     btnHudLockMouse.classList.toggle('active', locked);
     stInputMode.textContent = locked ? '3D POINTER LOCK' : 'FREE CURSOR';
+
+    if (locked) {
+      // Gameplay active: minimize and hide all HUD elements
+      hideStreamHudImmediately();
+    } else {
+      // Cursor released: show HUD pill briefly so player can see tools
+      showStreamHudTemporarily(3500);
+    }
   });
 
   btnHudMute.onclick = (e) => {
@@ -808,6 +1220,7 @@
   selectHudQuality.onchange = async (e) => {
     e.currentTarget.blur();
     const q = selectHudQuality.value;
+    localStorage.setItem('ryoku_stream_quality', q);
     sendInputPacket({ type: 'quality', quality: q });
     await fetch('/api/sessions/quality', {
       method: 'POST',
@@ -816,11 +1229,54 @@
     }).catch(() => {});
   };
 
+  if (selectHudResolution) {
+    selectHudResolution.onchange = async (e) => {
+      e.currentTarget.blur();
+      const newRes = selectHudResolution.value;
+      localStorage.setItem('ryoku_stream_resolution', newRes);
+      if (launchResolution) launchResolution.value = newRes;
+      if (streamOpen && activeSessionId) {
+        showStreamHudTemporarily(3000);
+        setStepperState('starting', `Switching stream to ${newRes === '1920x1080' ? '1080p 60 FPS' : '720p 60 FPS'}...`);
+        const game = allGames.find((g) => String(g.app_id) === String(currentSessionAppId));
+        await startOrResumeGame(currentSessionAppId || '0', game ? getCleanTitle(game.title) : 'Game');
+      }
+    };
+  }
+
+  if (launchResolution) {
+    launchResolution.onchange = (e) => {
+      const newRes = e.target.value;
+      localStorage.setItem('ryoku_stream_resolution', newRes);
+      if (selectHudResolution) selectHudResolution.value = newRes;
+    };
+  }
+
   btnHudStats.onclick = (e) => {
     if (e && e.currentTarget) e.currentTarget.blur();
     statsOverlay.classList.toggle('visible');
     btnHudStats.classList.toggle('active', statsOverlay.classList.contains('visible'));
   };
+
+  if (stFps) {
+    stFps.style.cursor = 'pointer';
+    stFps.title = 'Click to force immediate keyframe refresh & clear lag';
+    stFps.onclick = () => {
+      requestKeyframe('user_click_fps');
+      stFps.style.color = '#38bdf8';
+      setTimeout(() => { if (stFps) stFps.style.color = ''; }, 600);
+    };
+  }
+
+  if (stLoss) {
+    stLoss.style.cursor = 'pointer';
+    stLoss.title = 'Click to force immediate keyframe refresh';
+    stLoss.onclick = () => {
+      requestKeyframe('user_click_loss');
+      stLoss.style.color = '#38bdf8';
+      setTimeout(() => { if (stLoss) stLoss.style.color = ''; }, 600);
+    };
+  }
 
   btnHudTouch.onclick = (e) => {
     e.currentTarget.blur();
@@ -828,19 +1284,46 @@
     btnHudTouch.classList.toggle('active', touchOverlay.classList.contains('visible'));
   };
 
-  if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+  // Only auto-enable touch controls on true mobile handheld devices
+  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    (window.matchMedia && window.matchMedia('(pointer: coarse)').matches && window.innerWidth < 1024);
+
+  if (isMobileDevice && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
     touchOverlay.classList.add('visible');
     btnHudTouch.classList.add('active');
   }
 
-  btnHudFullscreen.onclick = (e) => {
+  btnHudFullscreen.onclick = async (e) => {
     e.currentTarget.blur();
     if (!document.fullscreenElement) {
-      streamViewport.requestFullscreen().catch(() => {});
+      try {
+        await streamViewport.requestFullscreen();
+        if (navigator.keyboard && navigator.keyboard.lock) {
+          await navigator.keyboard.lock(['Escape', 'Tab']);
+        }
+      } catch (_) {}
     } else {
+      if (navigator.keyboard && navigator.keyboard.unlock) {
+        try { navigator.keyboard.unlock(); } catch (_) {}
+      }
       document.exitFullscreen().catch(() => {});
     }
   };
+
+  document.addEventListener('fullscreenchange', async () => {
+    const isFs = Boolean(document.fullscreenElement);
+    btnHudFullscreen.textContent = isFs ? 'WINDOWED' : 'FULLSCREEN';
+    btnHudFullscreen.classList.toggle('active', isFs);
+    if (isFs) {
+      if (navigator.keyboard && navigator.keyboard.lock) {
+        try { await navigator.keyboard.lock(['Escape', 'Tab']); } catch (_) {}
+      }
+    } else {
+      if (navigator.keyboard && navigator.keyboard.unlock) {
+        try { navigator.keyboard.unlock(); } catch (_) {}
+      }
+    }
+  });
 
   btnHudMinimize.onclick = (e) => {
     e.currentTarget.blur();
@@ -870,36 +1353,86 @@
   // Keyboard, Mouse, Wheel, Gamepad & Mobile Touch Input Capture
   // --------------------------------------------------------------------------
   const GAME_KEYS = new Set([
+    // Movement & Standard Action Keys
     'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'KeyF', 'KeyR',
     'Space', 'ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight',
-    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace'
+    'AltLeft', 'AltRight',
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Backspace',
+    // In-game Action & Menu Keys (Cyberpunk 2077, RPGs, Shooters)
+    'Tab', 'Escape',
+    'KeyC', 'KeyV', 'KeyI', 'KeyM', 'KeyJ', 'KeyZ', 'KeyX', 'KeyG', 'KeyT',
+    'KeyB', 'KeyN', 'KeyH', 'KeyY', 'KeyU', 'KeyO', 'KeyP', 'KeyL', 'KeyK',
+    // Numbers & Hotbar Slots
+    'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5',
+    'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0',
   ]);
 
   window.addEventListener('keydown', (e) => {
-    if (!streamOpen || streamReplaced) return;
+    if (!streamOpen || streamReplaced) {
+      // Console Dashboard Keyboard Navigation
+      const tag = document.activeElement ? document.activeElement.tagName : '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+      if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        navigateConsoleShelf(1);
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        navigateConsoleShelf(-1);
+      } else if (e.code === 'Enter') {
+        if (selectedGame) {
+          e.preventDefault();
+          startOrResumeGame(selectedGame.app_id, selectedGame.title);
+        }
+      } else if (e.key === '/') {
+        e.preventDefault();
+        searchInput.focus();
+      }
+      return;
+    }
+
     const tag = document.activeElement ? document.activeElement.tagName : '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
-    if (e.code === 'Tab') {
+    // Website action 1: Toggle Telemetry HUD strictly on Tilde (~) / Backquote
+    if (e.code === 'Backquote') {
       e.preventDefault();
       btnHudStats.click();
       return;
     }
-    if (e.code === 'Escape') {
-      // Allow browser to exit Pointer Lock / Fullscreen without terminating the game process
+
+    // Website action 2: UNLOCK MOUSE strictly on [ (BracketLeft) key
+    if (e.code === 'BracketLeft') {
+      e.preventDefault();
+      pointerLockPreferred = false;
+      if (document.pointerLockElement) {
+        document.exitPointerLock();
+      }
       return;
     }
+
+    // In-game keys (including Escape, Tab, WASD, Numbers, etc.)
+    // Always call preventDefault so browser defaults do not steal focus or unlock aim
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
       e.preventDefault();
     }
     if (e.repeat) return;
     stInputMode.textContent = document.pointerLockElement === videoEl ? 'KB + 3D LOCK' : `KB (${e.code})`;
     sendInputPacket({ type: 'keydown', code: e.code, key: e.key });
+
+    // If Escape was pressed, keep pointerLockPreferred = true so aim is not lost in windowed mode
+    if (e.code === 'Escape' && pointerLockPreferred && videoEl.requestPointerLock) {
+      setTimeout(() => {
+        if (pointerLockPreferred && document.pointerLockElement !== videoEl && streamOpen) {
+          try { videoEl.requestPointerLock(); } catch (_) {}
+        }
+      }, 30);
+    }
   });
 
   window.addEventListener('keyup', (e) => {
     if (!streamOpen || streamReplaced) return;
-    if (e.code === 'Escape' || e.code === 'Tab') return;
+    if (e.code === 'Backquote' || e.code === 'BracketLeft') return;
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
       e.preventDefault();
     }
@@ -931,8 +1464,8 @@
       return;
     }
     if (dx !== 0 || dy !== 0) {
-      const stepX = Math.max(-100, Math.min(100, dx));
-      const stepY = Math.max(-100, Math.min(100, dy));
+      const stepX = Math.max(-250, Math.min(250, dx));
+      const stepY = Math.max(-250, Math.min(250, dy));
       sendInputPacket({ type: 'mousemove', dx: stepX, dy: stepY });
     }
   });
@@ -989,38 +1522,44 @@
     if (document.activeElement && document.activeElement !== document.body) {
       document.activeElement.blur();
     }
+    // If tools menu was open, collapse it on clicking game view
+    if (hudBar && !hudBar.classList.contains('collapsed')) {
+      hudBar.classList.add('collapsed');
+      updateHudPillSummary();
+    }
     videoEl.muted = false;
     btnHudMute.textContent = 'AUDIO ON';
     btnHudMute.classList.add('active');
     videoEl.play().catch(() => {});
 
-    if (document.pointerLockElement !== videoEl) {
+    const isLocked = document.pointerLockElement === videoEl;
+    const rect = videoEl.getBoundingClientRect();
+    let nx = undefined;
+    let ny = undefined;
+    if (!isLocked && rect.width > 0 && rect.height > 0) {
+      nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      ny = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    }
+
+    if (!isLocked) {
       if (pointerLockPreferred && !touchOverlay.classList.contains('visible') && videoEl.requestPointerLock) {
         try { videoEl.requestPointerLock(); } catch (_) {}
-      } else {
-        const rect = videoEl.getBoundingClientRect();
-        if (
-          rect.width > 0 &&
-          rect.height > 0 &&
-          e.clientX >= rect.left &&
-          e.clientX <= rect.right &&
-          e.clientY >= rect.top &&
-          e.clientY <= rect.bottom
-        ) {
-          sendInputPacket({
-            type: 'mousemove',
-            x: (e.clientX - rect.left) / rect.width,
-            y: (e.clientY - rect.top) / rect.height,
-          });
-        }
       }
     }
-    sendInputPacket({ type: 'mousedown', button: e.button });
+    sendInputPacket({ type: 'mousedown', button: e.button, x: nx, y: ny });
   });
 
   window.addEventListener('mouseup', (e) => {
     if (!streamOpen || streamReplaced) return;
-    sendInputPacket({ type: 'mouseup', button: e.button });
+    const isLocked = document.pointerLockElement === videoEl;
+    const rect = videoEl.getBoundingClientRect();
+    let nx = undefined;
+    let ny = undefined;
+    if (!isLocked && rect.width > 0 && rect.height > 0) {
+      nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      ny = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    }
+    sendInputPacket({ type: 'mouseup', button: e.button, x: nx, y: ny });
   });
 
   videoEl.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -1256,20 +1795,44 @@
     btn.addEventListener('lostpointercapture', releaseBtn);
   });
 
-  // W3C Gamepad API Polling (60Hz)
+  // W3C Gamepad API Polling (60Hz) - In-Stream Input + Console Dashboard Navigation
   let hadGamepadInput = false;
+  let lastGamepadNavTs = 0;
   function pollGamepads() {
-    if (streamOpen && navigator.getGamepads) {
+    if (navigator.getGamepads) {
       const pads = navigator.getGamepads();
       for (const pad of pads) {
         if (!pad || !pad.connected) continue;
-        const axes = pad.axes.slice(0, 4).map((v) => Math.abs(v) > 0.12 ? Number(v.toFixed(2)) : 0);
-        const buttons = pad.buttons.slice(0, 16).map((b) => b.pressed);
-        const active = axes.some((a) => a !== 0) || buttons.some(Boolean);
-        if (active || hadGamepadInput) {
-          sendInputPacket({ type: 'gamepad', axes, buttons });
-          hadGamepadInput = active;
-          if (active) stInputMode.textContent = `Gamepad (${pad.id.slice(0, 14)})`;
+
+        if (streamOpen) {
+          const axes = pad.axes.slice(0, 4).map((v) => Math.abs(v) > 0.12 ? Number(v.toFixed(2)) : 0);
+          const buttons = pad.buttons.slice(0, 16).map((b) => b.pressed);
+          const active = axes.some((a) => a !== 0) || buttons.some(Boolean);
+          if (active || hadGamepadInput) {
+            sendInputPacket({ type: 'gamepad', axes, buttons });
+            hadGamepadInput = active;
+            if (active) stInputMode.textContent = `Gamepad (${pad.id.slice(0, 14)})`;
+          }
+        } else {
+          // Dashboard Console Navigation via Gamepad D-Pad & Left Stick
+          const now = performance.now();
+          if (now - lastGamepadNavTs > 220) {
+            const dpadLeft = pad.buttons[14] && pad.buttons[14].pressed;
+            const dpadRight = pad.buttons[15] && pad.buttons[15].pressed;
+            const stickX = pad.axes[0] || 0;
+            const aBtn = pad.buttons[0] && pad.buttons[0].pressed;
+
+            if (dpadRight || stickX > 0.5) {
+              lastGamepadNavTs = now;
+              navigateConsoleShelf(1);
+            } else if (dpadLeft || stickX < -0.5) {
+              lastGamepadNavTs = now;
+              navigateConsoleShelf(-1);
+            } else if (aBtn && selectedGame) {
+              lastGamepadNavTs = now + 500;
+              startOrResumeGame(selectedGame.app_id, selectedGame.title);
+            }
+          }
         }
         break;
       }
@@ -1334,9 +1897,52 @@
           if (stat.framesPerSecond !== undefined) {
             latestFps = Math.round(stat.framesPerSecond);
             stFps.textContent = latestFps + ' FPS';
+
+            // Intelligent Stall Detection and Auto-Recovery:
+            // Break 3-4 FPS packet-loss and decoder freeze loops
+            if (!document.hidden && streamOpen && !streamReplaced) {
+              if (latestFps > 0 && latestFps < 12) {
+                lowFpsStreak++;
+                if (lowFpsStreak >= 3 && now > autoRecoverCooloff) {
+                  console.warn(`[Stream] Low FPS stall detected (${latestFps} FPS, streak=${lowFpsStreak}). Forcing fresh IDR keyframe.`);
+                  requestKeyframe('stall_recovery');
+                  autoRecoverCooloff = now + 4000;
+                }
+                // If stall persists across 6 checks (~6 seconds), downshift bitrate preset to drain router buffers
+                if (lowFpsStreak >= 6 && now > autoRecoverCooloff) {
+                  const curQ = (selectHudQuality && selectHudQuality.value) || 'high';
+                  let nextQ = null;
+                  if (curQ === 'ultra' || curQ === 'high') {
+                    nextQ = 'remote';
+                  } else if (curQ === 'remote') {
+                    nextQ = 'low';
+                  }
+                  if (nextQ && selectHudQuality) {
+                    console.warn(`[Stream] Persistent queue congestion. Auto-stepping quality from ${curQ} to ${nextQ}.`);
+                    selectHudQuality.value = nextQ;
+                    localStorage.setItem('ryoku_stream_quality', nextQ);
+                    sendInputPacket({ type: 'quality', quality: nextQ });
+                    fetch('/api/sessions/quality', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ quality: nextQ }),
+                    }).catch(() => {});
+                  }
+                  autoRecoverCooloff = now + 6000;
+                }
+              } else if (latestFps >= 30) {
+                lowFpsStreak = 0;
+              }
+            }
           }
           if (stat.packetsLost !== undefined) {
+            const lostDelta = lastPacketsLost > 0 ? (stat.packetsLost - lastPacketsLost) : 0;
+            lastPacketsLost = stat.packetsLost;
             stLoss.textContent = String(stat.packetsLost);
+            if (lostDelta > 15 && !document.hidden && streamOpen && !streamReplaced) {
+              console.warn(`[Stream] Packet loss burst detected (+${lostDelta} packets). Requesting keyframe.`);
+              requestKeyframe('packet_loss_burst');
+            }
           }
           if (stat.jitter !== undefined && stJitter) {
             stJitter.textContent = Math.round(stat.jitter * 1000) + ' ms';
@@ -1450,6 +2056,43 @@
       await fetch('/api/admin/history', { method: 'DELETE' });
       await refreshAdminData();
     };
+  }
+
+  const btnPowerSleep = document.getElementById('btn-admin-power-sleep');
+  const btnPowerReboot = document.getElementById('btn-admin-power-reboot');
+  const btnPowerOff = document.getElementById('btn-admin-power-off');
+  const adminPowerFeedback = document.getElementById('admin-power-feedback');
+
+  async function executeHostPower(action, confirmMsg) {
+    if (!confirm(confirmMsg)) return;
+    if (adminPowerFeedback) adminPowerFeedback.textContent = `Executing host ${action}...`;
+    try {
+      const res = await fetch('/api/admin/power', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        if (adminPowerFeedback) {
+          adminPowerFeedback.textContent = `✓ ${data.message || 'Action sent.'} Use the ESP8266 remote switch on the offline page to wake/boot.`;
+        }
+      } else {
+        if (adminPowerFeedback) adminPowerFeedback.textContent = `⚠️ Error: ${data.error || 'Failed'}`;
+      }
+    } catch (err) {
+      if (adminPowerFeedback) adminPowerFeedback.textContent = `Host unreachable or transitioning: ${err.message}`;
+    }
+  }
+
+  if (btnPowerSleep) {
+    btnPowerSleep.onclick = () => executeHostPower('suspend', 'Put host gaming PC to sleep? RAM stays powered, wakes instantly with ESP8266 or power button.');
+  }
+  if (btnPowerReboot) {
+    btnPowerReboot.onclick = () => executeHostPower('reboot', 'Reboot host gaming PC now? Active sessions will be closed.');
+  }
+  if (btnPowerOff) {
+    btnPowerOff.onclick = () => executeHostPower('poweroff', 'Shut down host gaming PC completely? You can use the ESP8266 remote power switch on the offline page to turn it back on.');
   }
 
   if (formAdminSettings) {
@@ -1746,9 +2389,9 @@
     currentUser = data.user;
 
     const save = currentUser.cyberarena_save || {};
-    heroBadgeUser.textContent = `USER: ${currentUser.username.toUpperCase()}`;
-    heroBadgeSteam.textContent = `STEAM: ${currentUser.steam_login_remembered ? 'SAVED' : 'STREAM'}`;
-    heroBadgeSave.textContent = `BEST: ${save.high_score || 0}`;
+    if (heroBadgeUser) heroBadgeUser.textContent = `USER: ${currentUser.username.toUpperCase()}`;
+    if (heroBadgeSteam) heroBadgeSteam.textContent = `STEAM: ${currentUser.steam_login_remembered ? 'SAVED' : 'STREAM'}`;
+    if (heroBadgeSave) heroBadgeSave.textContent = `BEST: ${save.high_score || 0}`;
 
     profileDetails.innerHTML = `
       <div class="list-item"><span>USER</span><strong>${currentUser.username}</strong></div>
@@ -1812,6 +2455,161 @@
     navCenter.style.display = 'flex';
     navRight.style.display = 'flex';
     navUsername.textContent = `${currentUser.username}`;
+
+    // Native Moonlight Engine Detection
+    if (window.ryokuNative && window.ryokuNative.isNative) {
+      const nativeBadge = document.getElementById('native-engine-badge');
+      if (nativeBadge) nativeBadge.style.display = 'inline-block';
+      if (launchResolution) {
+        launchResolution.innerHTML = `
+          <option value="1920x1080" selected>1080p 120 FPS (Moonlight)</option>
+          <option value="2560x1440">1440p 120 FPS (Moonlight)</option>
+          <option value="1280x720">720p 120 FPS (Moonlight)</option>
+        `;
+      }
+    }
+
+    const savedRes = localStorage.getItem('ryoku_stream_resolution') || '1920x1080';
+    if (launchResolution) launchResolution.value = savedRes;
+    if (selectHudResolution) selectHudResolution.value = savedRes;
+    const savedQuality = localStorage.getItem('ryoku_stream_quality') || 'remote';
+    if (selectHudQuality) selectHudQuality.value = savedQuality;
+    if (launchQuality) launchQuality.value = savedQuality;
+
+    // Desktop App Promo Modal Handlers
+    const btnShowDesktopApp = document.getElementById('btn-show-desktop-app');
+    const modalDesktopApp = document.getElementById('modal-desktop-app');
+    const btnCloseDesktopModal = document.getElementById('btn-close-desktop-modal');
+    const btnDlWin = document.getElementById('btn-download-client-windows');
+    const btnDlLin = document.getElementById('btn-download-client-linux');
+    const btnDlFedora = document.getElementById('btn-download-client-fedora');
+
+    if (btnDlWin) {
+      btnDlWin.href = `${BASE_PREFIX}/api/client/download/windows`;
+    }
+    if (btnDlLin) {
+      btnDlLin.href = `${BASE_PREFIX}/api/client/download/linux`;
+    }
+    if (btnDlFedora) {
+      btnDlFedora.href = `${BASE_PREFIX}/api/client/download/fedora`;
+    }
+
+    if (btnShowDesktopApp && modalDesktopApp) {
+      if (window.ryokuNative && window.ryokuNative.isNative) {
+        btnShowDesktopApp.innerHTML = `<span>✓ NATIVE 120 FPS ACTIVE</span>`;
+        btnShowDesktopApp.style.borderColor = 'var(--ok)';
+        btnShowDesktopApp.style.color = 'var(--ok)';
+      }
+
+      btnShowDesktopApp.onclick = () => {
+        modalDesktopApp.style.display = 'flex';
+      };
+    }
+
+    if (btnCloseDesktopModal && modalDesktopApp) {
+      btnCloseDesktopModal.onclick = () => {
+        modalDesktopApp.style.display = 'none';
+      };
+      modalDesktopApp.onclick = (e) => {
+        if (e.target === modalDesktopApp) {
+          modalDesktopApp.style.display = 'none';
+        }
+      };
+    }
+
+    function initEngineSelector() {
+      const isNative = !!(
+        (window.ryokuNative && window.ryokuNative.isNative) ||
+        navigator.userAgent.includes('RyokuNativeClient') ||
+        window.ryokuIsNative
+      );
+
+      const btnMoonlight = document.getElementById('btn-engine-moonlight');
+      const btnWebrtc = document.getElementById('btn-engine-webrtc');
+      const badge = document.getElementById('native-engine-badge');
+
+      if (isNative) {
+        localStorage.setItem('ryoku_engine', 'moonlight');
+        if (badge) badge.style.display = 'inline-block';
+        if (btnMoonlight) {
+          btnMoonlight.textContent = '⚡ MOONLIGHT 120 FPS';
+          btnMoonlight.classList.add('active');
+        }
+        if (btnWebrtc) {
+          btnWebrtc.style.display = 'none';
+        }
+        return;
+      }
+
+      let savedEngine = localStorage.getItem('ryoku_engine') || 'moonlight';
+
+      const updateBtns = (eng) => {
+        if (btnMoonlight && btnWebrtc) {
+          if (eng === 'moonlight') {
+            btnMoonlight.classList.add('active');
+            btnWebrtc.classList.remove('active');
+          } else {
+            btnWebrtc.classList.add('active');
+            btnMoonlight.classList.remove('active');
+          }
+        }
+        localStorage.setItem('ryoku_engine', eng);
+      };
+
+      updateBtns(savedEngine);
+
+      if (btnMoonlight) {
+        btnMoonlight.onclick = () => updateBtns('moonlight');
+      }
+      if (btnWebrtc) {
+        btnWebrtc.onclick = () => updateBtns('webrtc');
+      }
+    }
+
+    initEngineSelector();
+
+    // Manual Moonlight PIN Approval
+    const pinInput = document.getElementById('manual-pair-pin-input');
+    const btnSubmitPin = document.getElementById('btn-submit-manual-pin');
+    const pairFeedback = document.getElementById('pair-feedback-msg');
+
+    if (btnSubmitPin && pinInput) {
+      btnSubmitPin.onclick = async () => {
+        const pin = pinInput.value.trim();
+        if (!pin || pin.length !== 4) {
+          if (pairFeedback) pairFeedback.textContent = '⚠️ Enter a valid 4-digit PIN.';
+          return;
+        }
+        btnSubmitPin.disabled = true;
+        btnSubmitPin.textContent = 'Approving...';
+        try {
+          const res = await fetch(`${BASE_PREFIX}/api/client/pair`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin }),
+          });
+          const data = await res.json();
+          if (res.ok && data.ok) {
+            btnSubmitPin.textContent = '✓ Paired!';
+            pinInput.value = '';
+            if (pairFeedback) {
+              pairFeedback.innerHTML = '<strong style="color:var(--volt);">✓ Host paired successfully! Moonlight can now stream games.</strong>';
+            }
+          } else {
+            btnSubmitPin.disabled = false;
+            btnSubmitPin.textContent = 'Approve PIN';
+            if (pairFeedback) {
+              pairFeedback.textContent = `❌ ${data.error || 'Check Sunshine on host PC'}`;
+            }
+          }
+        } catch (err) {
+          btnSubmitPin.disabled = false;
+          btnSubmitPin.textContent = 'Approve PIN';
+          if (pairFeedback) pairFeedback.textContent = `Error: ${err.message}`;
+        }
+      };
+    }
+
     await loadGamesLibrary();
     await pollServerState();
   }

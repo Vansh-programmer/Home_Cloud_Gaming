@@ -3,366 +3,464 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>RYOKU // CLIENT</title>
-  <link rel="stylesheet" href="/assets/styles.css?v=8" />
+  <title>Ryoku Console // Cloud Gaming</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/styles.css?v=21" />
 </head>
-<body>
-  <!-- Left Vertical Command Rail -->
-  <header class="navbar">
-    <div class="brand">
-      <span class="brand-logo">R</span>
-      <span>RYOKU</span>
-      <span class="brand-badge">4060</span>
+<body class="console-body">
+
+  <!-- Top Console Status & Header Bar -->
+  <header class="console-top-bar" id="console-header">
+    <div class="console-top-left">
+      <div class="console-emblem">
+        <span class="emblem-glyph">R</span>
+        <span class="emblem-title">RYOKU</span>
+        <span id="native-engine-badge" style="display:none; margin-left:8px; font-family:var(--font-mono); font-size:10px; font-weight:800; color:#000; background:var(--volt); padding:2px 7px; border-radius:4px; letter-spacing:0.06em;">⚡ MOONLIGHT 120 FPS</span>
+      </div>
+
+      <nav class="console-nav" id="nav-center" style="display:none;">
+        <button class="console-nav-tab active" id="nav-tab-library">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M21 6H3a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-3c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+          <span>Games</span>
+        </button>
+        <button class="console-nav-tab" id="nav-tab-profile">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Profile</span>
+        </button>
+        <button class="console-nav-tab" id="nav-tab-admin" style="display:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>System</span>
+        </button>
+      </nav>
     </div>
 
-    <nav class="nav-links" id="nav-center" style="display:none;">
-      <button class="nav-tab active" id="nav-tab-library">01 // LIBRARY</button>
-      <button class="nav-tab" id="nav-tab-profile">02 // PROFILE</button>
-      <button class="nav-tab" id="nav-tab-admin" style="display:none;">03 // SYSTEM</button>
-    </nav>
+    <div class="console-top-right" id="nav-right" style="display:none;">
+      <button class="console-resume-btn" id="btn-resume-nav" style="display:none;">
+        <span class="resume-pulse"></span>
+        <span>RESUME</span>
+      </button>
 
-    <div class="nav-right" id="nav-right" style="display:none;">
-      <div class="server-pill">
-        <span class="status-dot" id="server-dot"></span>
-        <span id="server-pill-text">READY</span>
+      <div class="console-engine-pill" id="engine-toggle-wrap" title="Select Streaming Engine">
+        <button type="button" class="engine-opt-btn active" id="btn-engine-moonlight">⚡ Moonlight 120 FPS</button>
+        <button type="button" class="engine-opt-btn" id="btn-engine-webrtc">🌐 WebRTC</button>
       </div>
-      <button class="btn btn-primary" id="btn-resume-nav" style="display:none; width:100%;">▶ RESUME</button>
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-        <span id="nav-username" style="font-family:var(--font-mono); font-size:11px; font-weight:800; color:var(--fg-1); text-transform:uppercase;"></span>
-        <button class="btn" id="btn-logout" style="padding:5px 10px;">EXIT</button>
+
+      <button class="console-app-btn" id="btn-show-desktop-app" title="Play with 120 FPS Native Moonlight Engine">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span>Desktop App</span>
+      </button>
+
+      <div class="console-status-pill" title="Server Status">
+        <span class="status-dot" id="server-dot"></span>
+        <span id="server-pill-text">Online</span>
+      </div>
+
+      <div class="console-user-pill">
+        <div class="avatar-ring">
+          <span class="avatar-letter">U</span>
+        </div>
+        <span id="nav-username" class="user-name">Player</span>
+        <button class="btn-icon-exit" id="btn-logout" title="Exit / Sign Out">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+
+      <!-- Preserved Hidden State for app.js -->
+      <div style="display:none !important;">
+        <select id="launch-resolution">
+          <option value="1920x1080" selected>1080p 60</option>
+          <option value="1280x720">720p 60</option>
+        </select>
+        <input type="hidden" id="launch-quality" value="remote" />
+        <input type="hidden" id="game-search-input" />
+        <button id="hero-btn-play"></button>
+        <div id="console-clock"></div>
+        <div class="console-hw-badge">RTX 4060</div>
       </div>
     </div>
   </header>
 
-  <!-- Authentication Screen -->
+  <!-- Authentication Screen (Console Sign-In Dialogue) -->
   <section class="auth-wrapper" id="auth-view">
-    <div class="auth-header">
-      <h1>RYOKU // CLIENT</h1>
-      <p>PRIVATE NODE ACCESS</p>
+    <div class="console-dialogue-card">
+      <div class="dialogue-header">
+        <div class="console-logo-mark">R</div>
+        <h2>Ryoku Console</h2>
+      </div>
+
+      <div class="console-segmented-tabs">
+        <div class="segmented-tab active" id="auth-tab-login">Sign In</div>
+        <div class="segmented-tab" id="auth-tab-invite">Redeem Key</div>
+      </div>
+
+      <div class="auth-error" id="auth-error"></div>
+
+      <form id="form-login">
+        <div class="console-input-group">
+          <label for="login-user">Username</label>
+          <input type="text" id="login-user" required autocomplete="username" placeholder="Enter username" />
+        </div>
+        <div class="console-input-group">
+          <label for="login-pass">Password</label>
+          <input type="password" id="login-pass" required autocomplete="current-password" placeholder="Enter password" />
+        </div>
+        <button type="submit" class="console-action-btn primary" style="width:100%; margin-top:14px;">Sign In</button>
+      </form>
+
+      <form id="form-invite" style="display:none;">
+        <div class="console-input-group">
+          <label for="inv-code">Access Passkey</label>
+          <input type="text" id="inv-code" required placeholder="RYOKU-XXXX-XXXXXX" />
+        </div>
+        <div class="console-input-group">
+          <label for="inv-user">Choose Username</label>
+          <input type="text" id="inv-user" required placeholder="2-32 characters" />
+        </div>
+        <div class="console-input-group">
+          <label for="inv-pass">Choose Password</label>
+          <input type="password" id="inv-pass" required placeholder="Min 6 characters" />
+        </div>
+        <button type="submit" class="console-action-btn primary" style="width:100%; margin-top:14px;">Activate &amp; Play</button>
+      </form>
     </div>
-
-    <div class="auth-tabs">
-      <div class="auth-tab active" id="auth-tab-login">SIGN IN</div>
-      <div class="auth-tab" id="auth-tab-invite">REDEEM KEY</div>
-    </div>
-
-    <div class="auth-error" id="auth-error"></div>
-
-    <form id="form-login">
-      <div class="field">
-        <label for="login-user">OPERATOR ID</label>
-        <input type="text" id="login-user" required autocomplete="username" placeholder="USERNAME" />
-      </div>
-      <div class="field">
-        <label for="login-pass">PASSKEY</label>
-        <input type="password" id="login-pass" required autocomplete="current-password" placeholder="••••••••" />
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:100%; padding:11px;">ENTER</button>
-    </form>
-
-    <form id="form-invite" style="display:none;">
-      <div class="field">
-        <label for="inv-code">ACCESS KEY</label>
-        <input type="text" id="inv-code" required placeholder="RYOKU-XXXX-XXXXXX" />
-      </div>
-      <div class="field">
-        <label for="inv-user">OPERATOR ID</label>
-        <input type="text" id="inv-user" required placeholder="2-32 CHARS" />
-      </div>
-      <div class="field">
-        <label for="inv-pass">PASSKEY</label>
-        <input type="password" id="inv-pass" required placeholder="MIN 6 CHARS" />
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:100%; padding:11px;">ACTIVATE</button>
-    </form>
   </section>
 
-  <!-- Main Desktop Client Workspace -->
-  <main class="app-shell" id="app-view">
-    <div id="pc-offline-banner" class="stat-card" style="display:none; margin-bottom:16px; border-left:4px solid var(--amber);">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-        <div>
-          <span class="badge-pill warn">OFFLINE</span>
-          <strong style="margin-left:8px; font-family:var(--font-mono); font-size:12px;">HOST NODE POWERED DOWN</strong>
-        </div>
-        <a href="/offline" class="btn" style="text-decoration:none;">STATUS</a>
-      </div>
+  <!-- Main Console Workspace -->
+  <main class="console-workspace" id="app-view">
+    <div id="pc-offline-banner" class="console-offline-banner" style="display:none;">
+      <span class="status-dot busy"></span>
+      <strong>Host Node is currently powered down.</strong>
+      <a href="/offline" class="console-btn-subtle" style="margin-left:auto;">Status</a>
     </div>
 
-    <!-- TAB 1: SPLIT-SCREEN GAME LAUNCHER -->
-    <div id="section-library">
-      <div class="library-split-deck">
-        <!-- Left Column: Filter Toolbar + Poster Grid -->
-        <div>
-          <div class="library-toolbar">
-            <div class="search-box">
-              <span class="search-icon">&gt;</span>
-              <input type="search" id="game-search-input" placeholder="SEARCH TITLE OR APPID..." />
-            </div>
-            <div class="filter-pills">
-              <button class="filter-chip active" data-filter="all">ALL</button>
-              <button class="filter-chip" data-filter="steam">STEAM</button>
-              <button class="filter-chip" data-filter="builtin">NATIVE</button>
-              <button class="filter-chip" data-filter="account">AUTH</button>
-            </div>
-          </div>
+    <!-- TAB 1: GAMES LIBRARY VIEW -->
+    <div id="section-library" class="console-tab-view ps5-home-view">
+      <div class="ps5-ambient-backdrop" id="ps5-ambient-backdrop"></div>
+      <div class="ps5-ambient-gradient"></div>
 
-          <div class="games-grid" id="games-grid"></div>
+      <div class="library-container">
+        <div class="library-header-line">
+          <div>
+            <h1 class="library-main-title">Games</h1>
+            <p class="library-main-sub">Click any game to stream at sub-2ms low latency</p>
+          </div>
         </div>
 
-        <!-- Right Column: Docked Game Inspector & Launch Deck -->
-        <aside class="hero-spotlight">
-          <div class="hero-content">
-            <span class="hero-tag" id="hero-tag">NATIVE // 60 FPS</span>
-            <h2 class="hero-title" id="hero-title">CyberArena 3D</h2>
-            <p class="hero-desc" id="hero-desc">NVENC H.264 // OPUS // CLOUD SAVES</p>
-            <div class="hero-controls">
-              <select class="btn" id="launch-resolution" aria-label="Resolution">
-                <option value="1280x720" selected>720P 60FPS</option>
-                <option value="1920x1080">1080P 60FPS</option>
-              </select>
-              <select class="btn" id="launch-quality" aria-label="Bitrate">
-                <option value="low">4 MBPS (Low Bandwidth)</option>
-                <option value="remote" selected>6 MBPS (Remote Smooth ★)</option>
-                <option value="medium">8 MBPS (Balanced)</option>
-                <option value="high">15 MBPS (High Quality)</option>
-                <option value="ultra">25 MBPS (Ultra LAN)</option>
-              </select>
-              <button class="btn btn-primary" id="hero-btn-play">▶ LAUNCH</button>
-            </div>
-            <div class="hero-badges">
-              <span class="pill-info" id="hero-badge-user">USER: —</span>
-              <span class="pill-info" id="hero-badge-steam">STEAM: —</span>
-              <span class="pill-info" id="hero-badge-save">BEST: 0</span>
-            </div>
+        <!-- Moonlight 1-Click Pairing Bar -->
+        <div class="moonlight-pair-bar" id="moonlight-pair-bar" style="margin-bottom:20px; background:rgba(200,255,0,0.04); border:1px solid rgba(200,255,0,0.2); border-radius:6px; padding:10px 14px;">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span style="font-family:var(--font-mono); font-size:11px; font-weight:800; color:var(--volt);">🔑 PAIR MOONLIGHT:</span>
+            <input type="text" id="manual-pair-pin-input" maxlength="4" placeholder="PIN" style="width:75px; text-align:center; font-family:var(--font-mono); font-size:13px; font-weight:800; background:#000; border:1px solid var(--volt); color:var(--volt); padding:5px 8px; border-radius:4px;" />
+            <button type="button" id="btn-submit-manual-pin" class="console-action-btn primary sm" style="padding:5px 14px;">Approve PIN</button>
+            <span id="pair-feedback-msg" style="font-size:11px; color:var(--fg-1); font-family:var(--font-mono);">Click "ryoku" in Moonlight ➔ enter PIN shown here ➔ Paired!</span>
           </div>
-        </aside>
+        </div>
+
+        <div class="games-grid-showcase" id="games-grid"></div>
+        <div id="steam-featured-card" style="display:none;"></div>
       </div>
     </div>
 
     <!-- TAB 2: PROFILE -->
-    <div id="section-profile" style="display:none;">
-      <section class="panel-section">
-        <div class="panel-header">
-          <h3>02 // OPERATOR PROFILE &amp; SAVES</h3>
+    <div id="section-profile" class="console-tab-view" style="display:none;">
+      <div class="console-panel-card">
+        <div class="panel-header-line">
+          <h3>Player Profile &amp; Save States</h3>
         </div>
         <div id="profile-details"></div>
-      </section>
+      </div>
     </div>
 
-    <!-- TAB 3: SYSTEM / ADMIN -->
-    <div id="section-admin" style="display:none;">
-      <section class="panel-section">
-        <div class="panel-header">
-          <h3>03 // NODE TELEMETRY &amp; ACCESS</h3>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <input type="text" id="invite-note-input" placeholder="TAG" style="padding:7px 10px; background:var(--bg-0); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:11px;" />
-            <button class="btn btn-primary" id="btn-gen-invite">+ KEY</button>
-            <button class="btn btn-danger" id="btn-force-stop" style="display:none;">KILL SESSION</button>
+    <!-- TAB 3: SYSTEM ADMIN -->
+    <div id="section-admin" class="console-tab-view" style="display:none;">
+      <div class="console-panel-card">
+        <div class="panel-header-line">
+          <h3>Console Node Hardware &amp; Security</h3>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <input type="text" id="invite-note-input" placeholder="Label / Tag" class="console-field-sm" />
+            <button class="console-action-btn primary sm" id="btn-gen-invite">+ Create Invite</button>
+            <button class="console-action-btn danger sm" id="btn-force-stop" style="display:none;">Kill Session</button>
           </div>
         </div>
 
-        <div class="stat-card" id="admin-active-session-box" style="margin-bottom:14px; border-left:3px solid var(--volt);"></div>
+        <div class="console-metric-tile" id="admin-active-session-box" style="margin-bottom:16px;"></div>
 
-        <div class="panel-grid">
-          <div class="stat-card">
-            <h4>GPU &amp; NVENC</h4>
+        <div class="console-bento-grid">
+          <div class="console-metric-tile">
+            <h4>GPU &amp; NVENC Acceleration</h4>
             <div id="admin-gpu-stats"></div>
-            <div id="admin-gpu-sparkline" style="margin-top:10px;"></div>
+            <div id="admin-gpu-sparkline" style="margin-top:12px;"></div>
           </div>
 
-          <div class="stat-card">
-            <h4>HOST &amp; TIMERS</h4>
+          <div class="console-metric-tile">
+            <h4>Host Session Timers</h4>
             <div id="admin-host-stats"></div>
-            <form id="form-admin-settings" style="margin-top:12px; padding-top:10px; border-top:1px solid var(--line); display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+            <form id="form-admin-settings" style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line); display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
               <div style="flex:1; min-width:95px;">
-                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">IDLE (S)</label>
-                <input type="number" id="setting-idle-sec" min="5" max="7200" step="1" required style="width:100%; padding:6px 8px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
+                <label style="font-size:11px; color:var(--fg-1); display:block; margin-bottom:4px;">Idle Timeout (s)</label>
+                <input type="number" id="setting-idle-sec" min="5" max="7200" step="1" required class="console-field-sm" style="width:100%;" />
               </div>
               <div style="flex:1; min-width:95px;">
-                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">GRACE (S)</label>
-                <input type="number" id="setting-grace-sec" min="5" max="3600" step="1" required style="width:100%; padding:6px 8px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
+                <label style="font-size:11px; color:var(--fg-1); display:block; margin-bottom:4px;">Grace Period (s)</label>
+                <input type="number" id="setting-grace-sec" min="5" max="3600" step="1" required class="console-field-sm" style="width:100%;" />
               </div>
-              <button type="submit" class="btn btn-primary" style="padding:7px 12px;">SET</button>
+              <button type="submit" class="console-action-btn primary sm">Save</button>
             </form>
           </div>
 
-          <div class="stat-card">
-            <h4>ACCESS KEYS</h4>
+          <div class="console-metric-tile">
+            <h4>Host Hardware Power</h4>
+            <div style="font-size:11px; color:var(--fg-1); margin-bottom:12px; line-height:1.4;">
+              Manage gaming PC power state. When sleeping or powered off, use the offline page or ESP8266 remote switch to wake/boot.
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" id="btn-admin-power-sleep" class="console-action-btn sm" style="border-color:var(--line-bright);">🌙 Sleep Host</button>
+              <button type="button" id="btn-admin-power-reboot" class="console-action-btn sm" style="border-color:var(--line-bright);">🔄 Reboot</button>
+              <button type="button" id="btn-admin-power-off" class="console-action-btn sm" style="border-color:rgba(255,51,68,0.5); color:var(--bad);">🛑 Shut Down</button>
+            </div>
+            <div id="admin-power-feedback" style="font-family:var(--font-mono); font-size:11px; color:var(--volt); margin-top:8px;"></div>
+          </div>
+
+          <div class="console-metric-tile">
+            <h4>Access Passes</h4>
             <div id="admin-invites-list"></div>
           </div>
 
-          <div class="stat-card">
-            <h4>OPERATORS</h4>
+          <div class="console-metric-tile">
+            <h4>Authorized Players</h4>
             <div id="admin-users-list"></div>
-            <form id="form-add-user" style="margin-top:12px; display:flex; gap:6px; flex-wrap:wrap;">
-              <input type="text" id="new-user-name" required placeholder="ID" style="flex:1; min-width:80px; padding:7px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:11px;" />
-              <input type="password" id="new-user-pass" required placeholder="PASS" style="flex:1; min-width:80px; padding:7px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:11px;" />
-              <button type="submit" class="btn btn-primary" style="padding:7px 11px;">+ ADD</button>
+            <form id="form-add-user" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+              <input type="text" id="new-user-name" required placeholder="User" class="console-field-sm" style="flex:1; min-width:80px;" />
+              <input type="password" id="new-user-pass" required placeholder="Pass" class="console-field-sm" style="flex:1; min-width:80px;" />
+              <button type="submit" class="console-action-btn primary sm">+ Add</button>
             </form>
           </div>
 
-          <div class="stat-card" style="grid-column: 1 / -1;">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
-              <div>
-                <h4 style="margin-bottom:2px;">EXTERNAL GATEWAY &amp; TURN</h4>
-                <div style="font-family:var(--font-mono); font-size:11px; color:var(--fg-1);" id="admin-net-summary"></div>
-              </div>
-              <div style="display:flex; gap:8px; align-items:center;">
-                <a href="/offline" target="_blank" class="btn" style="padding:5px 10px; font-size:11px; text-decoration:none;">OFFLINE VIEW ↗</a>
-                <button type="button" class="btn" id="btn-toggle-offline-mode" style="padding:5px 10px; font-size:11px;">MAINTENANCE: OFF</button>
-              </div>
-            </div>
-            <form id="form-admin-network" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:10px; align-items:flex-end;">
-              <div>
-                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">DOMAIN</label>
-                <input type="text" id="net-public-domain" placeholder="vanshdev.online/cloudgaming" style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
-              </div>
-              <div>
-                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">STUN</label>
-                <input type="text" id="net-stun-url" placeholder="stun:stun.l.google.com:19302" style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
-              </div>
-              <div>
-                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">TURN</label>
-                <input type="text" id="net-turn-url" placeholder="turn:turn.domain.com:3478" style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
-              </div>
-              <div>
-                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">SECRET</label>
-                <input type="password" id="net-turn-secret" name="relay-secret-field" placeholder="HMAC SECRET" autocomplete="new-password" data-lpignore="true" data-1p-ignore style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
-              </div>
-              <div>
-                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">TURN USER (STATIC)</label>
-                <input type="text" id="net-turn-user" name="relay-user-field" placeholder="Provider username" autocomplete="off" data-lpignore="true" data-1p-ignore style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
-              </div>
-              <div>
-                <label style="font-family:var(--font-mono); font-size:10px; color:var(--fg-1); display:block; margin-bottom:4px;">TURN PASS (STATIC)</label>
-                <input type="password" id="net-turn-pass" name="relay-pass-field" placeholder="Provider password" autocomplete="new-password" data-lpignore="true" data-1p-ignore style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
-              </div>
-              <div>
-                <label style="font-family:var(--font-mono); font-size:10px; color:var(--volt); display:block; margin-bottom:4px;">CF TURN KEY ID</label>
-                <input type="text" id="net-cf-turn-key-id" placeholder="Cloudflare TURN Key ID" autocomplete="off" style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
-              </div>
-              <div>
-                <label style="font-family:var(--font-mono); font-size:10px; color:var(--volt); display:block; margin-bottom:4px;">CF TURN API TOKEN</label>
-                <input type="password" id="net-cf-turn-token" name="cf-token-field" placeholder="Cloudflare TURN API Token" autocomplete="new-password" data-lpignore="true" data-1p-ignore style="width:100%; padding:7px 9px; background:var(--bg-1); border:1px solid var(--line); color:#fff; font-family:var(--font-mono); font-size:12px;" />
-              </div>
-              <div>
-                <button type="submit" class="btn btn-primary" style="padding:7px 14px; width:100%;">SAVE</button>
-              </div>
-            </form>
-          </div>
-
-          <div class="stat-card" style="grid-column: 1 / -1;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <h4 style="margin-bottom:0;">SESSION LOG</h4>
-              <button class="btn" id="btn-clear-history" style="padding:4px 10px; font-size:11px;">CLEAR</button>
-            </div>
+          <div class="console-metric-tile" style="grid-column: 1 / -1;">
+            <h4>Session Audit Log</h4>
             <div id="admin-history-list"></div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   </main>
 
   <!-- In-Stream Viewport & Tactical HUD -->
   <div class="stream-viewport" id="stream-viewport">
+    <div class="hud-hover-trigger" id="hud-hover-trigger" title="Hover to reveal stream controls"></div>
     <div class="floating-hud">
-      <div class="hud-pill-handle" id="hud-pill-handle">
-        <span id="hud-pill-summary">HUD ▴ // 60 FPS // -- MS</span>
+      <div class="hud-pill-handle" id="hud-pill-handle" title="Toggle Stream Tools">
+        <span class="hud-live-indicator"></span>
+        <span id="hud-pill-summary">60 FPS • -- ms ▾</span>
       </div>
-      <div class="hud-bar" id="hud-bar">
-        <button class="btn" id="btn-hud-lock-mouse">LOCK AIM</button>
-        <button class="btn active" id="btn-hud-mute">AUDIO ON</button>
-        <select class="btn" id="select-hud-quality" aria-label="Bitrate">
-          <option value="low">4 MBPS (Low Bandwidth)</option>
-          <option value="remote">6 MBPS (Remote Smooth ★)</option>
-          <option value="medium">8 MBPS (Balanced)</option>
-          <option value="high">15 MBPS (High Quality)</option>
-          <option value="ultra">25 MBPS (Ultra LAN)</option>
+      <div class="hud-bar collapsed" id="hud-bar">
+        <button class="btn btn-hud" id="btn-hud-lock-mouse">Lock Aim</button>
+        <button class="btn btn-hud active" id="btn-hud-mute">Audio On</button>
+        <select class="btn btn-hud" id="select-hud-resolution" aria-label="Resolution" title="Stream Resolution">
+          <option value="1920x1080" selected>1080p 60</option>
+          <option value="1280x720">720p 60</option>
         </select>
-        <button class="btn" id="btn-hud-stats">TELEMETRY</button>
-        <button class="btn" id="btn-hud-touch">TOUCH</button>
-        <button class="btn" id="btn-hud-fullscreen">FULLSCREEN</button>
-        <button class="btn" id="btn-hud-minimize">MINIMIZE</button>
-        <button class="btn btn-danger" id="btn-hud-quit">QUIT</button>
+        <select class="btn btn-hud" id="select-hud-quality" aria-label="Bitrate" title="Stream Bitrate">
+          <option value="low">3.5 Mbps (Mobile)</option>
+          <option value="remote" selected>6 Mbps (Smooth ★)</option>
+          <option value="medium">8.5 Mbps (Balanced)</option>
+          <option value="high">15 Mbps (High LAN)</option>
+          <option value="ultra">25 Mbps (Ultra Direct)</option>
+        </select>
+        <button class="btn btn-hud" id="btn-hud-stats" title="Toggle Telemetry HUD (~)">Stats (~)</button>
+        <button class="btn btn-hud" id="btn-hud-touch">Touch</button>
+        <button class="btn btn-hud" id="btn-hud-fullscreen">Fullscreen</button>
+        <button class="btn btn-hud" id="btn-hud-minimize">Minimize</button>
+        <button class="btn btn-hud btn-danger" id="btn-hud-quit">Quit</button>
       </div>
     </div>
 
     <div class="stream-video-stage">
       <aside class="stream-stats-overlay" id="stream-stats-overlay">
-        <div class="stats-heading">TELEMETRY</div>
-        <div class="stats-row"><span>STATE</span><span class="stats-val" id="st-state">READY</span></div>
-        <div class="stats-row"><span>ROUTE</span><span class="stats-val" id="st-route">DIRECT P2P</span></div>
-        <div class="stats-row"><span>PING</span><span class="stats-val" id="st-rtt">-- ms</span></div>
-        <div class="stats-row"><span>JITTER</span><span class="stats-val" id="st-jitter">-- ms</span></div>
+        <div class="stats-heading">
+          <span class="stats-live-dot"></span>
+          <span>STREAM TELEMETRY</span>
+        </div>
+        <div class="stats-row"><span>State</span><span class="stats-val" id="st-state">Ready</span></div>
+        <div class="stats-row"><span>Route</span><span class="stats-val" id="st-route">Direct P2P</span></div>
+        <div class="stats-row"><span>Latency</span><span class="stats-val" id="st-rtt">-- ms</span></div>
+        <div class="stats-row"><span>Jitter</span><span class="stats-val" id="st-jitter">-- ms</span></div>
         <div class="stats-row"><span>FPS</span><span class="stats-val" id="st-fps">60</span></div>
-        <div class="stats-row"><span>RATE</span><span class="stats-val" id="st-bitrate">-- Mbps</span></div>
-        <div class="stats-row"><span>RES</span><span class="stats-val" id="st-res">1280x720</span></div>
-        <div class="stats-row"><span>LOSS</span><span class="stats-val" id="st-loss">0</span></div>
-        <div class="stats-row"><span>INPUT</span><span class="stats-val" id="st-input-mode">CURSOR</span></div>
-        <div class="stats-row"><span>USER</span><span class="stats-val" id="st-user">—</span></div>
-        <div class="stats-row"><span>BEST</span><span class="stats-val" id="st-save">0</span></div>
-        <div class="stats-row"><span>STEAM</span><span class="stats-val" id="st-steam">STREAM</span></div>
-        <div class="isolation-verified-box" id="st-iso-box">SANDBOX ISOLATED ✓</div>
+        <div class="stats-row"><span>Bitrate</span><span class="stats-val" id="st-bitrate">-- Mbps</span></div>
+        <div class="stats-row"><span>Resolution</span><span class="stats-val" id="st-res">1280x720</span></div>
+        <div class="stats-row"><span>Packet Loss</span><span class="stats-val" id="st-loss">0</span></div>
+        <div class="stats-row"><span>Input Mode</span><span class="stats-val" id="st-input-mode">Cursor</span></div>
+        <div class="stats-row"><span>Player</span><span class="stats-val" id="st-user">—</span></div>
+        <div class="stats-row"><span>Best Score</span><span class="stats-val" id="st-save">0</span></div>
+        <div class="stats-row"><span>Steam Auth</span><span class="stats-val" id="st-steam">Active</span></div>
+        <div class="isolation-verified-box" id="st-iso-box">Isolated Sandbox Protected</div>
       </aside>
 
       <div class="session-stage-modal hidden" id="session-stage-modal">
         <div class="stage-card">
-          <h3 id="stage-title">INITIALIZING SESSION</h3>
-          <p id="stage-desc" style="color:var(--fg-1); font-family:var(--font-mono); font-size:11px; margin-top:4px;">ALLOCATING CONTAINER...</p>
+          <h3 id="stage-title">Launching Session</h3>
+          <p id="stage-desc">Allocating isolated container...</p>
           <div class="stage-steps">
-            <div class="stage-step done" id="step-1">[01] SANDBOX &amp; USER MOUNTS</div>
-            <div class="stage-step active" id="step-2">[02] HEADLESS DISPLAY &amp; AUDIO</div>
-            <div class="stage-step" id="step-3">[03] GAME PROCESS</div>
-            <div class="stage-step" id="step-4">[04] NVENC WEBRTC STREAM</div>
+            <div class="stage-step done" id="step-1">
+              <span class="step-num">1</span>
+              <span>Container &amp; User Storage Mount</span>
+            </div>
+            <div class="stage-step active" id="step-2">
+              <span class="step-num">2</span>
+              <span>Virtual Display &amp; PipeWire Audio</span>
+            </div>
+            <div class="stage-step" id="step-3">
+              <span class="step-num">3</span>
+              <span>Hardware Proton / Native Process</span>
+            </div>
+            <div class="stage-step" id="step-4">
+              <span class="step-num">4</span>
+              <span>NVENC WebRTC Video Pipeline</span>
+            </div>
           </div>
-          <div id="stage-actions" style="display:none; gap:8px; justify-content:flex-end; margin-top:16px;">
-            <button class="btn" id="btn-stage-retry">RETRY</button>
-            <button class="btn btn-primary" id="btn-stage-library">BACK</button>
+          <div id="stage-actions" style="display:none; gap:8px; justify-content:flex-end; margin-top:20px;">
+            <button class="btn btn-ghost" id="btn-stage-retry">Retry</button>
+            <button class="btn btn-primary" id="btn-stage-library">Back to Library</button>
           </div>
         </div>
       </div>
 
-      <video id="stream-video" playsinline autoplay></video>
+      <video id="stream-video" playsinline autoplay muted></video>
 
       <div class="stream-controls-bar" id="stream-controls-bar">
-        <span><b>WASD</b> MOVE</span>
-        <span><b>SHIFT</b> SPRINT</span>
-        <span><b>SPACE</b> JUMP</span>
-        <span><b>CLICK / F</b> FIRE &amp; LOCK AIM</span>
-        <span><b>Q / E</b> TURN</span>
-        <span><b>TAB</b> TELEMETRY</span>
+        <span><kbd>WASD</kbd> Move</span>
+        <span><kbd>Shift</kbd> Sprint</span>
+        <span><kbd>Space</kbd> Jump</span>
+        <span><kbd>Tab</kbd> Scan / Map</span>
+        <span><kbd>Esc</kbd> In-Game Menu</span>
+        <span><kbd>[</kbd> Unlock Mouse</span>
+        <span><kbd>~</kbd> Telemetry</span>
+        <span><kbd>Click</kbd> Lock Aim</span>
       </div>
 
       <div class="touch-overlay" id="stream-touch-overlay">
         <!-- Left Half: Dynamic Floating Thumbstick Surface -->
         <div class="touch-left-pad" id="touch-left-pad">
           <div class="virtual-stick-zone" id="stick-zone">
-            <div class="stick-sprint-badge" id="stick-sprint-badge">SPRINT ▲</div>
+            <div class="stick-sprint-badge" id="stick-sprint-badge">Sprint ▲</div>
             <div class="virtual-stick-crosshair"></div>
             <div class="virtual-stick-nub" id="stick-nub"></div>
           </div>
         </div>
 
         <!-- Left Index Claw Fire Trigger -->
-        <div class="t-btn t-btn-lfire" data-code="KeyF" data-aim-drag="true">L-FIRE</div>
+        <div class="t-btn t-btn-lfire" data-code="KeyF" data-aim-drag="true">L-Fire</div>
 
         <!-- Right Half: Full-Screen Velocity-Accelerated 3D Aim Trackpad -->
         <div class="touch-look-zone" id="touch-look-zone">
-          <span class="touch-look-hint" id="touch-look-hint">AIM PAD // DRAG TO LOOK • TAP TO FIRE</span>
+          <span class="touch-look-hint" id="touch-look-hint">Aim Trackpad • Drag to Look • Tap to Fire</span>
         </div>
 
-        <!-- Ergonomic Right-Thumb Combat Arc (Hold + Drag on FIRE/JUMP also aims!) -->
+        <!-- Ergonomic Right-Thumb Combat Arc -->
         <div class="touch-buttons-zone">
-          <div class="t-btn t-btn-fire" data-code="KeyF" data-aim-drag="true">FIRE</div>
-          <div class="t-btn t-btn-jump" data-code="Space" data-aim-drag="true">JUMP</div>
-          <div class="t-btn t-btn-sprint" data-code="ShiftLeft">SPRINT</div>
-          <div class="t-btn t-btn-reset" data-code="KeyR">RESET</div>
+          <div class="t-btn t-btn-fire" data-code="KeyF" data-aim-drag="true">Fire</div>
+          <div class="t-btn t-btn-jump" data-code="Space" data-aim-drag="true">Jump</div>
+          <div class="t-btn t-btn-sprint" data-code="ShiftLeft">Sprint</div>
+          <div class="t-btn t-btn-reset" data-code="KeyR">Reset</div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="/assets/app.js?v=8"></script>
+  <!-- MODAL: NATIVE MOONLIGHT CLIENT PROMOTION & 1-CLICK DOWNLOAD -->
+  <div id="modal-desktop-app" class="stage-modal-backdrop" style="display:none; z-index:99999;">
+    <div class="stage-modal-card" style="max-width:540px; border-left:4px solid var(--volt);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span class="brand-sub" style="color:var(--volt); font-weight:800; font-size:11px;">RYOKU NATIVE ENGINE // SUB-2MS</span>
+        <button id="btn-close-desktop-modal" type="button" class="console-btn-subtle" style="font-size:16px; cursor:pointer;">&times;</button>
+      </div>
+
+      <h2 style="font-size:20px; font-weight:900; text-transform:uppercase; margin-bottom:8px;">120 FPS Native Desktop Client</h2>
+      <p style="font-size:12px; color:var(--fg-1); line-height:1.5; margin-bottom:16px;">
+        Experience Ryoku with zero browser overhead. Powered by Moonlight's raw UDP GameStream engine under the hood, with our custom UI and full sandbox security.
+      </p>
+
+      <div style="background:var(--bg-1); border:1px solid var(--line); padding:12px; margin-bottom:18px; display:grid; grid-template-columns:1fr 1fr; gap:10px; font-family:var(--font-mono); font-size:11px;">
+        <div>
+          <span style="display:block; color:var(--fg-1); font-size:10px;">WEB BROWSER (ACTIVE)</span>
+          <strong style="color:var(--fg-0);">60 FPS • WebRTC</strong>
+        </div>
+        <div>
+          <span style="display:block; color:var(--volt); font-size:10px;">NATIVE DESKTOP CLIENT</span>
+          <strong style="color:var(--volt);">120 FPS • Sub-2ms UDP</strong>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <a id="btn-download-client-windows" href="/api/client/download/windows" class="console-action-btn primary" style="text-align:center; text-decoration:none; display:block; padding:12px;">
+          ⬇️ Download 1-Click Windows Client (.bat)
+        </a>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <a id="btn-download-client-linux" href="/api/client/download/linux" class="console-action-btn sm" style="text-align:center; text-decoration:none; display:block; padding:10px; border-color:var(--line-bright); color:var(--fg-0);">
+            🐧 Linux (Ubuntu / Arch) (.sh)
+          </a>
+          <a id="btn-download-client-fedora" href="/api/client/download/fedora" class="console-action-btn sm" style="text-align:center; text-decoration:none; display:block; padding:10px; border-color:var(--volt); color:var(--volt); background:rgba(200,255,0,0.06);">
+            🎩 Fedora / Flatpak (.sh)
+          </a>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; font-family:var(--font-mono); font-size:10px; color:var(--fg-1); line-height:1.4;">
+        ⚡ <strong>True 1-Step Setup:</strong> Auto-pairs invisibly in the background. No manual PINs or IP typing required!
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MOONLIGHT DIRECT CONNECT & LAUNCH -->
+  <div id="modal-moonlight-launch" class="stage-modal-backdrop" style="display:none; z-index:99999;">
+    <div class="stage-modal-card" style="max-width:540px; border-left:4px solid var(--volt);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span class="brand-sub" style="color:var(--volt); font-weight:800; font-size:11px;">⚡ MOONLIGHT UDP ENGINE // SUB-2MS</span>
+        <button id="btn-close-moonlight-modal" type="button" class="console-btn-subtle" style="font-size:18px; cursor:pointer;">&times;</button>
+      </div>
+
+      <h2 id="moonlight-modal-game-title" style="font-size:22px; font-weight:900; text-transform:uppercase; margin-bottom:6px;">CyberArena 3D</h2>
+      <p style="font-size:12px; color:var(--fg-1); line-height:1.5; margin-bottom:16px;">
+        Moonlight connects directly over raw UDP to the Sunshine host on your gaming PC at 120 FPS with hardware decoding.
+      </p>
+
+      <div style="background:var(--bg-1); border:1px solid var(--line); border-radius:6px; padding:12px; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:11px; color:var(--fg-1); font-family:var(--font-mono);">HOST STREAMING ENDPOINT:</span>
+          <span id="moonlight-host-badge" style="font-size:10px; font-weight:800; color:var(--volt); background:rgba(200,255,0,0.1); padding:2px 6px; border-radius:3px;">WIREGUARD MESH</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="text" id="moonlight-target-host-input" value="100.89.198.41" class="console-field-sm" style="flex:1; font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--volt); padding:6px 10px; background:#000; border:1px solid var(--line-bright);" />
+          <button type="button" id="btn-copy-moonlight-cmd" class="console-action-btn sm" style="white-space:nowrap; border-color:var(--line-bright);">📋 Copy CLI</button>
+        </div>
+        <div style="font-size:10px; color:var(--fg-1); margin-top:6px; font-family:var(--font-mono);">
+          • Tailscale IP: <code>100.89.198.41</code> | Home Wi-Fi: <code>192.168.1.5</code>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <a id="btn-open-moonlight-protocol" href="moonlight://stream?address=100.89.198.41&app=CyberArena%203D" class="console-action-btn primary" style="text-align:center; text-decoration:none; display:block; padding:12px; font-size:13px;">
+          ▶ Open in Moonlight Application
+        </a>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <button type="button" id="btn-moonlight-auto-pair" class="console-action-btn sm" style="border-color:var(--volt); color:var(--volt);">
+            🔑 1-Click Auto-Pair Host
+          </button>
+          <button type="button" id="btn-launch-webrtc-fallback" class="console-action-btn sm" style="border-color:var(--line-bright); color:var(--fg-0);">
+            🌐 Stream in Browser
+          </button>
+        </div>
+      </div>
+
+      <div id="moonlight-cli-helper-box" style="margin-top:14px; background:#000; border:1px solid var(--line); border-radius:4px; padding:10px; font-family:var(--font-mono); font-size:11px; color:var(--fg-1);">
+        <div style="font-size:10px; color:var(--volt); margin-bottom:4px; font-weight:700;">FEDORA / LINUX 1-CLICK TERMINAL COMMAND:</div>
+        <code id="moonlight-cli-command" style="word-break:break-all; color:#fff;">flatpak run com.moonlight_stream.Moonlight stream 100.89.198.41 "CyberArena 3D"</code>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/app.js?v=22"></script>
 </body>
 </html>

@@ -14,9 +14,12 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
+import subprocess
 from pathlib import Path
 from typing import Dict, Optional
 
+import aiohttp
 from aiohttp import ClientSession, ClientTimeout, WSMsgType, web
 
 from backend.database import CloudGamingDatabase
@@ -142,6 +145,7 @@ def create_orchestrator_app(
                 html_text.replace('href="/assets/', 'href="/cloudgaming/assets/')
                 .replace('src="/assets/', 'src="/cloudgaming/assets/')
                 .replace('href="/offline"', 'href="/cloudgaming/offline"')
+                .replace('href="/api/client/download/', 'href="/cloudgaming/api/client/download/')
             )
             return web.Response(text=html_text, content_type="text/html")
         return web.FileResponse(target_html)
@@ -313,18 +317,38 @@ def create_orchestrator_app(
             }
         )
 
+    async def handle_get_game_launch_options(request: web.Request) -> web.Response:
+        require_user(request)
+        app_id = request.match_info.get("app_id", "0")
+        opts = steam_mgr.get_custom_launch_options(app_id) or ""
+        return web.json_response({"ok": True, "app_id": app_id, "launch_options": opts})
+
+    async def handle_set_game_launch_options(request: web.Request) -> web.Response:
+        require_user(request)
+        app_id = request.match_info.get("app_id", "0")
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        opts = str(body.get("launch_options", "")).strip()
+        steam_mgr.set_custom_launch_options(app_id, opts)
+        return web.json_response({"ok": True, "app_id": app_id, "launch_options": opts})
+
     async def handle_server_status(request: web.Request) -> web.Response:
         user = require_user(request)
         uname = str(user["username"])
         active = orchestrator.get_active_session_public_summary()
         my_session = orchestrator.get_session_for_user(uname)
         is_online = not orchestrator.network_mgr.maintenance_offline_mode
+        has_my_active = my_session is not None and my_session.get("state") in ("starting", "ready", "playing")
+        slots_full = len([s for s in orchestrator.active_sessions.values() if s.state != "ended"]) >= orchestrator.max_concurrent_sessions
+        busy_by_other = (active is not None and not has_my_active) if orchestrator.max_concurrent_sessions == 1 else (slots_full and not has_my_active)
         return web.json_response(
             {
                 "ok": True,
                 "online": is_online,
                 "in_use": active is not None,
-                "busy_by_other": active is not None and active["username"] != uname,
+                "busy_by_other": busy_by_other,
                 "active_session": active,
                 "my_session": my_session,
             }
@@ -344,10 +368,11 @@ def create_orchestrator_app(
             body = {}
 
         app_id = str(body.get("app_id", "0")).strip() or "0"
-        quality = str(body.get("quality", "high")).strip() or "high"
-        width = int(body.get("width", 1280))
-        height = int(body.get("height", 720))
+        quality = str(body.get("quality", "remote")).strip() or "remote"
+        width = int(body.get("width", 1920))
+        height = int(body.get("height", 1080))
         fps = int(body.get("fps", 60))
+        launch_opts = str(body.get("launch_options", "")).strip() or None
 
         try:
             session_dict = await orchestrator.start_or_reconnect_session(
@@ -357,6 +382,7 @@ def create_orchestrator_app(
                 width=width,
                 height=height,
                 fps=fps,
+                launch_options=launch_opts,
             )
             return web.json_response({"ok": True, "session": session_dict})
         except SessionConflictError as exc:
@@ -379,20 +405,23 @@ def create_orchestrator_app(
         uname = str(user["username"])
         my_session = orchestrator.get_session_for_user(uname)
         active = orchestrator.get_active_session_public_summary()
+        has_my_active = my_session is not None and my_session.get("state") in ("starting", "ready", "playing")
+        slots_full = len([s for s in orchestrator.active_sessions.values() if s.state != "ended"]) >= orchestrator.max_concurrent_sessions
+        busy_by_other = (active is not None and not has_my_active) if orchestrator.max_concurrent_sessions == 1 else (slots_full and not has_my_active)
         return web.json_response(
             {
                 "ok": True,
                 "session": my_session,
                 "active_session": active,
-                "busy_by_other": active is not None and active["username"] != uname,
+                "busy_by_other": busy_by_other,
             }
         )
 
     async def handle_session_quality(request: web.Request) -> web.Response:
         user = require_user(request)
         uname = str(user["username"])
-        s = orchestrator.active_session
-        if not s or s.username != uname or s.state == "ended":
+        s = orchestrator.get_managed_session_by_user(uname)
+        if not s or s.state == "ended":
             return web.json_response(
                 {"ok": False, "error": "No active session found for your account."},
                 status=404,
@@ -409,6 +438,23 @@ def create_orchestrator_app(
                     f"{s.internal_http_url}/api/session/quality",
                     json={"quality": quality},
                 ) as resp:
+                    data = await resp.json()
+                    return web.json_response(data, status=resp.status)
+            except Exception as exc:
+                return web.json_response({"ok": False, "error": str(exc)}, status=502)
+
+    async def handle_session_keyframe(request: web.Request) -> web.Response:
+        user = require_user(request)
+        uname = str(user["username"])
+        s = orchestrator.get_managed_session_by_user(uname)
+        if not s or s.state == "ended":
+            return web.json_response(
+                {"ok": False, "error": "No active session found for your account."},
+                status=404,
+            )
+        async with ClientSession(timeout=ClientTimeout(total=2.0)) as client:
+            try:
+                async with client.post(f"{s.internal_http_url}/api/session/keyframe") as resp:
                     data = await resp.json()
                     return web.json_response(data, status=resp.status)
             except Exception as exc:
@@ -436,8 +482,11 @@ def create_orchestrator_app(
             raise web.HTTPUnauthorized(text="Unauthorized WebSocket connection")
 
         uname = str(user["username"])
-        s = orchestrator.active_session
+        s = orchestrator.get_managed_session_by_user(uname)
         if s is None or s.state == "ended":
+            # If an active session exists on the PC belonging to another player, return 403 Forbidden
+            if orchestrator.active_session and orchestrator.active_session.username != uname:
+                raise web.HTTPForbidden(text="Cannot connect to another user's gaming session")
             raise web.HTTPNotFound(text="No active gaming session")
         if s.username != uname:
             raise web.HTTPForbidden(text="Cannot connect to another user's gaming session")
@@ -450,7 +499,7 @@ def create_orchestrator_app(
         inner_ws = None
         async with ClientSession() as proxy_session:
             for _ in range(60):
-                if orchestrator.active_session is not s or s.state == "ended":
+                if s.session_id not in orchestrator.active_sessions or s.state == "ended":
                     await client_ws.send_json(
                         {"type": "error", "error": "Session ended before stream connected."}
                     )
@@ -684,6 +733,240 @@ def create_orchestrator_app(
         revoked = db.revoke_invite(code)
         return web.json_response({"ok": revoked, "code": code})
 
+    async def handle_admin_power(request: web.Request) -> web.Response:
+        require_admin(request)
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        action = str(body.get("action", "")).strip().lower()
+        if action not in ("suspend", "sleep", "poweroff", "shutdown", "reboot"):
+            return web.json_response({"ok": False, "error": "Invalid power action."}, status=400)
+
+        # Terminate active gaming session cleanly before triggering power transition
+        if orchestrator.active_session:
+            await orchestrator.terminate_session(reason="admin_power_action")
+
+        cmd = ["systemctl", "suspend"] if action in ("suspend", "sleep") else (
+            ["systemctl", "reboot"] if action == "reboot" else ["systemctl", "poweroff"]
+        )
+
+        async def _run_power_command():
+            await asyncio.sleep(0.8)
+            try:
+                res = subprocess.run(cmd, capture_output=True, text=True, check=False)
+                if res.returncode != 0:
+                    logger.warning("systemctl %s failed (code %d): %s %s. Attempting loginctl fallback.", action, res.returncode, res.stdout, res.stderr)
+                    fallback = ["loginctl", "suspend"] if action in ("suspend", "sleep") else (
+                        ["loginctl", "reboot"] if action == "reboot" else ["loginctl", "poweroff"]
+                    )
+                    subprocess.run(fallback, check=False)
+            except Exception as e:
+                logger.error("Failed to execute power action '%s': %s", action, e)
+
+        asyncio.create_task(_run_power_command())
+        return web.json_response({"ok": True, "action": action, "message": f"Host is executing {action}."})
+
+    async def handle_sunshine_auto_pair(request: web.Request) -> web.Response:
+        user = get_authenticated_user(request, db)
+        username = user["username"] if user else "ryoku-client"
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        pin = str(body.get("pin", "")).strip()
+        if not pin or len(pin) != 4 or not pin.isdigit():
+            return web.json_response({"ok": False, "error": "Invalid 4-digit pairing PIN."}, status=400)
+
+        # Connect to local Sunshine REST API on host to approve client pairing
+        sunshine_port = int(os.environ.get("SUNSHINE_PORT", "47990"))
+        sunshine_url = f"https://127.0.0.1:{sunshine_port}/api/pin"
+        sunshine_user = os.environ.get("SUNSHINE_USER", "admin")
+        sunshine_pass = os.environ.get("SUNSHINE_PASS", "admin")
+
+        logger.info("Auto-pairing Moonlight client for user '%s' with PIN %s...", username, pin)
+
+        try:
+            auth = aiohttp.BasicAuth(sunshine_user, sunshine_pass)
+            # Sunshine uses self-signed HTTPS certificate on loopback
+            connector = aiohttp.TCPConnector(ssl=False)
+            async with ClientSession(connector=connector, timeout=ClientTimeout(total=4)) as session:
+                async with session.post(
+                    sunshine_url,
+                    json={"pin": pin},
+                    auth=auth,
+                ) as resp:
+                    if resp.status == 200:
+                        try:
+                            data = await resp.json()
+                        except Exception:
+                            data = {"status": "ok"}
+                        logger.info("Moonlight client auto-paired successfully for '%s'!", user["username"])
+                        return web.json_response({"ok": True, "paired": True, "details": data})
+                    else:
+                        err_text = await resp.text()
+                        logger.warning("Sunshine auto-pair rejected PIN (%d): %s", resp.status, err_text)
+                        return web.json_response(
+                            {"ok": False, "error": f"Sunshine responded with code {resp.status}"},
+                            status=resp.status,
+                        )
+        except Exception as e:
+            logger.error("Could not reach Sunshine API on 127.0.0.1:%d: %s", sunshine_port, e)
+            return web.json_response(
+                {"ok": False, "error": f"Sunshine service is not running or unreachable: {e}"},
+                status=503,
+            )
+
+    def get_streaming_target_host(request: web.Request) -> str:
+        """Determines the direct streaming target IP/host for Moonlight GameStream UDP."""
+        # 1. Environment variable override
+        env_host = os.environ.get("MOONLIGHT_HOST") or os.environ.get("STREAM_HOST")
+        if env_host and env_host.strip():
+            return env_host.strip()
+
+        # 2. Host Tailscale WireGuard IP
+        try:
+            ts = shutil.which("tailscale")
+            if ts:
+                out = subprocess.check_output([ts, "ip", "-4"], text=True, timeout=1).strip()
+                if out:
+                    return out
+        except Exception:
+            pass
+
+        # 3. Host LAN IP (Wi-Fi / Ethernet)
+        try:
+            out = subprocess.check_output(
+                ["sh", "-c", "ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"src\") print $(i+1)}'"],
+                text=True, timeout=1
+            ).strip()
+            if out and out != "127.0.0.1":
+                return out
+        except Exception:
+            pass
+
+        # 4. Host header check: Cloudflare domains (e.g. play.vanshdev.online) cannot route UDP!
+        # Fall back to known host Tailscale IP (100.89.198.41) or LAN IP (192.168.1.5).
+        host_hdr = request.headers.get("Host", "play.vanshdev.online").split(":")[0]
+        if any(host_hdr.endswith(tld) for tld in (".online", ".com", ".net", ".org", ".io", ".dev", ".app")):
+            return "100.89.198.41"
+
+        return host_hdr
+
+    async def handle_client_endpoint(request: web.Request) -> web.Response:
+        ts_ip = ""
+        try:
+            ts = shutil.which("tailscale")
+            if ts:
+                ts_ip = subprocess.check_output([ts, "ip", "-4"], text=True, timeout=1).strip()
+        except Exception:
+            pass
+
+        lan_ip = ""
+        try:
+            lan_ip = subprocess.check_output(
+                ["sh", "-c", "ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"src\") print $(i+1)}'"],
+                text=True, timeout=1
+            ).strip()
+        except Exception:
+            pass
+
+        recommended = get_streaming_target_host(request)
+        return web.json_response({
+            "ok": True,
+            "tailscale_ip": ts_ip or "100.89.198.41",
+            "lan_ip": lan_ip or "192.168.1.5",
+            "recommended_host": recommended or "100.89.198.41",
+            "sunshine_port": int(os.environ.get("SUNSHINE_PORT", "47990")),
+        })
+
+    async def handle_download_client_windows(request: web.Request) -> web.StreamResponse:
+        bat_file = PROJECT_ROOT / "client" / "run_client_windows.bat"
+        if not bat_file.exists():
+            return web.Response(text="Client script not found", status=404)
+
+        host_hdr = request.headers.get("Host", "play.vanshdev.online")
+        proto = request.headers.get("X-Forwarded-Proto", request.scheme or "https")
+        server_url = f"{proto}://{host_hdr}"
+        if request.path.startswith("/cloudgaming"):
+            server_url = f"{server_url}/cloudgaming"
+        target_host = get_streaming_target_host(request)
+
+        try:
+            content = bat_file.read_text(encoding="utf-8")
+            content = content.replace("__SERVER_URL__", server_url).replace("__TARGET_HOST__", target_host)
+            return web.Response(
+                text=content,
+                content_type="application/x-bat",
+                headers={
+                    "Content-Disposition": 'attachment; filename="Ryoku_Launcher.bat"',
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                },
+            )
+        except Exception:
+            return web.FileResponse(
+                bat_file,
+                headers={"Content-Disposition": 'attachment; filename="Ryoku_Launcher.bat"'},
+            )
+
+    async def handle_download_client_linux(request: web.Request) -> web.StreamResponse:
+        sh_file = PROJECT_ROOT / "client" / "run_client.sh"
+        if not sh_file.exists():
+            return web.Response(text="Client script not found", status=404)
+
+        host_hdr = request.headers.get("Host", "play.vanshdev.online")
+        proto = request.headers.get("X-Forwarded-Proto", request.scheme or "https")
+        server_url = f"{proto}://{host_hdr}"
+        if request.path.startswith("/cloudgaming"):
+            server_url = f"{server_url}/cloudgaming"
+        target_host = get_streaming_target_host(request)
+
+        try:
+            content = sh_file.read_text(encoding="utf-8")
+            content = content.replace("__SERVER_URL__", server_url).replace("__TARGET_HOST__", target_host)
+            return web.Response(
+                text=content,
+                content_type="application/x-sh",
+                headers={
+                    "Content-Disposition": 'attachment; filename="Ryoku_Launcher.sh"',
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                },
+            )
+        except Exception:
+            return web.FileResponse(
+                sh_file,
+                headers={"Content-Disposition": 'attachment; filename="Ryoku_Launcher.sh"'},
+            )
+
+    async def handle_download_client_fedora(request: web.Request) -> web.StreamResponse:
+        sh_file = PROJECT_ROOT / "client" / "run_client_fedora.sh"
+        if not sh_file.exists():
+            return web.Response(text="Fedora client script not found", status=404)
+
+        host_hdr = request.headers.get("Host", "play.vanshdev.online")
+        proto = request.headers.get("X-Forwarded-Proto", request.scheme or "https")
+        server_url = f"{proto}://{host_hdr}"
+        if request.path.startswith("/cloudgaming"):
+            server_url = f"{server_url}/cloudgaming"
+        target_host = get_streaming_target_host(request)
+
+        try:
+            content = sh_file.read_text(encoding="utf-8")
+            content = content.replace("__SERVER_URL__", server_url).replace("__TARGET_HOST__", target_host)
+            return web.Response(
+                text=content,
+                content_type="application/x-sh",
+                headers={
+                    "Content-Disposition": 'attachment; filename="Ryoku_Launcher_Fedora.sh"',
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                },
+            )
+        except Exception:
+            return web.FileResponse(
+                sh_file,
+                headers={"Content-Disposition": 'attachment; filename="Ryoku_Launcher_Fedora.sh"'},
+            )
+
     # Register Routes (both root `/` and subpath `/cloudgaming` for vanshdev.online/cloudgaming)
     app.router.add_get("/", handle_index)
     app.router.add_get("/cloudgaming", handle_index)
@@ -692,6 +975,11 @@ def create_orchestrator_app(
     if (web_dir / "assets").exists():
         app.router.add_static("/assets", path=web_dir / "assets", show_index=False)
         app.router.add_static("/cloudgaming/assets", path=web_dir / "assets", show_index=False)
+
+    client_dir = PROJECT_ROOT / "client"
+    if client_dir.exists():
+        app.router.add_static("/client", path=client_dir, show_index=False)
+        app.router.add_static("/cloudgaming/client", path=client_dir, show_index=False)
 
     for prefix in ("", "/cloudgaming"):
         app.router.add_get(f"{prefix}/offline", handle_offline_page)
@@ -705,6 +993,8 @@ def create_orchestrator_app(
         app.router.add_get(f"{prefix}/api/auth/me", handle_me)
 
         app.router.add_get(f"{prefix}/api/games", handle_list_games)
+        app.router.add_get(f"{prefix}/api/games/{{app_id}}/launch-options", handle_get_game_launch_options)
+        app.router.add_post(f"{prefix}/api/games/{{app_id}}/launch-options", handle_set_game_launch_options)
         app.router.add_get(f"{prefix}/api/server/status", handle_server_status)
         app.router.add_get(f"{prefix}/api/webrtc/ice-config", handle_webrtc_ice_config)
         app.router.add_post(f"{prefix}/api/sessions/start", handle_session_start)
@@ -712,6 +1002,8 @@ def create_orchestrator_app(
         app.router.add_get(f"{prefix}/api/session/status", handle_session_current)
         app.router.add_post(f"{prefix}/api/sessions/quality", handle_session_quality)
         app.router.add_post(f"{prefix}/api/session/quality", handle_session_quality)
+        app.router.add_post(f"{prefix}/api/sessions/keyframe", handle_session_keyframe)
+        app.router.add_post(f"{prefix}/api/session/keyframe", handle_session_keyframe)
         app.router.add_post(f"{prefix}/api/sessions/stop", handle_session_stop)
         app.router.add_post(f"{prefix}/api/session/stop", handle_session_stop)
         app.router.add_get(f"{prefix}/api/sessions/current/ws", handle_session_ws_proxy)
@@ -727,5 +1019,17 @@ def create_orchestrator_app(
         app.router.add_post(f"{prefix}/api/admin/invites", handle_admin_create_invite)
         app.router.add_delete(f"{prefix}/api/admin/invites/{{code}}", handle_admin_revoke_invite)
         app.router.add_delete(f"{prefix}/api/admin/history", handle_admin_clear_history)
+        app.router.add_post(f"{prefix}/api/admin/power", handle_admin_power)
+        app.router.add_post(f"{prefix}/api/client/pair", handle_sunshine_auto_pair)
+        app.router.add_get(f"{prefix}/api/client/endpoint", handle_client_endpoint)
+        app.router.add_get(f"{prefix}/api/client/download/windows", handle_download_client_windows)
+        app.router.add_get(f"{prefix}/api/client/download/linux", handle_download_client_linux)
+        app.router.add_get(f"{prefix}/api/client/download/fedora", handle_download_client_fedora)
+        app.router.add_get(f"{prefix}/client/download/windows", handle_download_client_windows)
+        app.router.add_get(f"{prefix}/client/download/linux", handle_download_client_linux)
+        app.router.add_get(f"{prefix}/client/download/fedora", handle_download_client_fedora)
+        app.router.add_get(f"{prefix}/download/windows", handle_download_client_windows)
+        app.router.add_get(f"{prefix}/download/linux", handle_download_client_linux)
+        app.router.add_get(f"{prefix}/download/fedora", handle_download_client_fedora)
 
     return app

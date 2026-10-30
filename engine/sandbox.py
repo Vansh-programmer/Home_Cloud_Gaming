@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -24,8 +25,8 @@ from typing import Dict, List, Optional
 @dataclass
 class SandboxConfig:
     session_id: str
-    width: int = 1280
-    height: int = 720
+    width: int = 1920
+    height: int = 1080
     fps: int = 60
     user_id: str = "default"
     app_id: str = "0"
@@ -55,11 +56,6 @@ class EphemeralSandbox:
 
     def prepare_directories(self) -> None:
         """Create isolated ephemeral directories on the host with 0700 permissions."""
-        # Sweep any orphaned session directories from previous hard kills
-        for stale in Path("/tmp").glob("cloudgaming-session-*"):
-            if stale != self.session_root:
-                shutil.rmtree(stale, ignore_errors=True)
-
         if self.session_root.exists():
             shutil.rmtree(self.session_root, ignore_errors=True)
 
@@ -207,6 +203,17 @@ class EphemeralSandbox:
             if os.path.exists(dev_path):
                 cmd.extend(["--dev-bind-try", dev_path, dev_path])
 
+        # Mount host /opt packages (Heroic, wine-cachyos, etc.) read-only into /opt
+        opt_dir = Path("/opt")
+        if opt_dir.exists():
+            cmd.extend(["--dir", "/opt"])
+            try:
+                for opt_item in opt_dir.iterdir():
+                    if opt_item.name != "cloudgaming":
+                        cmd.extend(["--ro-bind-try", str(opt_item), f"/opt/{opt_item.name}"])
+            except Exception:
+                pass
+
         # Mount ONLY the engine and web asset directories read-only at /opt/cloudgaming
         # (Never mount backend databases or host home directories into the container)
         project_root = Path(__file__).resolve().parent.parent
@@ -250,6 +257,34 @@ class EphemeralSandbox:
         elif self.config.shared_steam_dir and self.config.shared_steam_dir.exists():
             cmd.extend(["--ro-bind", str(self.config.shared_steam_dir), "/steam_shared"])
 
+        # Allow Proton to acquire its runtime lock without triggering Read-only file system error
+        for src, dst in self.config.extra_ro_binds.items():
+            if "proton" in dst.lower() and dst.startswith("/steam_shared") and os.path.isdir(src):
+                lock_file_src = Path(src) / "dist.lock"
+                try:
+                    lock_file_src.touch(exist_ok=True)
+                except Exception:
+                    pass
+                lock_name = "proton_" + re.sub(r"[^a-zA-Z0-9_]", "_", dst) + ".lock"
+                lock_file = self.tmp_dir / lock_name
+                lock_file.touch(mode=0o666, exist_ok=True)
+                cmd.extend(["--bind", str(lock_file), f"{dst}/dist.lock"])
+
+        if self.config.shared_steam_dir and self.config.shared_steam_dir.exists():
+            common_dir = self.config.shared_steam_dir / "steamapps" / "common"
+            if common_dir.exists():
+                for p in common_dir.glob("Proton*"):
+                    if p.is_dir():
+                        lock_file_src = p / "dist.lock"
+                        try:
+                            lock_file_src.touch(exist_ok=True)
+                        except Exception:
+                            pass
+                        lock_name = "proton_" + re.sub(r"[^a-zA-Z0-9_]", "_", p.name) + ".lock"
+                        lock_file = self.tmp_dir / lock_name
+                        lock_file.touch(mode=0o666, exist_ok=True)
+                        cmd.extend(["--bind", str(lock_file), f"/steam_shared/steamapps/common/{p.name}/dist.lock"])
+
         # Mount optional per-user persistent directories (Phase 2+: Steam login tokens, Proton prefixes, saves)
         if self.config.user_persist_dir and self.config.user_persist_dir.exists():
             cmd.extend(["--bind", str(self.config.user_persist_dir), "/home/gamer/persist"])
@@ -261,6 +296,10 @@ class EphemeralSandbox:
             cmd.extend(["--bind", str(self.config.user_local_share_dir), "/home/gamer/.local/share"])
         if self.config.user_config_dir and self.config.user_config_dir.exists():
             cmd.extend(["--bind", str(self.config.user_config_dir), "/home/gamer/.config"])
+            user_games_dir = self.config.user_config_dir.parent / "Games"
+            if user_games_dir.exists():
+                cmd.extend(["--dir", "/home/gamer/Games"])
+                cmd.extend(["--bind", str(user_games_dir), "/home/gamer/Games"])
 
         for src, dst in self.config.extra_ro_binds.items():
             if not dst.startswith("/steam_shared") and os.path.exists(src):
@@ -290,9 +329,27 @@ class EphemeralSandbox:
             "STUN_SERVER": os.environ.get("STUN_SERVER", ""),
             "TURN_SERVER": os.environ.get("TURN_SERVER", ""),
             "TURN_SERVERS": os.environ.get("TURN_SERVERS", ""),
+            "RTP_MIN_PORT": os.environ.get("RTP_MIN_PORT", "30000"),
+            "RTP_MAX_PORT": os.environ.get("RTP_MAX_PORT", "60000"),
             "PRESSURE_VESSEL_FILESYSTEMS_RO": "/steam_shared:/game",
             "STEAM_COMPAT_MOUNTS": "/steam_shared:/game",
             "STEAM_COMPAT_LIBRARY_PATHS": "/home/gamer/.local/share/Steam:/steam_shared",
+            "DXVK_FRAME_RATE": str(self.config.fps),
+            "DXVK_ASYNC": "1",
+            "__GL_MaxFramesAllowed": "1",
+            "__GL_THREADED_OPTIMIZATIONS": "1",
+            "__GL_SYNC_TO_VBLANK": "0",
+            "PROTON_ENABLE_NVAPI": "1",
+            "PROTON_HIDE_NVIDIA_GPU": "0",
+            "PIPEWIRE_LATENCY": "128/48000",
+            "PULSE_LATENCY_MSEC": "10",
+            "vblank_mode": "0",
+            "STEAM_DISABLE_SANDBOX": "1",
+            "STEAM_NO_CEF_SANDBOX": "1",
+            "STEAM_ZENITY": "0",
+            "SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS": "0",
+            "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+            "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
         }
         if env_vars:
             default_env.update(env_vars)
