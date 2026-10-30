@@ -1,21 +1,30 @@
 version: "3.8"
 
 services:
+  # ============================================================================
+  # RYOKU CLOUD GAMING // COMPUTE NODE (GAMES ON WHALES - WOLF)
+  # ============================================================================
+  # Headless Cloud Gaming Streaming Server & Container Session Orchestrator.
+  # Dynamically spawns ephemeral isolated game containers on demand.
+  # Zero access or visibility to host desktop, personal files, or host Steam.
+  # ============================================================================
   wolf:
     image: ghcr.io/games-on-whales/wolf:stable
-    container_name: ryoku-wolf
-    network_mode: host
+    container_name: ryoku-cloud-server
     restart: unless-stopped
+    network_mode: host
     environment:
       - NVIDIA_DRIVER_CAPABILITIES=all
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_VOLUME_NAME=nvidia-driver-vol
+      - WOLF_LOG_LEVEL=INFO
     volumes:
       - ./wolf/config:/etc/wolf:rw
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /dev/:/dev/:rw
       - /run/udev:/run/udev:rw
       - nvidia-driver-vol:/usr/nvidia:rw
+      - cloud-storage:/cloud-data:rw
     devices:
       - /dev/dri
       - /dev/uinput
@@ -37,19 +46,27 @@ services:
               count: all
               capabilities: [gpu]
 
-  # Optional Web UI for pairing & config management
+  # ============================================================================
+  # WOLF-DEN // CLOUD GAMING ADMIN & PAIRING CONSOLE
+  # ============================================================================
+  # Web Portal for Moonlight pairing, cloud session telemetry, and app profiles.
+  # ============================================================================
   wolf-den:
     image: ghcr.io/games-on-whales/wolf-den:stable
-    container_name: ryoku-wolf-den
+    container_name: ryoku-cloud-admin
     restart: unless-stopped
     network_mode: host
     environment:
       - WOLF_SOCKET_PATH=/var/run/wolf/wolf.sock
-      - PORT=8082
+      - PORT=8080
     volumes:
       - ./wolf/wolf-den:/app/wolf-den/
       - /var/run/wolf:/var/run/wolf
 
 volumes:
+  # Host NVIDIA driver libraries shared into isolated containers
   nvidia-driver-vol:
     external: true
+  # Fresh, independent cloud gaming storage (zero host Steam/desktop coupling)
+  cloud-storage:
+    name: ryoku-cloud-storage

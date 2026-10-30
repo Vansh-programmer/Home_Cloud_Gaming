@@ -1,17 +1,23 @@
 hostname = "Ryoku Cloud Gaming"
 support_hevc = true
 
+# ==============================================================================
+# APPLICATION 1: STEAM CLOUD GAMING NODE
+# ==============================================================================
+# Isolated Steam container running on a virtual headless compositor (Sway/Gamescope).
+# Fresh, independent cloud storage (zero host Steam or host filesystem coupling).
+# When the user connects via Moonlight, it boots directly into Steam Big Picture.
+# ==============================================================================
 [[apps]]
-title = "Steam Big Picture"
+title = "Steam Cloud Gaming"
 start_virtual_compositor = true
 
 [apps.runner]
 type = "docker"
-name = "steam"
+name = "steam-cloud"
 image = "ghcr.io/games-on-whales/steam:edge"
 mounts = [
-    "/home/vansh/Projects/Home_Cloud_Gaming/data/shared_steam_library:/home/retro/.local/share/Steam/steamapps:ro",
-    "/home/vansh/Projects/Home_Cloud_Gaming/data/users/vansh/home:/home/retro:rw"
+    "ryoku-cloud-storage:/home/retro:rw"
 ]
 env = [
     "RUN_SWAY=1",
@@ -36,21 +42,24 @@ base_create_json = """
 }
 """
 
+# ==============================================================================
+# APPLICATION 2: RETROARCH CLOUD GAMING (INSTANT PLAY)
+# ==============================================================================
+# Plug-and-play cloud arcade & retro gaming without requiring any account login.
+# ==============================================================================
 [[apps]]
-title = "Rise of the Tomb Raider"
+title = "RetroArch Cloud Arcade"
 start_virtual_compositor = true
 
 [apps.runner]
 type = "docker"
-name = "tomb-raider"
-image = "ghcr.io/games-on-whales/steam:edge"
+name = "retroarch-cloud"
+image = "ghcr.io/games-on-whales/retroarch:edge"
 mounts = [
-    "/home/vansh/Projects/Home_Cloud_Gaming/data/shared_steam_library:/home/retro/.local/share/Steam/steamapps:ro",
-    "/home/vansh/Projects/Home_Cloud_Gaming/data/users/vansh/home:/home/retro:rw"
+    "ryoku-cloud-storage:/home/retro:rw"
 ]
 env = [
     "RUN_SWAY=1",
-    "STEAM_APP_ID=391220",
     "GOW_REQUIRED_DEVICES=/dev/input/event* /dev/dri/* /dev/nvidia*"
 ]
 devices = []
