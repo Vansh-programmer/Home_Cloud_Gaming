@@ -3,7 +3,7 @@
 RYOKU CLOUD GAMING // SUNSHINE SANDBOXED GAME LAUNCHER
 ======================================================
 Confines games inside an isolated fullscreen compositor (Gamescope) and
-Bubblewrap sandbox so that when Moonlight connects via Sunshine:
+headless virtual display (VIRTUAL-1) so that when Moonlight connects via Sunshine:
 
 1. The host desktop, taskbar, browser, and files are 100% HIDDEN and inaccessible.
 2. The game runs strictly fullscreen without window borders or background bleed.
@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import json
 import os
 import shutil
 import signal
@@ -30,6 +31,18 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from engine.storage_manager import UserStorageManager
+
+
+def ensure_virtual_display() -> None:
+    """Ensures Hyprland has the headless VIRTUAL-1 display active for Sunshine capture."""
+    try:
+        res = subprocess.run(["hyprctl", "monitors", "-j"], capture_output=True, text=True, check=False)
+        if "VIRTUAL-1" not in res.stdout:
+            print("[RYOKU SUNSHINE] Creating isolated headless display VIRTUAL-1...")
+            subprocess.run(["hyprctl", "output", "create", "headless", "VIRTUAL-1"], check=False)
+            time.sleep(0.3)
+    except Exception as e:
+        print(f"[RYOKU SUNSHINE] Virtual display notice: {e}")
 
 
 def close_sunshine_stream() -> None:
@@ -55,6 +68,71 @@ def close_sunshine_stream() -> None:
         print(f"[RYOKU SUNSHINE] Notice closing Sunshine stream: {e}")
 
 
+def wait_for_session_exit(app_id: str, proc: subprocess.Popen | None = None) -> None:
+    """
+    Monitors the active game session to prevent premature stream teardown.
+    Direct executables wait on process return; detached Steam/Heroic games
+    track their dedicated window on the virtual workspace.
+    """
+    if app_id == "0":
+        if proc:
+            proc.wait()
+        return
+
+    # For Steam/Heroic applications, give the game up to 30 seconds to initialize
+    print(f"[RYOKU SUNSHINE] Monitoring active window for app {app_id}...")
+    time.sleep(2)
+
+    target_pattern = f"steam_app_{app_id}" if app_id.isdigit() and app_id != "7" else app_id
+    found = False
+
+    for _ in range(30):
+        try:
+            res = subprocess.run(["hyprctl", "clients", "-j"], capture_output=True, text=True, check=False)
+            clients = json.loads(res.stdout) if res.stdout else []
+            for c in clients:
+                cls = c.get("class", "").lower()
+                title = c.get("title", "").lower()
+                if (target_pattern.lower() in cls or 
+                    (app_id == "7" and "big picture" in title) or
+                    (app_id == "8" and "heroic" in cls)):
+                    found = True
+                    break
+            if found:
+                break
+        except Exception:
+            pass
+        time.sleep(1)
+
+    if not found:
+        print(f"[RYOKU SUNSHINE] No matching window detected for app {app_id}, checking process status...")
+        if proc:
+            proc.wait()
+        return
+
+    print(f"[RYOKU SUNSHINE] Active game window detected for app {app_id}. Keeping stream alive.")
+    while True:
+        time.sleep(1.5)
+        still_running = False
+        try:
+            res = subprocess.run(["hyprctl", "clients", "-j"], capture_output=True, text=True, check=False)
+            clients = json.loads(res.stdout) if res.stdout else []
+            for c in clients:
+                cls = c.get("class", "").lower()
+                title = c.get("title", "").lower()
+                if (target_pattern.lower() in cls or 
+                    (app_id == "7" and "big picture" in title) or
+                    (app_id == "8" and "heroic" in cls)):
+                    still_running = True
+                    break
+        except Exception:
+            pass
+
+        if not still_running:
+            print(f"[RYOKU SUNSHINE] Game window for app {app_id} closed.")
+            break
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Ryoku Sandboxed Sunshine Runner")
     parser.add_argument("--app-id", default="0", help="Game App ID to launch")
@@ -68,7 +146,10 @@ def main() -> None:
     session_id = f"sunshine-{args.user}-{int(time.time())}"
     print(f"[RYOKU SUNSHINE] Initializing isolated session: {session_id} for app {args.app_id}")
 
-    # Prepare user storage for isolated saves/prefixes
+    # 1. Ensure headless virtual display is present
+    ensure_virtual_display()
+
+    # 2. Prepare user storage for isolated saves/prefixes
     storage_mgr = UserStorageManager(PROJECT_ROOT / "data" / "users")
     try:
         user_paths = storage_mgr.prepare_user_storage(args.user)
@@ -76,8 +157,10 @@ def main() -> None:
         print(f"[RYOKU SUNSHINE] Storage notice: {e}")
         user_paths = None
 
-    # Resolve game executable command
+    # 3. Resolve game executable command
     inner_cmd: list[str] = []
+    use_gamescope = True
+
     if args.app_id == "0":
         # Built-in CyberArena 3D
         arena3d_bin = PROJECT_ROOT / "engine" / "test_game" / "arena3d"
@@ -103,6 +186,7 @@ def main() -> None:
     else:
         # Steam game direct launch
         inner_cmd = ["steam", "-applaunch", str(args.app_id)]
+        use_gamescope = False  # Gamescope should wrap Steam via launch options, not wrapper
 
     if args.launch_options:
         inner_cmd.extend(args.launch_options.split())
@@ -115,10 +199,7 @@ def main() -> None:
     env["FERAL_RUN_FROM_STEAM"] = "0"
 
     gamescope_bin = shutil.which("gamescope")
-    if gamescope_bin:
-        # Launch inside Gamescope micro-compositor in FULLSCREEN.
-        # This completely occludes the host desktop, taskbar, and windows.
-        # Moonlight sees ONLY the game surface!
+    if gamescope_bin and use_gamescope:
         cmd = [
             gamescope_bin,
             "-W", str(args.width),
@@ -130,7 +211,7 @@ def main() -> None:
             "--force-windows-fullscreen",  # Prevent any borders or desktop bleed-through
             "--cursor-scale-height", str(args.height),
         ]
-        if args.app_id == "7" or (args.app_id.isdigit() and args.app_id not in ("0", "8")):
+        if args.app_id == "7":
             cmd.append("-e")  # Steam integration flag
         cmd.append("--")
         cmd.extend(inner_cmd)
@@ -155,8 +236,7 @@ def main() -> None:
     signal.signal(signal.SIGTERM, handle_exit)
 
     try:
-        retcode = proc.wait()
-        print(f"[RYOKU SUNSHINE] Game process exited with code {retcode}.")
+        wait_for_session_exit(args.app_id, proc)
     finally:
         # Immediately terminate the Moonlight stream so the player is returned
         # to the client menu and NEVER exposed to the host desktop.

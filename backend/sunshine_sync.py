@@ -139,6 +139,23 @@ def sync_apps(output_path: Path | None = None) -> Path:
 
     logger.info("Successfully synced %d sandboxed games to %s", len(apps_list), output_path)
     logger.info("SECURITY CONFIRMED: 'Desktop' stream is completely disabled.")
+
+    # Ensure sunshine.conf captures the isolated virtual headless display
+    sunshine_dir = get_sunshine_config_dir()
+    conf_path = sunshine_dir / "sunshine.conf"
+    try:
+        conf_lines = []
+        if conf_path.exists():
+            with open(conf_path, "r", encoding="utf-8") as f:
+                conf_lines = f.readlines()
+        has_output = any("output_name" in line for line in conf_lines)
+        if not has_output:
+            with open(conf_path, "a", encoding="utf-8") as f:
+                f.write("\n# Ryoku Cloud Gaming: Capture isolated virtual display\noutput_name = 1\n")
+            logger.info("Configured sunshine.conf output_name = 1 (VIRTUAL-1 display)")
+    except Exception as conf_err:
+        logger.warning("Notice updating sunshine.conf: %s", conf_err)
+
     return output_path
 
 

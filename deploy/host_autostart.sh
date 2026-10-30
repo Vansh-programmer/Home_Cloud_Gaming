@@ -117,6 +117,15 @@ build_dependencies() {
 # ==============================================================================
 start_sunshine() {
   if command -v sunshine >/dev/null 2>&1; then
+    # Ensure headless virtual display exists in Hyprland for isolated game streaming
+    if command -v hyprctl >/dev/null 2>&1; then
+      if ! hyprctl monitors -j 2>/dev/null | grep -q '"VIRTUAL-1"'; then
+        echo "[DISPLAY] Creating isolated virtual headless output VIRTUAL-1..."
+        hyprctl output create headless VIRTUAL-1 >/dev/null 2>&1 || true
+        sleep 0.5
+      fi
+    fi
+
     echo "[SUNSHINE] Syncing Steam & Heroic games to Sunshine apps.json..."
     python3 "$PROJECT_DIR/backend/sunshine_sync.py" >/dev/null 2>&1 || true
 
