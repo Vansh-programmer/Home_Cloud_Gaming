@@ -2,11 +2,10 @@ version: "3.8"
 
 services:
   # ============================================================================
-  # RYOKU CLOUD GAMING // COMPUTE NODE (GAMES ON WHALES - WOLF)
+  # 1. WOLF // CLOUD GAMING STREAMING SERVER & ORCHESTRATOR
   # ============================================================================
-  # Headless Cloud Gaming Streaming Server & Container Session Orchestrator.
-  # Dynamically spawns ephemeral isolated game containers on demand.
-  # Zero access or visibility to host desktop, personal files, or host Steam.
+  # Headless GameStream daemon that manages isolated container lifecycles.
+  # Spawns Steam and Heroic in virtual Sway/Gamescope compositors on demand.
   # ============================================================================
   wolf:
     image: ghcr.io/games-on-whales/wolf:stable
@@ -24,7 +23,8 @@ services:
       - /dev/:/dev/:rw
       - /run/udev:/run/udev:rw
       - nvidia-driver-vol:/usr/nvidia:rw
-      - cloud-storage:/cloud-data:rw
+      # Shared Games Library: Mounted Read-Only into container instances
+      - ./data/shared_games:/shared_games:ro
     devices:
       - /dev/dri
       - /dev/uinput
@@ -47,26 +47,34 @@ services:
               capabilities: [gpu]
 
   # ============================================================================
-  # WOLF-DEN // CLOUD GAMING ADMIN & PAIRING CONSOLE
+  # 2. MOONLIGHT WEB // IN-BROWSER STREAMING CLIENT (WEBCODECS + WASM)
   # ============================================================================
-  # Web Portal for Moonlight pairing, cloud session telemetry, and app profiles.
+  # Allows any remote user to stream games directly from Chrome/Edge/Safari.
+  # Hardware-accelerated video decoding, Pointer Lock, and HTML5 Gamepad API.
   # ============================================================================
-  wolf-den:
-    image: ghcr.io/games-on-whales/wolf-den:stable
-    container_name: ryoku-cloud-admin
+  moonlight-web:
+    image: ghcr.io/linckosz/moonlight-web:latest
+    container_name: ryoku-moonlight-web
     restart: unless-stopped
     network_mode: host
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
     environment:
-      - WOLF_SOCKET_PATH=/var/run/wolf/wolf.sock
-      - PORT=8080
+      - MW_HTTP_PORT=8080
+      - MW_HTTPS_PORT=8443
+      - MW_UPNP=0
     volumes:
-      - ./wolf/wolf-den:/app/wolf-den/
-      - /var/run/wolf:/var/run/wolf
+      - mw-data:/data
 
 volumes:
-  # Host NVIDIA driver libraries shared into isolated containers
+  # Host NVIDIA driver volume (shared across all game containers)
   nvidia-driver-vol:
     external: true
-  # Fresh, independent cloud gaming storage (zero host Steam/desktop coupling)
-  cloud-storage:
-    name: ryoku-cloud-storage
+  # Moonlight Web persistent pairing & settings
+  mw-data:
+    name: ryoku-mw-data
+  # Per-user isolated cloud gaming state (saves, credentials, Proton prefixes)
+  user-storage:
+    name: ryoku-user-storage

@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# RYOKU CLOUD GAMING // COMPUTE NODE PROVISIONING SCRIPT (GAMES ON WHALES)
+# RYOKU CLOUD GAMING // COMPUTE NODE PROVISIONING SCRIPT (STEAM + HEROIC + WEB)
 # ==============================================================================
-# Provisions this Linux PC as a dedicated, fully isolated Cloud Gaming Node.
-#
-# Key Features:
-#   - Zero personal files or host Steam libraries mounted.
-#   - Ephemeral containerized gaming sessions (ghcr.io/games-on-whales).
-#   - RTX 4060 GPU hardware encoding & Vulkan passthrough via nvidia-driver-vol.
-#   - Dedicated virtual gamepad mapping (/dev/uinput & /dev/uhid).
-#   - Wolf-Den Web Console on port 8080 for pairing & session monitoring.
+# Provisions this Linux PC as a dedicated, fully isolated Cloud Gaming Node:
+#   - Games on Whales (Wolf) GameStream server
+#   - Moonlight Web in-browser client (WebCodecs + WASM) on port 8080
+#   - Steam Cloud & Heroic Games Launcher (Epic & GOG) on-demand containers
+#   - Shared Read-Only game storage (Zero file duplication, zero user tampering)
+#   - Isolated Per-User storage for independent logins & savegames
 # ==============================================================================
 
 set -euo pipefail
@@ -19,7 +17,7 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_DIR"
 
 echo "========================================================================"
-echo "  RYOKU CLOUD GAMING // COMPUTE NODE INITIALIZATION (GOW WOLF)"
+echo "  RYOKU CLOUD GAMING // COMPUTE NODE PROVISIONING (STEAM + HEROIC + WEB)"
 echo "========================================================================"
 
 # 1. Verify NVIDIA Driver & Modeset
@@ -63,7 +61,7 @@ if [[ ! -f "$UDEV_RULE_PATH" ]]; then
     sudo curl -fsSL https://raw.githubusercontent.com/games-on-whales/wolf/stable/85-wolf.rules -o "$UDEV_RULE_PATH" 2>/dev/null || true
     sudo udevadm control --reload-rules 2>/dev/null || true
     sudo udevadm trigger 2>/dev/null || true
-    echo "[OK] Udev rules configured."
+    echo "[OK] Controller udev rules configured."
   else
     echo "[NOTICE] Skipping udev rule install (requires sudo). Ensure /dev/uinput is accessible."
   fi
@@ -85,18 +83,21 @@ curl -fsSL https://raw.githubusercontent.com/games-on-whales/gow/master/images/n
 echo "[INFO] Populating nvidia-driver-vol..."
 docker run --rm --mount source=nvidia-driver-vol,destination=/usr/nvidia "gow/nvidia-driver:${NV_VERSION}" sh -c 'echo "Driver libraries populated."'
 
-# 5. Provision Fresh Cloud Gaming Named Volume
-if ! docker volume inspect ryoku-cloud-storage >/dev/null 2>&1; then
-  docker volume create ryoku-cloud-storage
-  echo "[OK] Created fresh cloud gaming storage volume: ryoku-cloud-storage"
-else
-  echo "[OK] Cloud storage volume exists: ryoku-cloud-storage"
+# 5. Ensure Shared Games Directory Exists (Read-Only to users)
+mkdir -p "$PROJECT_DIR/data/shared_games"
+echo "[OK] Shared games storage directory ready at data/shared_games (Mounted :ro into containers)"
+
+# 6. Ensure Per-User Named Volume Exists
+if ! docker volume inspect ryoku-user-storage >/dev/null 2>&1; then
+  docker volume create ryoku-user-storage
+  echo "[OK] Created isolated per-user storage volume: ryoku-user-storage"
 fi
 
-# 6. Pull Cloud Gaming Containers
-echo "[INFO] Pulling Games on Whales Wolf server & Steam cloud images..."
+# 7. Pre-pull Core Container Stack
+echo "[INFO] Pre-pulling Games on Whales Wolf server, Moonlight Web, Steam, & Heroic..."
 docker compose pull
 docker pull ghcr.io/games-on-whales/steam:edge
+docker pull ghcr.io/games-on-whales/heroic-games-launcher:edge
 
 echo ""
 echo "========================================================================"
@@ -105,11 +106,9 @@ echo "========================================================================"
 echo "Start the cloud gaming platform:"
 echo "  docker compose up -d"
 echo ""
-echo "Open the Admin Console in browser (for Moonlight pairing & metrics):"
-echo "  http://localhost:8080   (or http://100.89.198.41:8080 over Tailscale)"
+echo "Play via Web Browser (Moonlight Web):"
+echo "  Open: http://localhost:8080   (or http://100.89.198.41:8080 over Tailscale)"
 echo ""
-echo "Connect with Moonlight:"
-echo "  Add host IP: 100.89.198.41"
-echo "  Enter PIN in Wolf-Den Admin Console or via 'docker compose logs -f wolf'"
+echo "Play via Native Moonlight App:"
+echo "  Add Host IP: 100.89.198.41"
 echo "========================================================================"
-
