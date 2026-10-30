@@ -127,21 +127,7 @@ setup_tailscale() {
 }
 
 install_systemd_services() {
-  print_banner
-  echo "[SYSTEMD] Installing boot services to /etc/systemd/system/..."
-  sudo cp "$PROJECT_DIR/deploy/ryoku-cloud-gaming.service" /etc/systemd/system/
-  sudo cp "$PROJECT_DIR/deploy/ryoku-cloudflare-tunnel.service" /etc/systemd/system/
-  sudo systemctl daemon-reload
-  sudo systemctl enable --now ryoku-cloud-gaming.service
-  if [[ -f "/home/$USER/.cloudflared/43a598d8-3099-49ff-8e65-a28b63cafa05.json" ]]; then
-    sudo systemctl enable --now ryoku-cloudflare-tunnel.service
-  else
-    echo "[INFO] Cloudflare credentials JSON not found yet; enabled ryoku-cloud-gaming.service."
-    echo "       To generate tunnel credentials, run:"
-    echo "       cloudflared tunnel token --cred-file ~/.cloudflared/43a598d8-3099-49ff-8e65-a28b63cafa05.json vansh-cloud-gaming"
-  fi
-  echo "[OK] Services installed and started."
-  sudo systemctl status ryoku-cloud-gaming.service --no-pager -l || true
+  exec sudo "$PROJECT_DIR/deploy/host_autostart.sh" --install
 }
 
 # Handle CLI flags
