@@ -64,7 +64,9 @@ def sync_apps(output_path: Path | None = None) -> Path:
         "name": "CyberArena 3D",
         "output": "",
         "cmd": f"python3 {launcher_path} --app-id 0",
-        "detached": False,
+        "auto-detach": "false",
+        "wait-all": "true",
+        "exit-timeout": "1",
         "image-path": str(PROJECT_ROOT / "web" / "assets" / "img" / "cyberarena.png")
             if (PROJECT_ROOT / "web" / "assets" / "img" / "cyberarena.png").exists() else "",
     })
@@ -74,7 +76,9 @@ def sync_apps(output_path: Path | None = None) -> Path:
         "name": "Steam Big Picture",
         "output": "",
         "cmd": f"python3 {launcher_path} --app-id 7",
-        "detached": False,
+        "auto-detach": "false",
+        "wait-all": "true",
+        "exit-timeout": "1",
         "image-path": "",
     })
 
@@ -86,7 +90,9 @@ def sync_apps(output_path: Path | None = None) -> Path:
             "name": g.title,
             "output": "",
             "cmd": f"python3 {launcher_path} --app-id {g.app_id}",
-            "detached": False,
+            "auto-detach": "false",
+            "wait-all": "true",
+            "exit-timeout": "1",
             "image-path": "",
         })
 
@@ -104,7 +110,9 @@ def sync_apps(output_path: Path | None = None) -> Path:
                         "name": f"{title} (Epic Games)",
                         "output": "",
                         "cmd": f"python3 {launcher_path} --app-id heroic-{app_name}",
-                        "detached": False,
+                        "auto-detach": "false",
+                        "wait-all": "true",
+                        "exit-timeout": "1",
                         "image-path": "",
                     })
         except Exception as e:
