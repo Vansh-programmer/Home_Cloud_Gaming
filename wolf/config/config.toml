@@ -1,0 +1,72 @@
+hostname = "Ryoku Cloud Gaming"
+support_hevc = true
+
+[[apps]]
+title = "Steam Big Picture"
+start_virtual_compositor = true
+
+[apps.runner]
+type = "docker"
+name = "steam"
+image = "ghcr.io/games-on-whales/steam:edge"
+mounts = [
+    "/home/vansh/Projects/Home_Cloud_Gaming/data/shared_steam_library:/home/retro/.local/share/Steam/steamapps:ro",
+    "/home/vansh/Projects/Home_Cloud_Gaming/data/users/vansh/home:/home/retro:rw"
+]
+env = [
+    "RUN_SWAY=1",
+    "GOW_REQUIRED_DEVICES=/dev/input/event* /dev/dri/* /dev/nvidia*",
+    "ENABLE_VKBASALT=0"
+]
+devices = []
+ports = []
+
+base_create_json = """
+{
+  "HostConfig": {
+    "IpcMode": "shareable",
+    "CapAdd": [
+      "SYS_ADMIN",
+      "SYS_PTRACE"
+    ],
+    "DeviceCgroupRules": [
+      "c 13:* rmw"
+    ]
+  }
+}
+"""
+
+[[apps]]
+title = "Rise of the Tomb Raider"
+start_virtual_compositor = true
+
+[apps.runner]
+type = "docker"
+name = "tomb-raider"
+image = "ghcr.io/games-on-whales/steam:edge"
+mounts = [
+    "/home/vansh/Projects/Home_Cloud_Gaming/data/shared_steam_library:/home/retro/.local/share/Steam/steamapps:ro",
+    "/home/vansh/Projects/Home_Cloud_Gaming/data/users/vansh/home:/home/retro:rw"
+]
+env = [
+    "RUN_SWAY=1",
+    "STEAM_APP_ID=391220",
+    "GOW_REQUIRED_DEVICES=/dev/input/event* /dev/dri/* /dev/nvidia*"
+]
+devices = []
+ports = []
+
+base_create_json = """
+{
+  "HostConfig": {
+    "IpcMode": "shareable",
+    "CapAdd": [
+      "SYS_ADMIN",
+      "SYS_PTRACE"
+    ],
+    "DeviceCgroupRules": [
+      "c 13:* rmw"
+    ]
+  }
+}
+"""

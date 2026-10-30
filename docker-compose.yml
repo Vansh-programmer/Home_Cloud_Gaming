@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  wolf:
+    image: ghcr.io/games-on-whales/wolf:stable
+    container_name: ryoku-wolf
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_VOLUME_NAME=nvidia-driver-vol
+    volumes:
+      - ./wolf/config:/etc/wolf:rw
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /dev/:/dev/:rw
+      - /run/udev:/run/udev:rw
+      - nvidia-driver-vol:/usr/nvidia:rw
+    devices:
+      - /dev/dri
+      - /dev/uinput
+      - /dev/uhid
+      - /dev/nvidia-uvm
+      - /dev/nvidia-uvm-tools
+      - /dev/nvidia-caps/nvidia-cap1
+      - /dev/nvidia-caps/nvidia-cap2
+      - /dev/nvidiactl
+      - /dev/nvidia0
+      - /dev/nvidia-modeset
+    device_cgroup_rules:
+      - 'c 13:* rmw'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # Optional Web UI for pairing & config management
+  wolf-den:
+    image: ghcr.io/games-on-whales/wolf-den:stable
+    container_name: ryoku-wolf-den
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - WOLF_SOCKET_PATH=/var/run/wolf/wolf.sock
+      - PORT=8082
+    volumes:
+      - ./wolf/wolf-den:/app/wolf-den/
+      - /var/run/wolf:/var/run/wolf
+
+volumes:
+  nvidia-driver-vol:
+    external: true
