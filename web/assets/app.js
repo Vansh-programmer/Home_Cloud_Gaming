@@ -967,7 +967,7 @@
 
   function closeStreamViewport() {
     streamOpen = false;
-    pointerLockPreferred = true;
+    pointerLockPreferred = false;
     if (hudHideTimeout) {
       clearTimeout(hudHideTimeout);
       hudHideTimeout = null;
@@ -990,9 +990,17 @@
       if (payload.type === 'mousemove' && dc.bufferedAmount > 16384) {
         return;
       }
-      dc.send(JSON.stringify(payload));
-    } else if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(payload));
+      try {
+        dc.send(JSON.stringify(payload));
+        return;
+      } catch (_) {
+        dc = null;
+      }
+    }
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      try {
+        ws.send(JSON.stringify(payload));
+      } catch (_) {}
     }
   }
 
@@ -1028,6 +1036,13 @@
     }
     dc.onopen = () => {
       markPlaying();
+    };
+    dc.onerror = () => {
+      console.warn('[Stream] DataChannel error; falling back to WebSocket input transport.');
+      dc = null;
+    };
+    dc.onclose = () => {
+      dc = null;
     };
     dc.onmessage = (ev) => {
       markPlaying();
@@ -1395,7 +1410,7 @@
     }
   });
 
-  let pointerLockPreferred = true;
+  let pointerLockPreferred = false;
 
   btnHudLockMouse.onclick = (e) => {
     e.currentTarget.blur();
@@ -1616,7 +1631,7 @@
       return;
     }
 
-    // Website action 2: UNLOCK MOUSE strictly on [ (BracketLeft) key
+    // Website action 2: UNLOCK MOUSE on [ or Escape
     if (e.code === 'BracketLeft') {
       e.preventDefault();
       pointerLockPreferred = false;
@@ -1626,7 +1641,14 @@
       return;
     }
 
-    // In-game keys (including Escape, Tab, WASD, Numbers, etc.)
+    if (e.code === 'Escape' && document.pointerLockElement === videoEl) {
+      // User pressed Escape to release mouse pointer from game window
+      pointerLockPreferred = false;
+      document.exitPointerLock();
+      return;
+    }
+
+    // In-game keys (including Tab, WASD, Numbers, etc.)
     // Always call preventDefault so browser defaults do not steal focus or unlock aim
     if (GAME_KEYS.has(e.code) || document.pointerLockElement === videoEl) {
       e.preventDefault();
@@ -1634,15 +1656,6 @@
     if (e.repeat) return;
     stInputMode.textContent = document.pointerLockElement === videoEl ? 'KB + 3D LOCK' : `KB (${e.code})`;
     sendInputPacket({ type: 'keydown', code: e.code, key: e.key });
-
-    // If Escape was pressed, keep pointerLockPreferred = true so aim is not lost in windowed mode
-    if (e.code === 'Escape' && pointerLockPreferred && videoEl.requestPointerLock) {
-      setTimeout(() => {
-        if (pointerLockPreferred && document.pointerLockElement !== videoEl && streamOpen) {
-          try { videoEl.requestPointerLock(); } catch (_) {}
-        }
-      }, 30);
-    }
   });
 
   window.addEventListener('keyup', (e) => {

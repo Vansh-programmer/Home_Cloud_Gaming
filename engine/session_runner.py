@@ -387,12 +387,40 @@ class IsolatedSessionRuntime:
 
         # Determine working directory for game executable
         game_cwd = None
-        for tok in reversed(target_cmd):
-            if str(tok).lower().endswith(".exe"):
-                cand_dir = Path(tok).parent
-                if cand_dir.exists():
-                    game_cwd = str(cand_dir)
+        entry = steam_mgr.get_game(self.app_id)
+        if entry and entry.install_dir:
+            for base_dir in [
+                Path("/steam_shared/steamapps/common"),
+                PROJECT_ROOT / "data" / "shared_steam_library" / "steamapps" / "common",
+                Path(env.get("HOME", os.path.expanduser("~"))) / ".local" / "share" / "Steam" / "steamapps" / "common",
+            ]:
+                cand = base_dir / entry.install_dir
+                if cand.exists():
+                    game_cwd = str(cand)
                     break
+
+        if not game_cwd:
+            for tok in reversed(target_cmd):
+                tok_str = str(tok)
+                if tok_str.lower().endswith((".exe", ".sh", ".x86_64", ".x86", ".bin")) or "/" in tok_str:
+                    cand_path = Path(tok_str)
+                    if cand_path.is_file():
+                        cand_dir = cand_path.parent
+                        if cand_dir.exists() and cand_dir.name not in ("steam-runtime", "SteamLinuxRuntime"):
+                            game_cwd = str(cand_dir)
+                            break
+
+        # Native Linux & Feral Interactive ports (e.g., Rise of the Tomb Raider): suppress popup dialogs
+        if (
+            self.app_id in ("391220", "203160")
+            or any("tombraider" in str(tok).lower() for tok in target_cmd)
+            or any("feral" in str(tok).lower() for tok in target_cmd)
+        ):
+            env["FERAL_RUN_FROM_STEAM"] = "0"
+            env["FERAL_NO_LAUNCHER"] = "1"
+            env["FERAL_DISABLE_UI"] = "1"
+            env["FERAL_PREVENT_POPUP"] = "1"
+            logger.info("Configured direct native launch environment for Feral/Linux title: %s", self.app_id)
 
         # Setup Proton compatibility environment variables if running Windows executables or Steam games
         is_steam_app = str(self.app_id).isdigit() and str(self.app_id) not in ("0", "7")
@@ -612,6 +640,14 @@ class IsolatedSessionRuntime:
                             "heroic",
                             "legendary",
                             "arena3d",
+                            "tombraider",
+                            "riseofthetombraider",
+                            "rise",
+                            "tomb",
+                            "shadow",
+                            "feral",
+                            "outlast",
+                            str(self.app_id),
                         )
                     ):
                         return True
@@ -637,8 +673,8 @@ class IsolatedSessionRuntime:
                         continue
                     else:
                         consecutive_inactive_checks += 1
-                        # Allow a 5-second grace period for Wine or child executables to initialize and map windows
-                        if consecutive_inactive_checks < 5:
+                        # Allow a 25-second grace period for Wine or child executables to initialize and map windows
+                        if consecutive_inactive_checks < 25:
                             await asyncio.sleep(1.0)
                             continue
 

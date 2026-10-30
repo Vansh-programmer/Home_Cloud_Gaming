@@ -334,20 +334,29 @@ class RyokuClientWindow(Gtk.Window, BaseRyokuClient):
     def _on_js_message(self, _content_mgr, js_result) -> None:
         """Handle messages received from the Ryoku UI."""
         try:
-            # Modern WebKit2 uses get_js_value() returning JavaScriptCore.Value
+            val = None
             if hasattr(js_result, "get_js_value"):
-                val = js_result.get_js_value()
-            elif hasattr(js_result, "get_value"):
-                val = js_result.get_value()
-            else:
+                try:
+                    val = js_result.get_js_value()
+                except Exception:
+                    val = None
+            if val is None and hasattr(js_result, "get_value"):
+                try:
+                    val = js_result.get_value()
+                except Exception:
+                    val = None
+            if val is None:
                 val = js_result
 
+            raw = None
             if hasattr(val, "is_string") and val.is_string():
+                raw = val.to_string()
+            elif hasattr(val, "to_string"):
                 raw = val.to_string()
             elif hasattr(val, "to_json"):
                 raw = val.to_json(0)
-            elif hasattr(val, "to_string"):
-                raw = val.to_string()
+            elif isinstance(val, (str, dict)):
+                raw = val
             else:
                 raw = str(val)
 

@@ -1422,6 +1422,28 @@ html, body.console-body {
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* In-Game Auto-Hide Engine: hides HUD & bottom dock cleanly while playing */
+.stream-viewport.hud-autohidden .floating-hud {
+  opacity: 0;
+  transform: translate(-50%, -120%);
+  pointer-events: none;
+}
+
+.stream-viewport.hud-autohidden .stream-controls-bar {
+  opacity: 0;
+  transform: translate(-50%, 120%);
+  pointer-events: none;
+}
+
+/* Hover near the top edge smoothly reveals the HUD even when auto-hidden */
+.stream-viewport.hud-autohidden .hud-hover-trigger:hover ~ .floating-hud,
+.stream-viewport.hud-autohidden .floating-hud:hover {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
 }
 
 .hud-pill-handle {
@@ -1507,6 +1529,97 @@ html, body.console-body {
   object-fit: contain;
   background: #000;
   cursor: crosshair;
+}
+
+/* ==========================================================================
+   SESSION INITIALIZING PROGRESS MODAL (IN-STAGE)
+   ========================================================================== */
+.session-stage-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 525;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.session-stage-modal.hidden,
+.hidden {
+  display: none !important;
+}
+
+.stage-card {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: 28px;
+  box-shadow: var(--shadow-xl);
+}
+
+.stage-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--fg-0);
+  margin-bottom: 6px;
+}
+
+.stage-card p {
+  font-size: 13px;
+  color: var(--fg-1);
+  margin-bottom: 20px;
+}
+
+.stage-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stage-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--fg-2);
+}
+
+.stage-step.active {
+  color: var(--brand-dark);
+  font-weight: 700;
+}
+
+.stage-step.done {
+  color: var(--fg-0);
+  font-weight: 600;
+}
+
+.step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: var(--fg-1);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stage-step.active .step-num {
+  background: var(--brand-primary);
+  color: #ffffff;
+}
+
+.stage-step.done .step-num {
+  background: var(--brand-light);
+  color: var(--brand-dark);
 }
 
 .stream-controls-bar {

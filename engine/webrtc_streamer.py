@@ -355,10 +355,9 @@ class WebRTCPeerStream:
             return
         self._negotiated = True
         try:
-            # Low-latency unordered, 0-retransmission SCTP DataChannel (UDP-like raw input)
+            # Low-latency reliable SCTP DataChannel
             dc_opts = Gst.Structure.new_empty("application/data-channel")
-            dc_opts.set_value("ordered", False)
-            dc_opts.set_value("max-retransmits", 0)
+            dc_opts.set_value("ordered", True)
             dc = element.emit("create-data-channel", "input", dc_opts)
             if dc is not None:
                 self._attach_data_channel_handlers(dc)
