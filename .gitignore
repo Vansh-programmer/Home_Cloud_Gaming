@@ -76,3 +76,7 @@ Thumbs.db
 .idea/
 .vscode/
 
+# 7. Wolf Runtime State & Client Tokens
+wolf/config/fake-udev
+wolf/config/[0-9]*/
+

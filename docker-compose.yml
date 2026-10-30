@@ -16,6 +16,9 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=all
       - NVIDIA_VISIBLE_DEVICES=all
       - WOLF_LOG_LEVEL=INFO
+      - WOLF_USE_ZERO_COPY=FALSE
+      - WOLF_RENDER_NODE=/dev/dri/renderD128
+      - WOLF_ENCODER_NODE=/dev/dri/renderD128
     volumes:
       - ./wolf/config:/etc/wolf:rw
       - /var/run/docker.sock:/var/run/docker.sock:rw
@@ -34,7 +37,7 @@ services:
           devices:
             - driver: nvidia
               count: all
-              capabilities: [gpu, video]
+              capabilities: [gpu, video, compute, utility]
 
   # ============================================================================
   # 2. MOONLIGHT WEB // IN-BROWSER STREAMING CLIENT (WEBCODECS + WASM)
