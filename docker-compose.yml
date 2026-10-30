@@ -4,8 +4,8 @@ services:
   # ============================================================================
   # 1. WOLF // CLOUD GAMING STREAMING SERVER & ORCHESTRATOR
   # ============================================================================
-  # Headless GameStream daemon that manages isolated container lifecycles.
-  # Spawns Steam and Heroic in virtual Sway/Gamescope compositors on demand.
+  # Modern Games on Whales GameStream engine with native NVIDIA Container Toolkit.
+  # Spawns isolated game containers (Steam / Heroic) on demand.
   # ============================================================================
   wolf:
     image: ghcr.io/games-on-whales/wolf:stable
@@ -15,27 +15,17 @@ services:
     environment:
       - NVIDIA_DRIVER_CAPABILITIES=all
       - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_VOLUME_NAME=nvidia-driver-vol
       - WOLF_LOG_LEVEL=INFO
     volumes:
       - ./wolf/config:/etc/wolf:rw
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /dev/:/dev/:rw
       - /run/udev:/run/udev:rw
-      - nvidia-driver-vol:/usr/nvidia:rw
-      # Shared Games Library: Mounted Read-Only into container instances
       - ./data/shared_games:/shared_games:ro
     devices:
       - /dev/dri
       - /dev/uinput
       - /dev/uhid
-      - /dev/nvidia-uvm
-      - /dev/nvidia-uvm-tools
-      - /dev/nvidia-caps/nvidia-cap1
-      - /dev/nvidia-caps/nvidia-cap2
-      - /dev/nvidiactl
-      - /dev/nvidia0
-      - /dev/nvidia-modeset
     device_cgroup_rules:
       - 'c 13:* rmw'
     deploy:
@@ -44,13 +34,12 @@ services:
           devices:
             - driver: nvidia
               count: all
-              capabilities: [gpu]
+              capabilities: [gpu, video]
 
   # ============================================================================
   # 2. MOONLIGHT WEB // IN-BROWSER STREAMING CLIENT (WEBCODECS + WASM)
   # ============================================================================
-  # Allows any remote user to stream games directly from Chrome/Edge/Safari.
-  # Hardware-accelerated video decoding, Pointer Lock, and HTML5 Gamepad API.
+  # In-browser WebCodecs streaming interface on port 8080.
   # ============================================================================
   moonlight-web:
     image: ghcr.io/linckosz/moonlight-web:latest
@@ -69,12 +58,7 @@ services:
       - mw-data:/data
 
 volumes:
-  # Host NVIDIA driver volume (shared across all game containers)
-  nvidia-driver-vol:
-    external: true
-  # Moonlight Web persistent pairing & settings
   mw-data:
     name: ryoku-mw-data
-  # Per-user isolated cloud gaming state (saves, credentials, Proton prefixes)
   user-storage:
     name: ryoku-user-storage
