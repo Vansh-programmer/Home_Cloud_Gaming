@@ -19,6 +19,7 @@ services:
       - WOLF_USE_ZERO_COPY=FALSE
       - WOLF_RENDER_NODE=/dev/dri/renderD128
       - WOLF_ENCODER_NODE=/dev/dri/renderD128
+      - WOLF_WAYLAND_SOCKET_WAIT_TIMEOUT_MS=10000
     volumes:
       - ./wolf/config:/etc/wolf:rw
       - /var/run/docker.sock:/var/run/docker.sock:rw
