@@ -70,6 +70,11 @@ class TestMoonlightClientIntegration(AioHTTPTestCase):
         resp = await self.client.post("/api/client/pair", json={"pin": "12"})
         self.assertIn(resp.status, (400, 401))
 
+    async def test_04_get_pairings_endpoint(self):
+        resp = await self.client.get("/api/client/pair")
+        # Since Sunshine might not be running in isolated test runner, returns 503 or 200
+        self.assertIn(resp.status, (200, 503))
+
 
 if __name__ == "__main__":
     unittest.main()

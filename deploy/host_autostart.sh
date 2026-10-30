@@ -341,3 +341,4 @@ case "${1:-}" in
     echo "      sudo ./deploy/host_autostart.sh --install"
     ;;
 esac
+

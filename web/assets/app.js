@@ -2802,14 +2802,27 @@
     const pairFeedback = document.getElementById('pair-feedback-msg');
 
     if (btnSubmitPin && pinInput) {
+      pinInput.oninput = () => {
+        if (pairFeedback && pairFeedback.style.color === 'rgb(239, 68, 68)') {
+          pairFeedback.textContent = '';
+        }
+      };
+
       btnSubmitPin.onclick = async () => {
         const pin = pinInput.value.trim();
         if (!pin || pin.length !== 4) {
-          if (pairFeedback) pairFeedback.textContent = 'Enter 4-digit PIN.';
+          if (pairFeedback) {
+            pairFeedback.style.color = '#ef4444';
+            pairFeedback.textContent = 'Enter 4-digit PIN.';
+          }
           return;
         }
         btnSubmitPin.disabled = true;
         btnSubmitPin.textContent = 'Approving...';
+        if (pairFeedback) {
+          pairFeedback.style.color = '#64748b';
+          pairFeedback.textContent = 'Submitting PIN to Sunshine...';
+        }
         try {
           const res = await fetch(`${BASE_PREFIX}/api/client/pair`, {
             method: 'POST',
@@ -2821,21 +2834,46 @@
             btnSubmitPin.textContent = 'Paired';
             pinInput.value = '';
             if (pairFeedback) {
-              pairFeedback.textContent = 'Host paired successfully.';
+              pairFeedback.style.color = '#10b981';
+              pairFeedback.textContent = 'Paired successfully! You can now start streaming in Moonlight.';
             }
+            setTimeout(() => {
+              btnSubmitPin.disabled = false;
+              btnSubmitPin.textContent = 'Pair';
+            }, 5000);
           } else {
             btnSubmitPin.disabled = false;
             btnSubmitPin.textContent = 'Pair';
             if (pairFeedback) {
+              pairFeedback.style.color = '#ef4444';
               pairFeedback.textContent = data.error || 'Check Sunshine on host PC';
             }
           }
         } catch (err) {
           btnSubmitPin.disabled = false;
           btnSubmitPin.textContent = 'Pair';
-          if (pairFeedback) pairFeedback.textContent = `Error: ${err.message}`;
+          if (pairFeedback) {
+            pairFeedback.style.color = '#ef4444';
+            pairFeedback.textContent = `Error: ${err.message}`;
+          }
         }
       };
+
+      async function checkPendingPairings() {
+        if (!pairFeedback || btnSubmitPin.disabled) return;
+        try {
+          const r = await fetch(`${BASE_PREFIX}/api/client/pair`);
+          if (!r.ok) return;
+          const d = await r.json();
+          if (d.ok && d.pending && d.pairings && d.pairings.length > 0) {
+            const clientName = d.pairings[0].name || 'Moonlight client';
+            pairFeedback.style.color = '#0284c7';
+            pairFeedback.textContent = `${clientName} waiting to pair. Enter PIN.`;
+          }
+        } catch (e) {}
+      }
+
+      setInterval(checkPendingPairings, 3000);
     }
 
     await loadGamesLibrary();

@@ -12,6 +12,7 @@ Provides:
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 import logging
 import os
@@ -767,6 +768,30 @@ def create_orchestrator_app(
         asyncio.create_task(_run_power_command())
         return web.json_response({"ok": True, "action": action, "message": f"Host is executing {action}."})
 
+    async def handle_sunshine_get_pairings(request: web.Request) -> web.Response:
+        """Returns active pending pairing requests from Sunshine."""
+        sunshine_port = int(os.environ.get("SUNSHINE_PORT", "47990"))
+        sunshine_url = f"https://127.0.0.1:{sunshine_port}/api/pin"
+        sunshine_user = os.environ.get("SUNSHINE_USER", "admin")
+        sunshine_pass = os.environ.get("SUNSHINE_PASS", "admin")
+        auth_header = "Basic " + base64.b64encode(f"{sunshine_user}:{sunshine_pass}".encode()).decode()
+
+        try:
+            connector = aiohttp.TCPConnector(ssl=False)
+            async with ClientSession(connector=connector, timeout=ClientTimeout(total=3)) as session:
+                async with session.get(sunshine_url, headers={"Authorization": auth_header}) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        pairings = data.get("pairings", [])
+                        return web.json_response({
+                            "ok": True,
+                            "pending": len(pairings) > 0,
+                            "pairings": pairings,
+                        })
+                    return web.json_response({"ok": False, "pairings": [], "error": f"Sunshine HTTP {resp.status}"}, status=resp.status)
+        except Exception as e:
+            return web.json_response({"ok": False, "pairings": [], "error": str(e)}, status=503)
+
     async def handle_sunshine_auto_pair(request: web.Request) -> web.Response:
         user = get_authenticated_user(request, db)
         username = user["username"] if user else "ryoku-client"
@@ -783,37 +808,108 @@ def create_orchestrator_app(
         sunshine_url = f"https://127.0.0.1:{sunshine_port}/api/pin"
         sunshine_user = os.environ.get("SUNSHINE_USER", "admin")
         sunshine_pass = os.environ.get("SUNSHINE_PASS", "admin")
+        auth_header = "Basic " + base64.b64encode(f"{sunshine_user}:{sunshine_pass}".encode()).decode()
 
         logger.info("Auto-pairing Moonlight client for user '%s' with PIN %s...", username, pin)
 
         try:
-            auth = aiohttp.BasicAuth(sunshine_user, sunshine_pass)
             # Sunshine uses self-signed HTTPS certificate on loopback
             connector = aiohttp.TCPConnector(ssl=False)
-            async with ClientSession(connector=connector, timeout=ClientTimeout(total=4)) as session:
+            async with ClientSession(connector=connector, timeout=ClientTimeout(total=8)) as session:
+                # 1. Fetch active pending pairing sessions from Sunshine (GET /api/pin)
+                # Retry briefly up to 3 times in case Moonlight packet handshake is arriving
+                pending_pairings = []
+                for attempt in range(3):
+                    try:
+                        async with session.get(sunshine_url, headers={"Authorization": auth_header}) as get_resp:
+                            if get_resp.status == 200:
+                                try:
+                                    get_data = await get_resp.json()
+                                    pending_pairings = get_data.get("pairings", [])
+                                except Exception:
+                                    pending_pairings = []
+                                if pending_pairings:
+                                    break
+                            elif get_resp.status in (401, 403):
+                                return web.json_response(
+                                    {"ok": False, "error": "Sunshine API authentication failed. Verify SUNSHINE_USER and SUNSHINE_PASS on host PC."},
+                                    status=401,
+                                )
+                    except Exception as ge:
+                        logger.debug("Attempt %d to query Sunshine /api/pin failed: %s", attempt, ge)
+                    if not pending_pairings and attempt < 2:
+                        await asyncio.sleep(0.6)
+
+                if not pending_pairings:
+                    logger.warning("No pending Moonlight pairing requests in Sunshine.")
+                    return web.json_response(
+                        {
+                            "ok": False,
+                            "error": (
+                                "No pending pairing request in Sunshine. "
+                                "Please open Moonlight on your device, click on this host PC (or Add Host) "
+                                "to trigger the PIN dialog, then enter that PIN here."
+                            ),
+                        },
+                        status=404,
+                    )
+
+                # Select pairing session: match pairing_id if provided or take first
+                target_id = body.get("pairing_id")
+                matched = None
+                if target_id:
+                    matched = next((p for p in pending_pairings if p.get("id") == target_id), None)
+                if not matched:
+                    matched = pending_pairings[0]
+
+                pairing_id = matched.get("id")
+                device_name = body.get("name") or matched.get("name") or f"Moonlight-{username}"
+
+                logger.info(
+                    "Submitting PIN %s to Sunshine for device '%s' (pairing_id=%s)...",
+                    pin, device_name, pairing_id
+                )
+
+                # 2. Submit PIN to complete cryptographic handshake (POST /api/pin)
+                post_payload = {
+                    "pairing_id": pairing_id,
+                    "pin": pin,
+                    "name": device_name,
+                }
                 async with session.post(
                     sunshine_url,
-                    json={"pin": pin},
-                    auth=auth,
+                    json=post_payload,
+                    headers={
+                        "Authorization": auth_header,
+                        "Content-Type": "application/json",
+                    },
                 ) as resp:
+                    resp_data = {}
+                    try:
+                        resp_data = await resp.json()
+                    except Exception:
+                        pass
+
                     if resp.status == 200:
-                        try:
-                            data = await resp.json()
-                        except Exception:
-                            data = {"status": "ok"}
-                        logger.info("Moonlight client auto-paired successfully for '%s'!", user["username"])
-                        return web.json_response({"ok": True, "paired": True, "details": data})
+                        # Sunshine returns {"status": true} on success
+                        if resp_data.get("status") is True:
+                            logger.info("Moonlight client paired successfully for '%s'!", username)
+                            return web.json_response({"ok": True, "paired": True, "details": resp_data})
+                        else:
+                            err_msg = resp_data.get("error") or "Pairing rejected by Sunshine. Ensure the 4-digit PIN matches Moonlight exactly."
+                            logger.warning("Sunshine rejected PIN: %s", err_msg)
+                            return web.json_response({"ok": False, "error": err_msg}, status=400)
                     else:
-                        err_text = await resp.text()
-                        logger.warning("Sunshine auto-pair rejected PIN (%d): %s", resp.status, err_text)
+                        err_msg = resp_data.get("error") or f"Sunshine responded with code {resp.status}"
+                        logger.warning("Sunshine auto-pair rejected PIN (%d): %s", resp.status, err_msg)
                         return web.json_response(
-                            {"ok": False, "error": f"Sunshine responded with code {resp.status}"},
+                            {"ok": False, "error": err_msg},
                             status=resp.status,
                         )
         except Exception as e:
             logger.error("Could not reach Sunshine API on 127.0.0.1:%d: %s", sunshine_port, e)
             return web.json_response(
-                {"ok": False, "error": f"Sunshine service is not running or unreachable: {e}"},
+                {"ok": False, "error": f"Sunshine service is not running or unreachable on port {sunshine_port}: {e}"},
                 status=503,
             )
 
@@ -1020,6 +1116,7 @@ def create_orchestrator_app(
         app.router.add_delete(f"{prefix}/api/admin/invites/{{code}}", handle_admin_revoke_invite)
         app.router.add_delete(f"{prefix}/api/admin/history", handle_admin_clear_history)
         app.router.add_post(f"{prefix}/api/admin/power", handle_admin_power)
+        app.router.add_get(f"{prefix}/api/client/pair", handle_sunshine_get_pairings)
         app.router.add_post(f"{prefix}/api/client/pair", handle_sunshine_auto_pair)
         app.router.add_get(f"{prefix}/api/client/endpoint", handle_client_endpoint)
         app.router.add_get(f"{prefix}/api/client/download/windows", handle_download_client_windows)
