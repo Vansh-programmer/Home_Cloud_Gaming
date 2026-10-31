@@ -109,6 +109,8 @@ func main() {
 	http.HandleFunc("/auth/logout", logoutHandler)
 	http.HandleFunc("/identity", identityHandler)
 	http.HandleFunc("/admin/accounts", adminAccountsHandler)
+	http.HandleFunc("/admin/session", adminSessionHandler)
+	http.HandleFunc("/admin/session/end", adminEndSessionHandler)
 	http.HandleFunc("/moonlight-authenticate", moonlightAuthenticateHandler)
 	http.HandleFunc("/session/acquire", acquireHandler)
 	http.HandleFunc("/session/heartbeat", heartbeatHandler)
@@ -530,6 +532,82 @@ func adminAccountsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Cache-Control", "no-store")
 	writeJSON(w, http.StatusOK, map[string]any{"accounts": result})
+}
+
+func adminSessionHandler(w http.ResponseWriter, r *http.Request) {
+	claims, err := authenticatedClaims(r)
+	if err != nil || claims.Role != "admin" {
+		http.Error(w, "admin access required", http.StatusForbidden)
+		return
+	}
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	leaseMu.Lock()
+	if err := loadLeaseLocked(); err != nil {
+		leaseMu.Unlock()
+		http.Error(w, "player session state unavailable", http.StatusServiceUnavailable)
+		return
+	}
+	if !leaseIsActive() {
+		leaseMu.Unlock()
+		w.Header().Set("Cache-Control", "no-store")
+		writeJSON(w, http.StatusOK, map[string]any{"active": false})
+		return
+	}
+	activeAccountID := lease.AccountID
+	expiresAt := lease.ExpiresAt
+	leaseMu.Unlock()
+
+	username := "Unknown player"
+	accountMu.Lock()
+	if err := loadAccountsLocked(); err == nil {
+		for _, account := range accounts {
+			if account.ID == activeAccountID {
+				username = account.Username
+				break
+			}
+		}
+	}
+	accountMu.Unlock()
+	w.Header().Set("Cache-Control", "no-store")
+	writeJSON(w, http.StatusOK, map[string]any{"active": true, "username": username, "expires_at": expiresAt})
+}
+
+func adminEndSessionHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost || !sameOriginRequest(r) {
+		http.Error(w, "same-origin POST required", http.StatusForbidden)
+		return
+	}
+	claims, err := authenticatedClaims(r)
+	if err != nil || claims.Role != "admin" {
+		http.Error(w, "admin access required", http.StatusForbidden)
+		return
+	}
+	leaseMu.Lock()
+	defer leaseMu.Unlock()
+	if err := loadLeaseLocked(); err != nil {
+		http.Error(w, "player session state unavailable", http.StatusServiceUnavailable)
+		return
+	}
+	if lease == nil || !leaseIsActive() {
+		lease = nil
+		if err := persistLeaseLocked(); err != nil {
+			http.Error(w, "could not end player session", http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	previousLease := lease
+	lease = nil
+	if err := persistLeaseLocked(); err != nil {
+		lease = previousLease
+		http.Error(w, "could not end player session", http.StatusServiceUnavailable)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func acquireHandler(w http.ResponseWriter, r *http.Request) {

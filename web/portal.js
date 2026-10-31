@@ -5,6 +5,8 @@ const CONFIG = {
   healthUrl: '/api/health',
   accountUrl: '/api/account',
   adminAccountsUrl: '/api/admin/accounts',
+  adminSessionUrl: '/api/admin/session',
+  adminEndSessionUrl: '/api/admin/session/end',
   registerUrl: '/api/auth/register',
   loginUrl: '/api/auth/login',
   signOutUrl: '/api/account/logout',
@@ -35,6 +37,8 @@ const adminPanel = document.getElementById('admin-panel');
 const adminAccountList = document.getElementById('admin-account-list');
 const adminStatus = document.getElementById('admin-status');
 const adminRefresh = document.getElementById('admin-refresh');
+const adminSessionStatus = document.getElementById('admin-session-status');
+const adminEndSession = document.getElementById('admin-end-session');
 const authForm = document.getElementById('local-auth-form');
 const authUsername = document.getElementById('auth-username');
 const authPassword = document.getElementById('auth-password');
@@ -165,7 +169,10 @@ function setSignedIn(isSignedIn, username = '', role = 'player') {
   adminPanel?.classList.toggle('hidden', !isSignedIn || role !== 'admin');
   if (accountName) accountName.textContent = isSignedIn ? `${username}${role === 'admin' ? ' · Admin' : ''}` : 'Signed out';
   if (userAvatar) userAvatar.textContent = isSignedIn ? (username.trim().charAt(0) || 'P') : 'P';
-  if (isSignedIn && role === 'admin') loadAdminAccounts();
+  if (isSignedIn && role === 'admin') {
+    loadAdminAccounts();
+    loadAdminSession();
+  }
 }
 
 async function loadAdminAccounts() {
@@ -191,7 +198,53 @@ async function loadAdminAccounts() {
   }
 }
 
-adminRefresh?.addEventListener('click', loadAdminAccounts);
+async function loadAdminSession() {
+  if (!adminSessionStatus || !adminEndSession) return;
+  adminSessionStatus.textContent = 'Checking game session…';
+  adminEndSession.classList.add('hidden');
+  try {
+    const response = await fetch(CONFIG.adminSessionUrl, { cache: 'no-store', credentials: 'same-origin' });
+    if (!response.ok) throw new Error('Could not load the active game session.');
+    const session = await response.json();
+    if (!session.active) {
+      adminSessionStatus.textContent = 'No active game session.';
+      return;
+    }
+    const expiresAt = new Date(session.expires_at * 1000).toLocaleTimeString();
+    adminSessionStatus.textContent = `${session.username} is using the game server. Lease expires at ${expiresAt}.`;
+    adminEndSession.classList.remove('hidden');
+  } catch (error) {
+    adminSessionStatus.textContent = error.message || 'Could not load the active game session.';
+  }
+}
+
+adminRefresh?.addEventListener('click', () => {
+  loadAdminAccounts();
+  loadAdminSession();
+});
+setInterval(() => {
+  if (adminPanel && !adminPanel.classList.contains('hidden')) loadAdminSession();
+}, 20000);
+
+adminEndSession?.addEventListener('click', async () => {
+  if (!window.confirm('End the active player session? Their stream will close.')) return;
+  adminEndSession.disabled = true;
+  adminSessionStatus.textContent = 'Ending active session…';
+  try {
+    const response = await fetch(CONFIG.adminEndSessionUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      cache: 'no-store'
+    });
+    if (!response.ok) throw new Error('Could not end the active session. Refresh and try again.');
+    adminSessionStatus.textContent = 'The active session has ended.';
+    adminEndSession.classList.add('hidden');
+  } catch (error) {
+    adminSessionStatus.textContent = error.message || 'Could not end the active session.';
+  } finally {
+    adminEndSession.disabled = false;
+  }
+});
 
 function setSignInStatus(message) {
   if (signInStatus) signInStatus.textContent = message;

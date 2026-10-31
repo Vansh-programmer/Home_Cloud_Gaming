@@ -21,6 +21,22 @@
     const applyBranding = () => window.applyRyokuStreamBranding(frame);
     frame.addEventListener('load', applyBranding);
     if (frame.contentDocument?.readyState === 'complete') applyBranding();
+    const sessionHeartbeat = window.setInterval(async () => {
+      try {
+        const response = await fetch('/api/session/heartbeat', {
+          method: 'POST',
+          credentials: 'same-origin',
+          cache: 'no-store'
+        });
+        if (!response.ok) {
+          window.clearInterval(sessionHeartbeat);
+          frame.src = 'about:blank';
+          document.title = 'Ryoku | Session ended';
+        }
+      } catch (_error) {
+        // Keep the stream open during a brief network interruption.
+      }
+    }, 20000);
   </script>
 </body>
 </html>

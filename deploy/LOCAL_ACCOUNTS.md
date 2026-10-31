@@ -21,6 +21,9 @@ Accounts have either the `player` or `admin` role. Public registration always
 creates a player. Admin accounts are provisioned from inside the access-gate
 container with the offline `create-admin` command; an admin can view usernames,
 account IDs, roles, and creation dates in the portal's Local accounts panel.
+The panel also shows the player holding the game-server lease and lets an admin
+end that active session. The player's browser closes the stream on its next
+heartbeat, and the server slot becomes available immediately.
 Passwords and password hashes are never shown in that panel.
 
 To change an existing account's password, rebuild the access-gate image and
