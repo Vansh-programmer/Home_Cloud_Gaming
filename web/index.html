@@ -3,61 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ryoku | Cloud Games</title>
-  <link rel="stylesheet" href="/portal.css?v=simple-white-1">
+  <meta name="theme-color" content="#ffffff">
+  <title>Ryoku | Cloud Gaming</title>
+  <link rel="stylesheet" href="/portal.css?v=ui-3">
 </head>
 <body>
-  <!-- Top Navigation Bar -->
   <header class="navbar">
     <div class="nav-container">
-      <div class="brand"><span class="brand-title">Ryoku</span></div>
-      
+      <a class="brand" href="/" aria-label="Ryoku home">
+        <span class="brand-title">Ryoku</span>
+      </a>
+
       <div class="system-status">
-        <div class="status-indicator" id="node-status-pill">
-          <span class="status-dot pulse"></span>
-          <span class="status-text" id="node-status-text">Online</span>
+        <div class="status-indicator" id="node-status-pill" role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-text" id="node-status-text">Checking status</span>
         </div>
-        <a href="#library" class="nav-btn-stream hidden" id="browse-games-link">Games</a>
-        <div class="user-chip">
-          <span class="user-avatar">V</span>
-          <span class="user-name" id="account-name">Player account</span>
+        <a href="#library" class="nav-link hidden" id="browse-games-link">Games</a>
+        <div class="user-chip" aria-live="polite">
+          <span class="user-avatar" id="user-avatar" aria-hidden="true">P</span>
+          <span class="user-name" id="account-name">Signed out</span>
         </div>
-        <a href="#" class="nav-btn-stream hidden" id="sign-out-link">Sign out</a>
+        <button type="button" class="nav-link sign-out-link hidden" id="sign-out-link">Sign out</button>
       </div>
     </div>
   </header>
 
-  <!-- Main Library View -->
   <main class="main-content">
-    <section class="hero-section">
-      <div class="hero-text">
-        <h1 class="hero-title">Cloud games</h1>
+    <section class="hero-section" aria-labelledby="page-title">
+      <div class="hero-layout">
+        <div class="hero-copy">
+          <h1 class="hero-title" id="page-title">Your games, ready to play.</h1>
+          <p class="hero-subtitle">Steam and Heroic, streamed to your browser.</p>
+          <div class="hero-connection" data-state="checking">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="hero-status-text">Checking connection</span>
+          </div>
+        </div>
+        <div class="hero-media">
+          <video id="homepage-video" muted loop playsinline preload="none"
+            poster="/portal-assets/homepage-poster.webp" aria-label="Ryoku cloud gaming preview">
+            <source data-src="/portal-assets/homepage.mp4" type="video/mp4">
+          </video>
+        </div>
       </div>
     </section>
 
     <section id="sign-in-panel" class="sign-in-panel" aria-labelledby="sign-in-title">
       <div class="sign-in-copy">
-        <h2 id="sign-in-title">Sign in</h2>
-        <p>Sign in or create an account to play.</p>
+        <p class="eyebrow">PLAYER ACCOUNT</p>
+        <h2 id="sign-in-title">Sign in to play</h2>
+        <p>Access your private gaming profile.</p>
       </div>
       <form id="local-auth-form" class="local-auth-form">
-        <label for="auth-username">Username</label>
-        <input id="auth-username" name="username" type="text" minlength="3" maxlength="32" pattern="[A-Za-z0-9_-]{3,32}" autocomplete="username" required>
-        <label for="auth-password">Password</label>
-        <input id="auth-password" name="password" type="password" minlength="12" maxlength="128" autocomplete="current-password" required>
-        <button id="auth-submit" class="btn btn-primary" type="submit">Sign In</button>
-        <button id="auth-mode-toggle" class="btn btn-outline" type="button">Create an account</button>
-        <p id="sign-in-status" class="sign-in-status" role="status" aria-live="polite">New passwords need at least 12 characters.</p>
+        <div class="field-group">
+          <label for="auth-username">Username</label>
+          <input id="auth-username" name="username" type="text" minlength="3" maxlength="32" pattern="[A-Za-z0-9_-]{3,32}" autocomplete="username" placeholder="Username" required>
+        </div>
+        <div class="field-group">
+          <label for="auth-password">Password</label>
+          <input id="auth-password" name="password" type="password" minlength="12" maxlength="128" autocomplete="current-password" placeholder="Password" aria-describedby="password-hint" required>
+          <span class="field-hint" id="password-hint">12 characters minimum for new accounts.</span>
+        </div>
+        <div class="auth-actions">
+          <button id="auth-submit" class="btn btn-primary" type="submit">Sign in</button>
+          <button id="auth-mode-toggle" class="btn btn-secondary" type="button">Create account</button>
+        </div>
+        <p id="sign-in-status" class="sign-in-status" role="status" aria-live="polite">Sign in with your player account.</p>
       </form>
     </section>
 
     <section id="admin-panel" class="admin-panel hidden" aria-labelledby="admin-title">
       <div class="section-header">
         <div>
-          <h2 id="admin-title">Accounts</h2>
-          <p class="section-subtitle">Registered accounts</p>
+          <p class="eyebrow">ADMIN</p>
+          <h2 id="admin-title">Player accounts</h2>
         </div>
-        <button id="admin-refresh" class="btn btn-outline" type="button">Refresh list</button>
+        <button id="admin-refresh" class="btn btn-secondary" type="button">Refresh</button>
       </div>
       <p id="admin-status" class="admin-status" role="status" aria-live="polite"></p>
       <div class="admin-table-wrap">
@@ -68,62 +90,65 @@
       </div>
     </section>
 
-  <div id="session-notice" class="session-notice hidden" role="status" aria-live="polite"></div>
+    <div id="session-notice" class="session-notice hidden" role="status" aria-live="polite"></div>
 
-  <!-- Game Library Grid -->
-    <section class="library-section hidden" id="library">
-      <div class="section-header">
+    <section class="library-section hidden" id="library" aria-labelledby="library-title">
+      <div class="section-header library-header">
         <div>
-          <h2>Games</h2>
+          <p class="eyebrow">GAME LIBRARY</p>
+          <h2 id="library-title">Choose a launcher</h2>
         </div>
         <span class="library-count" id="launcher-count">2 launchers</span>
       </div>
 
       <div class="grid-container">
-        <!-- Steam Card -->
-        <div class="game-card" data-app-name="Steam" data-app-type="steam">
+        <article class="game-card" data-app-name="Steam" data-app-type="steam">
+          <div class="launcher-image launcher-image-steam">
+            <img src="/portal-assets/steam.svg" alt="" aria-hidden="true" loading="lazy">
+          </div>
           <div class="card-body">
             <h3 class="card-title">Steam</h3>
-            <p class="card-desc">Open Steam in your private player profile.</p>
-            <button class="btn btn-primary launch-btn" onclick="launchGame('Steam')">
-              Open Steam
-            </button>
+            <p class="card-desc">Your Steam library</p>
+            <button class="btn btn-primary launch-btn" onclick="launchGame('Steam')">Open Steam <span aria-hidden="true">→</span></button>
           </div>
-        </div>
+        </article>
 
-        <!-- Heroic Games Launcher Card -->
-        <div class="game-card" data-app-name="Heroic Games Launcher" data-app-type="heroic">
+        <article class="game-card" data-app-name="Heroic Games Launcher" data-app-type="heroic">
+          <div class="launcher-image launcher-image-heroic">
+            <img src="/portal-assets/heroic.png" alt="" aria-hidden="true" loading="lazy">
+          </div>
           <div class="card-body">
-            <h3 class="card-title">Heroic Games Launcher</h3>
-            <p class="card-desc">Open Epic and GOG games in your private profile.</p>
-            <button class="btn btn-primary launch-btn" onclick="launchGame('Heroic Games Launcher')">
-              Open Heroic
-            </button>
+            <h3 class="card-title">Heroic</h3>
+            <p class="card-desc">Epic and GOG games</p>
+            <button class="btn btn-primary launch-btn" onclick="launchGame('Heroic Games Launcher')">Open Heroic <span aria-hidden="true">→</span></button>
           </div>
-        </div>
-
+        </article>
       </div>
     </section>
   </main>
 
-  <!-- In-Browser Stream Modal / Player Overlay -->
-  <div id="stream-modal" class="stream-modal hidden">
+  <footer class="site-footer">
+    <div class="footer-inner"><span>Ryoku Cloud Gaming</span></div>
+  </footer>
+
+  <div id="stream-modal" class="stream-modal hidden" role="dialog" aria-modal="true" aria-label="Game stream">
     <div class="stream-bar">
       <div class="stream-info">
-        <span class="stream-dot pulse"></span>
-        <span id="active-game-title" class="stream-title">Streaming Session</span>
+        <span class="status-dot stream-dot" aria-hidden="true"></span>
+        <span id="active-game-title" class="stream-title">Select a game in the stream menu</span>
       </div>
       <div class="stream-controls">
-        <a id="stream-popout-btn" href="/stream" target="_blank" class="ctrl-btn">Open in new tab</a>
+        <a id="stream-popout-btn" href="/stream-shell.html" target="_blank" rel="noopener" class="ctrl-btn">New tab</a>
         <button class="ctrl-btn" onclick="toggleFullscreen()">Fullscreen</button>
-        <button class="ctrl-btn" onclick="closeStream()">Exit</button>
+        <button class="ctrl-btn ctrl-btn-exit" onclick="closeStream()">Exit</button>
       </div>
     </div>
     <div class="stream-viewport">
-      <iframe id="moonlight-frame" src="" allow="gamepad; fullscreen; microphone; autoplay; clipboard-write; clipboard-read"></iframe>
+      <iframe id="moonlight-frame" src="" title="Moonlight game stream" allow="gamepad; fullscreen; microphone; autoplay; clipboard-write; clipboard-read"></iframe>
     </div>
   </div>
 
-  <script src="/portal.js?v=simple-white-2"></script>
+  <script src="/stream-branding.js?v=1"></script>
+  <script src="/portal.js?v=ui-3"></script>
 </body>
 </html>

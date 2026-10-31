@@ -17,9 +17,14 @@ const CONFIG = {
 
 const modal = document.getElementById('stream-modal');
 const streamFrame = document.getElementById('moonlight-frame');
+streamFrame?.addEventListener('load', () => window.applyRyokuStreamBranding?.(streamFrame));
 const activeGameTitle = document.getElementById('active-game-title');
 const statusText = document.getElementById('node-status-text');
+const statusPill = document.getElementById('node-status-pill');
+const heroConnection = document.querySelector('.hero-connection');
+const heroStatusText = document.getElementById('hero-status-text');
 const accountName = document.getElementById('account-name');
+const userAvatar = document.getElementById('user-avatar');
 const signInPanel = document.getElementById('sign-in-panel');
 const signInStatus = document.getElementById('sign-in-status');
 const gameLibrary = document.getElementById('library');
@@ -39,6 +44,44 @@ let sessionId = null;
 let sessionHeartbeat = null;
 let sessionActive = false;
 let authMode = 'login';
+let homepageVideoVisible = false;
+
+function initHomepageVideo() {
+  const video = document.getElementById('homepage-video');
+  const source = video?.querySelector('source[data-src]');
+  if (!video || !source || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!('IntersectionObserver' in window)) return;
+
+  let loaded = false;
+  const playPreview = () => {
+    if (!homepageVideoVisible || document.hidden || (modal && !modal.classList.contains('hidden'))) return;
+    if (!loaded) {
+      source.src = source.dataset.src;
+      source.removeAttribute('data-src');
+      video.load();
+      loaded = true;
+    }
+    video.play().catch(() => {});
+  };
+
+  const videoObserver = new IntersectionObserver((entries) => {
+    homepageVideoVisible = entries.some((entry) => entry.isIntersecting);
+    if (homepageVideoVisible) playPreview();
+    else video.pause();
+  }, { rootMargin: '120px' });
+  videoObserver.observe(video);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) video.pause();
+    else playPreview();
+  });
+}
+
+try {
+  initHomepageVideo();
+} catch (_error) {
+  // The optional homepage preview must not block sign-in or health updates.
+}
 
 function getSessionId() {
   if (sessionId) return sessionId;
@@ -70,24 +113,26 @@ function clearNotice() {
 
 function setClearStreamDefaults() {
   const settingsKey = 'mw-streaming-settings';
-  const configuredKey = 'ryoku-low-latency-default-v2';
+  const configuredKey = 'ryoku-stream-quality-fixed-1080-v3';
   try {
     if (localStorage.getItem(configuredKey) === '1') return;
     const stored = JSON.parse(localStorage.getItem(settingsKey) || '{}');
     const settings = stored && typeof stored === 'object' && !Array.isArray(stored) ? stored : {};
     const has1080p60Quality = settings.stream_resolution === 'fixed'
       && Number(settings.stream_height) >= 1080
+      && Number(settings.stream_bitrate) >= 20000
+      && settings.stream_bitrate_auto === false
       && Number(settings.stream_fps) >= 60;
     if (!has1080p60Quality) {
       Object.assign(settings, {
         stream_resolution: 'fixed',
         stream_height: 1080,
         stream_bitrate: 20000,
+        stream_bitrate_auto: false,
         stream_fps: 60
       });
     }
     Object.assign(settings, {
-      stream_bitrate_auto: true,
       video_enhancement: 'off'
     });
     localStorage.setItem(settingsKey, JSON.stringify(settings));
@@ -119,6 +164,7 @@ function setSignedIn(isSignedIn, username = '', role = 'player') {
   browseGamesLink?.classList.toggle('hidden', !isSignedIn);
   adminPanel?.classList.toggle('hidden', !isSignedIn || role !== 'admin');
   if (accountName) accountName.textContent = isSignedIn ? `${username}${role === 'admin' ? ' · Admin' : ''}` : 'Signed out';
+  if (userAvatar) userAvatar.textContent = isSignedIn ? (username.trim().charAt(0) || 'P') : 'P';
   if (isSignedIn && role === 'admin') loadAdminAccounts();
 }
 
@@ -156,6 +202,8 @@ function setAuthMode(mode) {
   const creatingAccount = mode === 'register';
   if (authSubmit) authSubmit.textContent = creatingAccount ? 'Create Account' : 'Sign In';
   if (authModeToggle) authModeToggle.textContent = creatingAccount ? 'Back to sign in' : 'Create an account';
+  const signInTitle = document.getElementById('sign-in-title');
+  if (signInTitle) signInTitle.textContent = creatingAccount ? 'Create your account' : 'Sign in to play';
   if (authPassword) authPassword.autocomplete = creatingAccount ? 'new-password' : 'current-password';
   setSignInStatus(creatingAccount
     ? 'Choose a 3-32 character username and a password with at least 12 characters.'
@@ -291,6 +339,7 @@ async function launchGame(appName) {
 
   activeGameTitle.textContent = `Select ${appName} in the stream menu`;
   modal.classList.remove('hidden');
+  document.getElementById('homepage-video')?.pause();
   setClearStreamDefaults();
   streamFrame.src = CONFIG.streamUrl;
   setTimeout(() => {
@@ -307,6 +356,8 @@ function closeStream() {
   if (streamFrame) streamFrame.src = 'about:blank';
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   if (sessionActive) releaseSession();
+  const video = document.getElementById('homepage-video');
+  if (video && homepageVideoVisible && !document.hidden) video.play().catch(() => {});
 }
 
 function toggleFullscreen() {
@@ -327,22 +378,22 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-window.addEventListener('gamepadconnected', () => {
-  if (statusText) statusText.textContent = 'Controller ready';
-});
-
-window.addEventListener('gamepaddisconnected', () => {
-  if (statusText) statusText.textContent = 'Online';
-});
-
 async function checkHostHealth() {
   try {
     const response = await fetch(CONFIG.healthUrl, { cache: 'no-store' });
-    if (!response.ok) return;
+    if (!response.ok) throw new Error('Health endpoint returned an error');
     const data = await response.json();
-    if (statusText) statusText.textContent = data.online ? 'Online' : 'Offline';
+    const online = Boolean(data.online);
+    const label = online ? 'Online' : 'Offline';
+    if (statusText) statusText.textContent = label;
+    if (heroStatusText) heroStatusText.textContent = online ? 'Portal online' : 'Portal offline';
+    if (statusPill) statusPill.dataset.state = online ? 'online' : 'offline';
+    if (heroConnection) heroConnection.dataset.state = online ? 'online' : 'offline';
   } catch (_error) {
     if (statusText) statusText.textContent = 'Status unavailable';
+    if (heroStatusText) heroStatusText.textContent = 'Connection unavailable';
+    if (statusPill) statusPill.dataset.state = 'offline';
+    if (heroConnection) heroConnection.dataset.state = 'offline';
   }
 }
 

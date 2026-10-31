@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08090a">
+  <title>Ryoku | Cloud Gaming</title>
+  <style>
+    html, body, iframe { width: 100%; height: 100%; margin: 0; border: 0; }
+    body { overflow: hidden; background: #08090a; }
+    iframe { display: block; }
+  </style>
+</head>
+<body>
+  <iframe id="stream-frame" src="/stream" title="Ryoku game stream"
+    allow="gamepad; fullscreen; microphone; autoplay; clipboard-write; clipboard-read"
+    allowfullscreen></iframe>
+  <script src="/stream-branding.js?v=1"></script>
+  <script>
+    const frame = document.getElementById('stream-frame');
+    frame.addEventListener('load', () => window.applyRyokuStreamBranding(frame));
+  </script>
+</body>
+</html>

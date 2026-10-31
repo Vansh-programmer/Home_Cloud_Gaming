@@ -75,6 +75,32 @@ flowchart TD
 
 ## 3. Quickstart & Deployment
 
+### One-command setup (Arch Linux and pacman-based derivatives)
+
+From the project directory, run:
+
+```bash
+./deploy/one_click_arch_setup.sh
+```
+
+The installer checks the distribution, installs missing Docker/Compose/NVIDIA
+Container Toolkit packages, configures Docker's NVIDIA runtime, loads Wolf's
+virtual input devices, prepares persistent storage, pulls the pinned game
+images, and enables a system-level boot service. It does not install an NVIDIA
+kernel driver because the correct package depends on the distro and kernel.
+If Docker needs a runtime change while containers are running, it stops safely
+and asks you to rerun during maintenance rather than restarting Docker.
+
+This sets up the gaming host and local portal. Public access still requires a
+domain route through Cloudflare Tunnel or router port forwarding; DNS, tunnel
+credentials, and router settings cannot be created on the PC by this script.
+No automatic reboot is performed. After a kernel or NVIDIA driver update,
+reboot if the driver requires it and rerun the installer.
+
+The steps below are the manual alternative for hosts that do not use the
+installer. Do not enable the legacy user service in Step 4 after installing the
+system service above.
+
 ### Step 1: Enable Docker on Host
 ```bash
 sudo systemctl enable --now docker && sudo usermod -aG docker $USER
