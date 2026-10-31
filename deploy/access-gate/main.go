@@ -55,8 +55,9 @@ type sessionRequest struct {
 }
 
 type accountCredentials struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username    string `json:"username"`
+	NewUsername string `json:"new_username,omitempty"`
+	Password    string `json:"password"`
 }
 
 type authSession struct {
@@ -182,6 +183,10 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 // createAccountCommand provisions an account offline from JSON on stdin. It is
 // used inside the access-gate container so an admin role is never self-service.
 func createAccountCommand(command string) error {
+	if command == "set-password" {
+		return setAccountPasswordCommand()
+	}
+
 	role := ""
 	switch command {
 	case "create-admin":
@@ -189,7 +194,7 @@ func createAccountCommand(command string) error {
 	case "create-player":
 		role = "player"
 	default:
-		return errors.New("supported commands: create-admin, create-player")
+		return errors.New("supported commands: create-admin, create-player, set-password")
 	}
 	var credentials accountCredentials
 	if err := json.NewDecoder(io.LimitReader(os.Stdin, 4096)).Decode(&credentials); err != nil {
@@ -227,6 +232,55 @@ func createAccountCommand(command string) error {
 		return fmt.Errorf("could not save account: %w", err)
 	}
 	_, err := fmt.Fprintf(os.Stdout, "%s %s\n", account.Username, account.ID)
+	return err
+}
+
+// setAccountPasswordCommand replaces an existing account's password while
+// preserving its ID, role, username, and creation time.
+func setAccountPasswordCommand() error {
+	var credentials accountCredentials
+	if err := json.NewDecoder(io.LimitReader(os.Stdin, 4096)).Decode(&credentials); err != nil {
+		return errors.New("provide username and password as JSON on stdin")
+	}
+	username := strings.ToLower(strings.TrimSpace(credentials.Username))
+	newUsername := strings.ToLower(strings.TrimSpace(credentials.NewUsername))
+	if newUsername == "" {
+		newUsername = username
+	}
+	if !validUsername.MatchString(username) || !validUsername.MatchString(newUsername) || len(credentials.Password) < 12 || len(credentials.Password) > 128 {
+		return errors.New("use a 3-32 character username and a password of 12-128 characters")
+	}
+	salt := make([]byte, 16)
+	if _, err := cryptorand.Read(salt); err != nil {
+		return errors.New("could not create account salt")
+	}
+
+	accountMu.Lock()
+	defer accountMu.Unlock()
+	if err := loadAccountsLocked(); err != nil {
+		return fmt.Errorf("account storage unavailable: %w", err)
+	}
+	account, exists := accounts[username]
+	if !exists {
+		return errors.New("account does not exist")
+	}
+	if newUsername != username {
+		if _, exists := accounts[newUsername]; exists {
+			return errors.New("the new username is already in use")
+		}
+	}
+	previous := account
+	account.Username = newUsername
+	account.Salt = base64.RawURLEncoding.EncodeToString(salt)
+	account.PasswordHash = base64.RawURLEncoding.EncodeToString(passwordKey(credentials.Password, salt))
+	delete(accounts, username)
+	accounts[newUsername] = account
+	if err := persistAccountsLocked(); err != nil {
+		delete(accounts, newUsername)
+		accounts[username] = previous
+		return fmt.Errorf("could not save account: %w", err)
+	}
+	_, err := fmt.Fprintf(os.Stdout, "Password updated for %s\n", account.Username)
 	return err
 }
 

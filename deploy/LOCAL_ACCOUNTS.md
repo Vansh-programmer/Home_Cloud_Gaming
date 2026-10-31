@@ -23,6 +23,51 @@ container with the offline `create-admin` command; an admin can view usernames,
 account IDs, roles, and creation dates in the portal's Local accounts panel.
 Passwords and password hashes are never shown in that panel.
 
+To change an existing account's password, rebuild the access-gate image and
+temporarily stop the access-gate service before running its offline
+`set-password` command. It can also rename the account while keeping its ID and
+role. The prompts keep the password out of shell history. Account sign-in and
+authorization are unavailable while the service is stopped:
+
+```sh
+docker compose build access-gate
+docker compose stop access-gate
+python3 - <<'PY'
+import getpass
+import json
+import subprocess
+
+username = input("Current account username: ").strip()
+new_username = input("New username (press Enter to keep it): ").strip()
+password = getpass.getpass("New password (12-128 characters): ")
+confirmation = getpass.getpass("Confirm new password: ")
+if password != confirmation:
+    raise SystemExit("Passwords did not match.")
+
+command = [
+    "docker", "compose", "run", "--rm", "--no-deps", "-T",
+    "--entrypoint", "/usr/local/bin/access-gate", "access-gate", "set-password",
+]
+result = subprocess.run(
+    command,
+    input=json.dumps({
+        "username": username,
+        "new_username": new_username,
+        "password": password,
+    }),
+    text=True,
+    check=False,
+)
+raise SystemExit(result.returncode)
+PY
+docker compose start access-gate
+```
+
+If the Python command reports an error, run `docker compose start access-gate`
+before troubleshooting. Sign in with the new password afterward; the password
+change does not revoke existing sessions; sign out and sign in again with the
+new username.
+
 Local sign-up proves that the player knows the password they chose. It does
 not verify ownership of an email address because this setup does not send
 email. The portal does not ask for an email address.

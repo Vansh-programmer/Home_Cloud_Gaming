@@ -21,6 +21,7 @@
 
 http://play.vanshdev.online, http://localhost, http://127.0.0.1, http://192.168.1.5 {
 	bind 127.0.0.1
+	header Referrer-Policy "no-referrer"
 	# 1. Cloudflare Worker Edge Health Check (Automatic Boot Detection)
 	handle /api/health {
 		header Content-Type "application/json"
@@ -130,6 +131,7 @@ http://play.vanshdev.online, http://localhost, http://127.0.0.1, http://192.168.
 
 https://play.vanshdev.online {
 	bind 127.0.0.1
+	header Referrer-Policy "no-referrer"
 	# 1. Cloudflare Worker Edge Health Check (Automatic Boot Detection)
 	handle /api/health {
 		header Content-Type "application/json"
