@@ -5,8 +5,8 @@ support_hevc = true
 # APPLICATION 1: STEAM CLOUD GAMING NODE
 # ==============================================================================
 # - Runs on headless virtual Sway/Gamescope compositor.
-# - Shared Games: Mounted READ-ONLY (:ro) to eliminate duplication and prevent tampering.
-# - User Profile: Mounted READ-WRITE (:rw) for isolated logins, saves, and prefixes.
+# - Shared Games: Mounted READ-ONLY at /shared_games inside game containers.
+# - User Profile: Wolf's per-client home stays writable for installs, logins, saves, and prefixes.
 # ==============================================================================
 [[apps]]
 title = "Steam Cloud Gaming"
@@ -17,12 +17,12 @@ type = "docker"
 name = "steam-cloud"
 image = "ghcr.io/games-on-whales/steam:edge"
 mounts = [
-    # 1. User Isolated Storage (Logins, Saves, Proton Prefixes)
-    "ryoku-user-storage:/home/retro:rw",
-    # 2. Shared Game Library (READ-ONLY: Zero duplication, zero modification by users)
-    "/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/home/retro/.local/share/Steam/steamapps/common:ro"
+    # Wolf supplies a separate writable home directory for each paired client.
+    # Shared Game Library (READ-ONLY; each user's default Steam library remains writable)
+    "/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/shared_games:ro"
 ]
 env = [
+    "XDG_RUNTIME_DIR=/tmp",
     "RUN_SWAY=1",
     "GOW_REQUIRED_DEVICES=/dev/input/event* /dev/dri/* /dev/nvidia*",
     "ENABLE_VKBASALT=0"
@@ -49,8 +49,8 @@ base_create_json = """
 # APPLICATION 2: HEROIC GAMES LAUNCHER (EPIC GAMES & GOG)
 # ==============================================================================
 # - Native headless launcher for Epic Games Store and GOG libraries.
-# - Shared Games: Mounted READ-ONLY (:ro) for shared games without duplication.
-# - User Profile: Mounted READ-WRITE (:rw) for isolated Epic/GOG logins and saves.
+# - Shared Games: Mounted READ-ONLY at /shared_games.
+# - User Profile: Wolf's per-client home stays writable for installs, logins, and saves.
 # ==============================================================================
 [[apps]]
 title = "Heroic Games Launcher (Epic & GOG)"
@@ -61,12 +61,12 @@ type = "docker"
 name = "heroic-cloud"
 image = "ghcr.io/games-on-whales/heroic-games-launcher:edge"
 mounts = [
-    # 1. User Isolated Storage (Epic/GOG Logins, Heroic configs, Wine Prefixes, Saves)
-    "ryoku-user-storage:/home/retro:rw",
-    # 2. Shared Game Installations (READ-ONLY: Zero duplication, zero modification by users)
-    "/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/home/retro/Games:ro"
+    # Wolf supplies a separate writable home directory for each paired client.
+    # Shared Game Installations (READ-ONLY; Heroic's default path remains writable)
+    "/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/shared_games:ro"
 ]
 env = [
+    "XDG_RUNTIME_DIR=/tmp",
     "RUN_SWAY=1",
     "GOW_REQUIRED_DEVICES=/dev/input/event* /dev/dri/* /dev/nvidia*"
 ]

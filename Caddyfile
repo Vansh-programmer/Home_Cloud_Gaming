@@ -2,70 +2,237 @@
 # Ryoku Cloud Gaming - Caddy Gateway
 # Automated HTTPS & WebCodecs WebSocket Proxy
 # =============================================================================
-
 {
-    # Global options
-    auto_https disable_redirects
+	# Global options
+	auto_https disable_redirects
 }
 
-http://vanshdev.online, http://play.vanshdev.online, http://localhost, http://127.0.0.1, http://192.168.1.5 {
-    # 1. Cloudflare Worker Edge Health Check (Automatic Boot Detection)
-    handle /api/health {
-        header Content-Type "application/json"
-        header Access-Control-Allow-Origin "*"
-        header Cache-Control "no-store"
-        respond `{"ok":true,"online":true,"server":"Ryoku Cloud Gaming PC","gpu":"NVIDIA GeForce RTX 4060","status":"ready"}` 200
-    }
-
-    # 2. Moonlight Web In-Browser Streaming WebSocket & Engine
-    handle /stream* {
-        reverse_proxy localhost:8080 {
-            header_down -X-Frame-Options
-            header_down -Content-Security-Policy
-        }
-    }
-    handle /ws* {
-        reverse_proxy localhost:8080
-    }
-    handle /api* {
-        reverse_proxy localhost:8080
-    }
-
-    # 3. Main Web Portal UI
-    handle {
-        root * /usr/share/caddy
-        file_server
-        try_files {path} /index.html
-    }
+(verified_player) {
+	forward_auth 127.0.0.1:9080 {
+		uri /verify
+	}
 }
 
-https://vanshdev.online, https://play.vanshdev.online {
-    # 1. Cloudflare Worker Edge Health Check (Automatic Boot Detection)
-    handle /api/health {
-        header Content-Type "application/json"
-        header Access-Control-Allow-Origin "*"
-        header Cache-Control "no-store"
-        respond `{"ok":true,"online":true,"server":"Ryoku Cloud Gaming PC","gpu":"NVIDIA GeForce RTX 4060","status":"ready"}` 200
-    }
+(active_player) {
+	forward_auth 127.0.0.1:9080 {
+		uri /verify-stream
+	}
+}
 
-    # 2. Moonlight Web In-Browser Streaming WebSocket & Engine
-    handle /stream* {
-        reverse_proxy localhost:8080 {
-            header_down -X-Frame-Options
-            header_down -Content-Security-Policy
-        }
-    }
-    handle /ws* {
-        reverse_proxy localhost:8080
-    }
-    handle /api* {
-        reverse_proxy localhost:8080
-    }
+http://play.vanshdev.online, http://localhost, http://127.0.0.1, http://192.168.1.5 {
+	bind 127.0.0.1
+	# 1. Cloudflare Worker Edge Health Check (Automatic Boot Detection)
+	handle /api/health {
+		header Content-Type "application/json"
+		header Access-Control-Allow-Origin "*"
+		header Cache-Control "no-store"
+		respond `{"ok":true,"online":true,"server":"Ryoku Cloud Gaming PC","gpu":"NVIDIA GeForce RTX 4060","status":"ready"}` 200
+	}
 
-    # 3. Main Web Portal UI
-    handle {
-        root * /usr/share/caddy
-        file_server
-        try_files {path} /index.html
-    }
+	# 2. Custom Branded Portal Assets
+	handle /portal.css {
+		header Cache-Control "no-store, no-cache, must-revalidate"
+		root * /usr/share/caddy
+		file_server
+	}
+	handle /portal.js {
+		header Cache-Control "no-store, no-cache, must-revalidate"
+		root * /usr/share/caddy
+		file_server
+	}
+	handle /portal-assets/* {
+		root * /usr/share/caddy
+		file_server
+	}
+	handle /api/auth/register {
+		rewrite * /auth/register
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/auth/login {
+		rewrite * /auth/login
+		reverse_proxy 127.0.0.1:9080
+	}
+
+	handle /api/account {
+		import verified_player
+		rewrite * /identity
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/admin/accounts {
+		import verified_player
+		rewrite * /admin/accounts
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/account/logout {
+		import verified_player
+		rewrite * /auth/logout
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/session/acquire {
+		import verified_player
+		rewrite * /session/acquire
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/session/heartbeat {
+		import verified_player
+		rewrite * /session/heartbeat
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/session/release {
+		import verified_player
+		rewrite * /session/release
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/auth/validate {
+		import active_player
+		rewrite * /moonlight-authenticate
+		reverse_proxy 127.0.0.1:9080
+	}
+
+	# Never expose Moonlight's local administrator surfaces to player accounts.
+	@moonlight_admin path /admin* /api/admin* /api/local*
+	handle @moonlight_admin {
+		respond "Not found" 404
+	}
+
+	# 3. Stream Route (Moonlight Web SPA entrypoint for iframe or direct link)
+	handle_path /stream* {
+		import active_player
+		rewrite * /
+		reverse_proxy localhost:8080 {
+			header_up Host localhost:8080
+			header_up Origin http://localhost:8080
+			header_down -X-Frame-Options
+			header_down -Content-Security-Policy
+		}
+	}
+
+	# 4. Moonlight Web SPA assets and WebSockets
+	@moonlight_paths path /js/* /css/* /assets/* /locales/* /api/* /ws* /manifest.webmanifest /settings* /p/*
+	handle @moonlight_paths {
+		import active_player
+		reverse_proxy localhost:8080 {
+			header_up Host localhost:8080
+			header_up Origin http://localhost:8080
+			header_down -X-Frame-Options
+			header_down -Content-Security-Policy
+		}
+	}
+
+	# 5. Default: Custom Branded Portal Homepage
+	handle {
+		header Cache-Control "no-store, no-cache, must-revalidate"
+		root * /usr/share/caddy
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+https://play.vanshdev.online {
+	bind 127.0.0.1
+	# 1. Cloudflare Worker Edge Health Check (Automatic Boot Detection)
+	handle /api/health {
+		header Content-Type "application/json"
+		header Access-Control-Allow-Origin "*"
+		header Cache-Control "no-store"
+		respond `{"ok":true,"online":true,"server":"Ryoku Cloud Gaming PC","gpu":"NVIDIA GeForce RTX 4060","status":"ready"}` 200
+	}
+
+	# 2. Custom Branded Portal Assets
+	handle /portal.css {
+		header Cache-Control "no-store, no-cache, must-revalidate"
+		root * /usr/share/caddy
+		file_server
+	}
+	handle /portal.js {
+		header Cache-Control "no-store, no-cache, must-revalidate"
+		root * /usr/share/caddy
+		file_server
+	}
+	handle /portal-assets/* {
+		root * /usr/share/caddy
+		file_server
+	}
+	handle /api/auth/register {
+		rewrite * /auth/register
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/auth/login {
+		rewrite * /auth/login
+		reverse_proxy 127.0.0.1:9080
+	}
+
+	handle /api/account {
+		import verified_player
+		rewrite * /identity
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/admin/accounts {
+		import verified_player
+		rewrite * /admin/accounts
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/account/logout {
+		import verified_player
+		rewrite * /auth/logout
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/session/acquire {
+		import verified_player
+		rewrite * /session/acquire
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/session/heartbeat {
+		import verified_player
+		rewrite * /session/heartbeat
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/session/release {
+		import verified_player
+		rewrite * /session/release
+		reverse_proxy 127.0.0.1:9080
+	}
+	handle /api/auth/validate {
+		import active_player
+		rewrite * /moonlight-authenticate
+		reverse_proxy 127.0.0.1:9080
+	}
+
+	# Never expose Moonlight's local administrator surfaces to player accounts.
+	@moonlight_admin path /admin* /api/admin* /api/local*
+	handle @moonlight_admin {
+		respond "Not found" 404
+	}
+
+	# 3. Stream Route (Moonlight Web SPA entrypoint for iframe or direct link)
+	handle_path /stream* {
+		import active_player
+		rewrite * /
+		reverse_proxy localhost:8080 {
+			header_up Host localhost:8080
+			header_up Origin http://localhost:8080
+			header_down -X-Frame-Options
+			header_down -Content-Security-Policy
+		}
+	}
+
+	# 4. Moonlight Web SPA assets and WebSockets
+	@moonlight_paths path /js/* /css/* /assets/* /locales/* /api/* /ws* /manifest.webmanifest /settings* /p/*
+	handle @moonlight_paths {
+		import active_player
+		reverse_proxy localhost:8080 {
+			header_up Host localhost:8080
+			header_up Origin http://localhost:8080
+			header_down -X-Frame-Options
+			header_down -Content-Security-Policy
+		}
+	}
+
+	# 5. Default: Custom Branded Portal Homepage
+	handle {
+		header Cache-Control "no-store, no-cache, must-revalidate"
+		root * /usr/share/caddy
+		try_files {path} /index.html
+		file_server
+	}
 }

@@ -68,17 +68,22 @@ fi
 mkdir -p "$PROJECT_DIR/data/shared_games"
 echo "[OK] Shared games directory ready at data/shared_games (Mounted :ro into containers)"
 
-# 5. Ensure Per-User Named Volume Exists
+# 5. Pre-pull Core Container Stack
 if ! docker volume inspect ryoku-user-storage >/dev/null 2>&1; then
   docker volume create ryoku-user-storage
-  echo "[OK] Created isolated per-user storage volume: ryoku-user-storage"
+  echo "[OK] Created isolated Wolf app-state volume: ryoku-user-storage"
 fi
 
-# 6. Pre-pull Core Container Stack
 echo "[INFO] Pre-pulling Games on Whales Wolf server, Moonlight Web, Steam, & Heroic..."
 docker compose pull
-docker pull ghcr.io/games-on-whales/steam:edge
-docker pull ghcr.io/games-on-whales/heroic-games-launcher:edge
+
+# Pull the pinned amd64 manifests directly to avoid GHCR attestation stalls.
+STEAM_DIGEST="sha256:5a2db53cf9ea5d6022b3adb8338a9711c7192225e40f9c61dee5608823dce8fc"
+HEROIC_DIGEST="sha256:35f691df044acb051d81bd7a3ecb43e947409a69eeb885d6b84f6fcf14d61824"
+docker pull "ghcr.io/games-on-whales/steam@${STEAM_DIGEST}"
+docker tag "ghcr.io/games-on-whales/steam@${STEAM_DIGEST}" ghcr.io/games-on-whales/steam:edge
+docker pull "ghcr.io/games-on-whales/heroic-games-launcher@${HEROIC_DIGEST}"
+docker tag "ghcr.io/games-on-whales/heroic-games-launcher@${HEROIC_DIGEST}" ghcr.io/games-on-whales/heroic-games-launcher:edge
 
 echo ""
 echo "========================================================================"
@@ -88,5 +93,5 @@ echo "Start the cloud gaming platform:"
 echo "  docker compose up -d"
 echo ""
 echo "Play via Web Browser (Moonlight Web):"
-echo "  Open: http://localhost:8080   (or http://100.89.198.41:8080 over Tailscale)"
+echo "  Open: https://play.vanshdev.online to sign in or create a local account."
 echo "========================================================================"

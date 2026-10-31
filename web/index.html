@@ -3,31 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ryoku Cloud Gaming | vanshdev.online</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <title>Ryoku | Cloud Games</title>
+  <link rel="stylesheet" href="/portal.css?v=simple-white-1">
 </head>
 <body>
   <!-- Top Navigation Bar -->
   <header class="navbar">
     <div class="nav-container">
-      <div class="brand">
-        <span class="brand-badge">CLOUD</span>
-        <span class="brand-title">RYOKU</span>
-        <span class="domain-pill">vanshdev.online</span>
-      </div>
+      <div class="brand"><span class="brand-title">Ryoku</span></div>
       
       <div class="system-status">
-        <div class="status-indicator">
+        <div class="status-indicator" id="node-status-pill">
           <span class="status-dot pulse"></span>
-          <span class="status-text">RTX 4060 NODE ONLINE</span>
+          <span class="status-text" id="node-status-text">Online</span>
         </div>
+        <a href="#library" class="nav-btn-stream hidden" id="browse-games-link">Games</a>
         <div class="user-chip">
-          <span class="user-avatar">P</span>
-          <span class="user-name">Player 1</span>
+          <span class="user-avatar">V</span>
+          <span class="user-name" id="account-name">Player account</span>
         </div>
+        <a href="#" class="nav-btn-stream hidden" id="sign-out-link">Sign out</a>
       </div>
     </div>
   </header>
@@ -36,95 +31,77 @@
   <main class="main-content">
     <section class="hero-section">
       <div class="hero-text">
-        <h1 class="hero-title">High-Performance Cloud Gaming</h1>
-        <p class="hero-subtitle">Stream full PC games directly inside your web browser with low-latency NVENC hardware acceleration.</p>
-      </div>
-      <div class="hero-specs">
-        <div class="spec-card">
-          <span class="spec-label">GPU</span>
-          <span class="spec-val">RTX 4060 (NVENC)</span>
-        </div>
-        <div class="spec-card">
-          <span class="spec-label">STREAMING</span>
-          <span class="spec-val">WebCodecs + WASM</span>
-        </div>
-        <div class="spec-card">
-          <span class="spec-label">STORAGE</span>
-          <span class="spec-val">Shared Master (RO)</span>
-        </div>
+        <h1 class="hero-title">Cloud games</h1>
       </div>
     </section>
 
-    <!-- Game Library Grid -->
-    <section class="library-section">
+    <section id="sign-in-panel" class="sign-in-panel" aria-labelledby="sign-in-title">
+      <div class="sign-in-copy">
+        <h2 id="sign-in-title">Sign in</h2>
+        <p>Sign in or create an account to play.</p>
+      </div>
+      <form id="local-auth-form" class="local-auth-form">
+        <label for="auth-username">Username</label>
+        <input id="auth-username" name="username" type="text" minlength="3" maxlength="32" pattern="[A-Za-z0-9_-]{3,32}" autocomplete="username" required>
+        <label for="auth-password">Password</label>
+        <input id="auth-password" name="password" type="password" minlength="12" maxlength="128" autocomplete="current-password" required>
+        <button id="auth-submit" class="btn btn-primary" type="submit">Sign In</button>
+        <button id="auth-mode-toggle" class="btn btn-outline" type="button">Create an account</button>
+        <p id="sign-in-status" class="sign-in-status" role="status" aria-live="polite">New passwords need at least 12 characters.</p>
+      </form>
+    </section>
+
+    <section id="admin-panel" class="admin-panel hidden" aria-labelledby="admin-title">
       <div class="section-header">
-        <h2>Available Cloud Launchers</h2>
-        <span class="library-count">3 Launchers Ready</span>
+        <div>
+          <h2 id="admin-title">Accounts</h2>
+          <p class="section-subtitle">Registered accounts</p>
+        </div>
+        <button id="admin-refresh" class="btn btn-outline" type="button">Refresh list</button>
+      </div>
+      <p id="admin-status" class="admin-status" role="status" aria-live="polite"></p>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Username</th><th>Account ID</th><th>Role</th><th>Created</th></tr></thead>
+          <tbody id="admin-account-list"></tbody>
+        </table>
+      </div>
+    </section>
+
+  <div id="session-notice" class="session-notice hidden" role="status" aria-live="polite"></div>
+
+  <!-- Game Library Grid -->
+    <section class="library-section hidden" id="library">
+      <div class="section-header">
+        <div>
+          <h2>Games</h2>
+        </div>
+        <span class="library-count" id="launcher-count">2 launchers</span>
       </div>
 
       <div class="grid-container">
         <!-- Steam Card -->
-        <div class="game-card" data-app-name="Steam Cloud Gaming" data-app-type="steam">
-          <div class="card-media steam-bg">
-            <div class="card-overlay">
-              <span class="badge badge-accent">Valve Steam</span>
-            </div>
-          </div>
+        <div class="game-card" data-app-name="Steam" data-app-type="steam">
           <div class="card-body">
-            <h3 class="card-title">Steam Cloud Gaming</h3>
-            <p class="card-desc">Full Steam client in an isolated Sway Wayland sandbox. Play your Steam library with shared storage and private cloud saves.</p>
-            <div class="card-tags">
-              <span class="tag">Proton 9.0</span>
-              <span class="tag">Isolated Saves</span>
-              <span class="tag">Read-Only Common</span>
-            </div>
-            <button class="btn btn-primary launch-btn" onclick="launchGame('Steam Cloud Gaming')">
-              Play in Browser
+            <h3 class="card-title">Steam</h3>
+            <p class="card-desc">Open Steam in your private player profile.</p>
+            <button class="btn btn-primary launch-btn" onclick="launchGame('Steam')">
+              Open Steam
             </button>
           </div>
         </div>
 
         <!-- Heroic Games Launcher Card -->
-        <div class="game-card" data-app-name="Heroic Games Launcher (Epic & GOG)" data-app-type="heroic">
-          <div class="card-media heroic-bg">
-            <div class="card-overlay">
-              <span class="badge badge-heroic">Epic & GOG</span>
-            </div>
-          </div>
+        <div class="game-card" data-app-name="Heroic Games Launcher" data-app-type="heroic">
           <div class="card-body">
             <h3 class="card-title">Heroic Games Launcher</h3>
-            <p class="card-desc">Access your Epic Games Store and GOG libraries. Includes cloud sync, Wine/Proton runners, and shared game asset mounting.</p>
-            <div class="card-tags">
-              <span class="tag">Epic Games</span>
-              <span class="tag">GOG Galaxy</span>
-              <span class="tag">Anti-Tamper RO</span>
-            </div>
-            <button class="btn btn-primary launch-btn" onclick="launchGame('Heroic Games Launcher (Epic & GOG)')">
-              Play in Browser
+            <p class="card-desc">Open Epic and GOG games in your private profile.</p>
+            <button class="btn btn-primary launch-btn" onclick="launchGame('Heroic Games Launcher')">
+              Open Heroic
             </button>
           </div>
         </div>
 
-        <!-- Diagnostic Stream Test Card -->
-        <div class="game-card" data-app-name="Test ball" data-app-type="test">
-          <div class="card-media test-bg">
-            <div class="card-overlay">
-              <span class="badge badge-test">Diagnostic</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <h3 class="card-title">Stream Benchmark</h3>
-            <p class="card-desc">Instantaneous video/audio test pattern directly from NVENC encoder. Test in-browser WebCodecs decoding and controller latency.</p>
-            <div class="card-tags">
-              <span class="tag">60 FPS</span>
-              <span class="tag">Zero Download</span>
-              <span class="tag">Gamepad Test</span>
-            </div>
-            <button class="btn btn-secondary launch-btn" onclick="launchGame('Test ball')">
-              Launch Diagnostic
-            </button>
-          </div>
-        </div>
       </div>
     </section>
   </main>
@@ -137,19 +114,16 @@
         <span id="active-game-title" class="stream-title">Streaming Session</span>
       </div>
       <div class="stream-controls">
-        <button class="ctrl-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶ Fullscreen</button>
-        <button class="ctrl-btn btn-exit" onclick="closeStream()" title="Exit Stream">✕ Exit Game</button>
+        <a id="stream-popout-btn" href="/stream" target="_blank" class="ctrl-btn">Open in new tab</a>
+        <button class="ctrl-btn" onclick="toggleFullscreen()">Fullscreen</button>
+        <button class="ctrl-btn" onclick="closeStream()">Exit</button>
       </div>
     </div>
     <div class="stream-viewport">
-      <iframe id="moonlight-frame" src="" allow="gamepad; fullscreen; microphone; autoplay"></iframe>
+      <iframe id="moonlight-frame" src="" allow="gamepad; fullscreen; microphone; autoplay; clipboard-write; clipboard-read"></iframe>
     </div>
   </div>
 
-  <footer class="footer">
-    <p>Powered by <strong>Ryoku Cloud Architecture</strong> | Self-Hosted on Arch Linux (CachyOS) & NVIDIA RTX 4060 | <code>vanshdev.online</code></p>
-  </footer>
-
-  <script src="app.js"></script>
+  <script src="/portal.js?v=simple-white-1"></script>
 </body>
 </html>
