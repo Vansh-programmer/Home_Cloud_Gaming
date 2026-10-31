@@ -1,0 +1,16 @@
+{
+  "name": "Ryoku Cloud Gaming",
+  "short_name": "Ryoku",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08090a",
+  "theme_color": "#08090a",
+  "icons": [
+    {
+      "src": "/portal-assets/ryoku-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

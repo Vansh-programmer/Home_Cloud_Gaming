@@ -15,10 +15,12 @@
   <iframe id="stream-frame" src="/stream" title="Ryoku game stream"
     allow="gamepad; fullscreen; microphone; autoplay; clipboard-write; clipboard-read"
     allowfullscreen></iframe>
-  <script src="/stream-branding.js?v=1"></script>
+  <script src="/portal-assets/stream-branding.js?v=2"></script>
   <script>
     const frame = document.getElementById('stream-frame');
-    frame.addEventListener('load', () => window.applyRyokuStreamBranding(frame));
+    const applyBranding = () => window.applyRyokuStreamBranding(frame);
+    frame.addEventListener('load', applyBranding);
+    if (frame.contentDocument?.readyState === 'complete') applyBranding();
   </script>
 </body>
 </html>
