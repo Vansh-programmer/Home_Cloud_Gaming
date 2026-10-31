@@ -68,6 +68,35 @@ function clearNotice() {
   sessionNotice.classList.remove('error');
 }
 
+function setClearStreamDefaults() {
+  const settingsKey = 'mw-streaming-settings';
+  const configuredKey = 'ryoku-low-latency-default-v2';
+  try {
+    if (localStorage.getItem(configuredKey) === '1') return;
+    const stored = JSON.parse(localStorage.getItem(settingsKey) || '{}');
+    const settings = stored && typeof stored === 'object' && !Array.isArray(stored) ? stored : {};
+    const has1080p60Quality = settings.stream_resolution === 'fixed'
+      && Number(settings.stream_height) >= 1080
+      && Number(settings.stream_fps) >= 60;
+    if (!has1080p60Quality) {
+      Object.assign(settings, {
+        stream_resolution: 'fixed',
+        stream_height: 1080,
+        stream_bitrate: 20000,
+        stream_fps: 60
+      });
+    }
+    Object.assign(settings, {
+      stream_bitrate_auto: true,
+      video_enhancement: 'off'
+    });
+    localStorage.setItem(settingsKey, JSON.stringify(settings));
+    localStorage.setItem(configuredKey, '1');
+  } catch (_error) {
+    // MoonlightWeb still loads with its own settings if browser storage is unavailable.
+  }
+}
+
 async function loadAccount() {
   try {
     const response = await fetch(CONFIG.accountUrl, { cache: 'no-store', credentials: 'same-origin' });
@@ -262,6 +291,7 @@ async function launchGame(appName) {
 
   activeGameTitle.textContent = `Select ${appName} in the stream menu`;
   modal.classList.remove('hidden');
+  setClearStreamDefaults();
   streamFrame.src = CONFIG.streamUrl;
   setTimeout(() => {
     try {
