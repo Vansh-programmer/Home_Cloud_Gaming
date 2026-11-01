@@ -81,6 +81,7 @@ base_create_json = """
       "SYS_ADMIN",
       "SYS_PTRACE"
     ],
+    "SecurityOpt": ["seccomp=unconfined"],
     "DeviceCgroupRules": [
       "c 13:* rmw"
     ]

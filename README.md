@@ -116,10 +116,7 @@ Run the provisioning script to check the host GPU setup, create the persistent a
 No identity provider or payment configuration is required. New players can register directly on the portal. Local accounts and password hashes are persisted in the `ryoku-access-state` volume.
 
 ### Step 4: Enable Automatic Startup
-```bash
-./deploy/enable_autostart.sh
-```
-This installs and enables a user systemd service. It starts the gaming stack at boot without a desktop login and waits for Docker to become ready.
+The one-command installer enables the system-level `ryoku-cloud-gaming.service`, which starts the gaming stack at boot without a desktop login and retries if startup fails. For a manual setup, use `./deploy/enable_autostart.sh` to install the equivalent lingering user service.
 
 ### Step 5: Play Games
 * **In Web Browser**: Open `https://play.vanshdev.online` and create a local player account or sign in.

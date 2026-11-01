@@ -2,13 +2,16 @@ services:
   # ============================================================================
   # 1. WOLF // CLOUD GAMING STREAMING SERVER & ORCHESTRATOR
   # ============================================================================
+  # Core services use on-failure so Docker does not start them out of Compose
+  # dependency order during daemon boot. autostart.sh starts them after config
+  # seeding and health dependencies have completed.
   # Modern Games on Whales GameStream engine with native NVIDIA Container Toolkit.
   # Spawns isolated game containers (Steam / Heroic) on demand.
   # ============================================================================
   wolf:
     image: ghcr.io/games-on-whales/wolf:stable
     container_name: ryoku-cloud-server
-    restart: unless-stopped
+    restart: on-failure
     network_mode: host
     depends_on:
       wolf-config:
@@ -63,7 +66,7 @@ services:
   moonlight-web:
     image: ghcr.io/linckosz/moonlight-web:latest
     container_name: ryoku-moonlight-web
-    restart: unless-stopped
+    restart: on-failure
     network_mode: host
     depends_on:
       access-gate:
@@ -100,7 +103,7 @@ services:
     build:
       context: ./deploy/access-gate
     container_name: ryoku-access-gate
-    restart: unless-stopped
+    restart: on-failure
     network_mode: host
     environment:
       - WOLF_WEB_CLIENT_ID=${WOLF_WEB_CLIENT_ID:-14944261881562049900}
@@ -136,7 +139,7 @@ services:
   gateway:
     image: caddy:alpine
     container_name: ryoku-gateway
-    restart: unless-stopped
+    restart: on-failure
     network_mode: host
     depends_on:
       access-gate:

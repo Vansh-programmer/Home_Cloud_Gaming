@@ -116,6 +116,7 @@
         <div>
           <p class="eyebrow">GAME LIBRARY</p>
           <h2 id="library-title">Choose a launcher</h2>
+          <p class="section-hint">The stream menu opens next. Select the matching launcher there. To switch launchers, quit the current app, choose End session above, then select the other launcher here.</p>
         </div>
         <span class="library-count" id="launcher-count">2 launchers</span>
       </div>
@@ -128,7 +129,7 @@
           <div class="card-body">
             <h3 class="card-title">Steam</h3>
             <p class="card-desc">Your Steam library</p>
-            <button class="btn btn-primary launch-btn" onclick="launchGame('Steam')">Open Steam <span aria-hidden="true">→</span></button>
+            <button class="btn btn-primary launch-btn" onclick="launchGame('Steam')">Open stream menu <span aria-hidden="true">→</span></button>
           </div>
         </article>
 
@@ -139,7 +140,7 @@
           <div class="card-body">
             <h3 class="card-title">Heroic</h3>
             <p class="card-desc">Epic and GOG games</p>
-            <button class="btn btn-primary launch-btn" onclick="launchGame('Heroic Games Launcher')">Open Heroic <span aria-hidden="true">→</span></button>
+            <button class="btn btn-primary launch-btn" onclick="launchGame('Heroic Games Launcher')">Open stream menu <span aria-hidden="true">→</span></button>
           </div>
         </article>
       </div>
@@ -159,7 +160,7 @@
       <div class="stream-controls">
         <a id="stream-popout-btn" href="/play.html" target="_blank" rel="noopener" class="ctrl-btn">New tab</a>
         <button class="ctrl-btn" onclick="toggleFullscreen()">Fullscreen</button>
-        <button class="ctrl-btn ctrl-btn-exit" onclick="closeStream()">Exit</button>
+        <button class="ctrl-btn ctrl-btn-exit" onclick="closeStream()">End session</button>
       </div>
     </div>
     <div class="stream-viewport">

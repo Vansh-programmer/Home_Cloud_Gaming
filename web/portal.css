@@ -80,6 +80,7 @@ a { color: inherit; }
 
 .section-header { margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .section-header .eyebrow { margin-bottom: 5px; }
+.section-hint { max-width: 600px; margin: 6px 0 0; color: var(--muted); font-size: 0.78rem; }
 .library-section { margin-bottom: 32px; }
 .library-count { padding: 5px 9px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted-dark); background: #fff; font-size: 0.73rem; white-space: nowrap; }
 .grid-container { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }

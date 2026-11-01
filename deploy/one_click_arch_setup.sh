@@ -114,6 +114,8 @@ After=network-online.target docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+Restart=on-failure
+RestartSec=15
 TimeoutStartSec=180
 User=$RUN_USER
 SupplementaryGroups=docker
