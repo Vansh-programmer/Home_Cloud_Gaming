@@ -29,6 +29,7 @@
           cache: 'no-store'
         });
         if (!response.ok) {
+          sessionEnded = true;
           window.clearInterval(sessionHeartbeat);
           frame.src = 'about:blank';
           document.title = 'Ryoku | Session ended';
@@ -37,6 +38,12 @@
         // Keep the stream open during a brief network interruption.
       }
     }, 20000);
+    let sessionEnded = false;
+    window.addEventListener('pagehide', () => {
+      if (!sessionEnded) {
+        fetch('/api/session/release', { method: 'POST', credentials: 'same-origin', keepalive: true }).catch(() => {});
+      }
+    });
   </script>
 </body>
 </html>

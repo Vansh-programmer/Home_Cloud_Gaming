@@ -26,7 +26,6 @@ services:
       - WOLF_WAYLAND_SOCKET_WAIT_TIMEOUT_MS=10000
       - HOST_APPS_STATE_FOLDER=/var/lib/ryoku-user-storage
     volumes:
-      - ./wolf/config:/etc/wolf:rw
       - user-storage:/var/lib/ryoku-user-storage:rw
       - wolf-runtime:/run/user/wolf
       - /var/run/docker.sock:/var/run/docker.sock:rw
@@ -54,6 +53,8 @@ services:
       context: ./deploy/wolf-config
     container_name: ryoku-wolf-config
     restart: "no"
+    environment:
+      - HOST_SHARED_GAMES_PATH=${PWD}/data/shared_games
     volumes:
       - ./wolf/config/cfg:/source:ro
       - user-storage:/data

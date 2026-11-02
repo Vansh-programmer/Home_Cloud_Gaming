@@ -40,7 +40,6 @@ if ! command -v nvidia-ctk >/dev/null 2>&1; then
     sudo pacman -S --needed --noconfirm nvidia-container-toolkit
     sudo nvidia-ctk runtime configure --runtime=docker
     sudo systemctl restart docker
-    sudo chmod 666 /var/run/docker.sock
     echo "[OK] NVIDIA Container Toolkit installed and Docker configured."
   else
     echo "[ERROR] Please run manually: sudo pacman -S nvidia-container-toolkit && sudo nvidia-ctk runtime configure --runtime=docker && sudo systemctl restart docker"

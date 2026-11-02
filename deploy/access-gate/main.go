@@ -80,18 +80,20 @@ type rateLimitBucket struct {
 }
 
 var (
-	leaseMu        sync.Mutex
-	accountMu      sync.Mutex
-	rateMu         sync.Mutex
-	lease          *playerLease
-	leaseLoaded    bool
-	accounts       map[string]localAccount
-	accountsLoaded bool
-	rateLimits     = make(map[string]rateLimitBucket)
-	httpClient     = &http.Client{Timeout: 5 * time.Second}
-	validSessionID = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
-	validUsername  = regexp.MustCompile(`^[a-zA-Z0-9_-]{3,32}$`)
-	validAccountID = regexp.MustCompile(`^[a-f0-9]{64}$`)
+	leaseMu         sync.Mutex
+	accountMu       sync.Mutex
+	rateMu          sync.Mutex
+	lease           *playerLease
+	leaseLoaded     bool
+	accounts        map[string]localAccount
+	accountsLoaded  bool
+	accountsModTime time.Time
+	accountsSize    int64
+	rateLimits      = make(map[string]rateLimitBucket)
+	httpClient      = &http.Client{Timeout: 5 * time.Second}
+	validSessionID  = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
+	validUsername   = regexp.MustCompile(`^[a-zA-Z0-9_-]{3,32}$`)
+	validAccountID  = regexp.MustCompile(`^[a-f0-9]{64}$`)
 )
 
 func main() {
@@ -179,7 +181,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	accountMu.Unlock()
-	createAuthSession(w, account)
+	createAuthSession(w, r, account)
 }
 
 // createAccountCommand provisions an account offline from JSON on stdin. It is
@@ -282,6 +284,7 @@ func setAccountPasswordCommand() error {
 		accounts[username] = previous
 		return fmt.Errorf("could not save account: %w", err)
 	}
+	revokeAccountAuthSessions(account.ID)
 	_, err := fmt.Fprintf(os.Stdout, "Password updated for %s\n", account.Username)
 	return err
 }
@@ -319,7 +322,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "username or password is incorrect", http.StatusUnauthorized)
 		return
 	}
-	createAuthSession(w, account)
+	createAuthSession(w, r, account)
 }
 
 func decodeCredentials(w http.ResponseWriter, r *http.Request) (accountCredentials, bool) {
@@ -335,7 +338,7 @@ func decodeCredentials(w http.ResponseWriter, r *http.Request) (accountCredentia
 	return credentials, true
 }
 
-func createAuthSession(w http.ResponseWriter, account localAccount) {
+func createAuthSession(w http.ResponseWriter, r *http.Request, account localAccount) {
 	token, err := randomToken(32)
 	if err != nil {
 		http.Error(w, "could not create sign-in session", http.StatusInternalServerError)
@@ -348,7 +351,7 @@ func createAuthSession(w http.ResponseWriter, account localAccount) {
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name: "ryoku_auth", Value: token, Path: "/", MaxAge: int(authDuration.Seconds()),
-		HttpOnly: true, Secure: true, SameSite: http.SameSiteStrictMode,
+		HttpOnly: true, Secure: cookieSecure(r), SameSite: http.SameSiteStrictMode,
 	})
 	w.Header().Set("Cache-Control", "no-store")
 	writeJSON(w, http.StatusOK, map[string]string{"username": account.Username, "role": account.Role})
@@ -366,16 +369,22 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	stoppedLease := false
 	if claims != nil {
 		leaseMu.Lock()
 		if loadLeaseLocked() == nil && lease != nil && lease.AccountID == accountID(claims.AccountID) && leaseIsActive() {
 			lease = nil
 			_ = persistLeaseLocked()
+			stoppedLease = true
 		}
 		leaseMu.Unlock()
 	}
+	if stoppedLease {
+		stopWolfClientSession()
+	}
+	secure := cookieSecure(r)
 	for _, name := range []string{"ryoku_auth", "ryoku_session"} {
-		http.SetCookie(w, &http.Cookie{Name: name, Value: "", Path: "/", MaxAge: -1, HttpOnly: true, Secure: true, SameSite: http.SameSiteStrictMode})
+		http.SetCookie(w, &http.Cookie{Name: name, Value: "", Path: "/", MaxAge: -1, HttpOnly: true, Secure: secure, SameSite: http.SameSiteStrictMode})
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -496,7 +505,7 @@ func verifyStreamHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "player session state unavailable", http.StatusServiceUnavailable)
 		return
 	}
-	setSessionCookie(w, cookieValue(r))
+	setSessionCookie(w, r, cookieValue(r))
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -564,7 +573,7 @@ func adminSessionHandler(w http.ResponseWriter, r *http.Request) {
 	accountMu.Lock()
 	if err := loadAccountsLocked(); err == nil {
 		for _, account := range accounts {
-			if account.ID == activeAccountID {
+			if account.ID == activeAccountID || accountID(account.ID) == activeAccountID {
 				username = account.Username
 				break
 			}
@@ -586,17 +595,20 @@ func adminEndSessionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	leaseMu.Lock()
-	defer leaseMu.Unlock()
 	if err := loadLeaseLocked(); err != nil {
+		leaseMu.Unlock()
 		http.Error(w, "player session state unavailable", http.StatusServiceUnavailable)
 		return
 	}
 	if lease == nil || !leaseIsActive() {
 		lease = nil
 		if err := persistLeaseLocked(); err != nil {
+			leaseMu.Unlock()
 			http.Error(w, "could not end player session", http.StatusServiceUnavailable)
 			return
 		}
+		leaseMu.Unlock()
+		stopWolfClientSession()
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
@@ -604,9 +616,12 @@ func adminEndSessionHandler(w http.ResponseWriter, r *http.Request) {
 	lease = nil
 	if err := persistLeaseLocked(); err != nil {
 		lease = previousLease
+		leaseMu.Unlock()
 		http.Error(w, "could not end player session", http.StatusServiceUnavailable)
 		return
 	}
+	leaseMu.Unlock()
+	stopWolfClientSession()
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -650,6 +665,9 @@ func acquireHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
+		if lease != nil && lease.AccountID != accountID {
+			stopWolfClientSession()
+		}
 		if err := prepareProfileHome(profileHome); err != nil {
 			http.Error(w, "could not prepare the private player storage", http.StatusServiceUnavailable)
 			return
@@ -664,7 +682,7 @@ func acquireHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not save player session state", http.StatusServiceUnavailable)
 		return
 	}
-	setSessionCookie(w, body.SessionID)
+	setSessionCookie(w, r, body.SessionID)
 	w.Header().Set("Cache-Control", "no-store")
 	writeJSON(w, http.StatusOK, map[string]string{"username": claims.Username})
 }
@@ -697,7 +715,7 @@ func heartbeatHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not save player session state", http.StatusServiceUnavailable)
 		return
 	}
-	setSessionCookie(w, cookieValue(r))
+	setSessionCookie(w, r, cookieValue(r))
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -715,29 +733,61 @@ func releaseHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "sign-in required", http.StatusUnauthorized)
 		return
 	}
+	stoppedLease := false
 	leaseMu.Lock()
-	defer leaseMu.Unlock()
 	if err := loadLeaseLocked(); err != nil {
+		leaseMu.Unlock()
 		http.Error(w, "player session state unavailable", http.StatusServiceUnavailable)
 		return
 	}
 	if leaseMatchesRequest(r, claims) {
 		lease = nil
 		if err := persistLeaseLocked(); err != nil {
+			leaseMu.Unlock()
 			http.Error(w, "could not save player session state", http.StatusServiceUnavailable)
 			return
 		}
+		stoppedLease = true
 	}
-	http.SetCookie(w, &http.Cookie{Name: "ryoku_session", Value: "", Path: "/", MaxAge: -1, HttpOnly: true, Secure: true, SameSite: http.SameSiteStrictMode})
+	leaseMu.Unlock()
+	if stoppedLease {
+		stopWolfClientSession()
+	}
+	http.SetCookie(w, &http.Cookie{Name: "ryoku_session", Value: "", Path: "/", MaxAge: -1, HttpOnly: true, Secure: cookieSecure(r), SameSite: http.SameSiteStrictMode})
 	w.WriteHeader(http.StatusNoContent)
 }
 
 func sameOriginRequest(r *http.Request) bool {
+	origin := strings.TrimRight(strings.TrimSpace(r.Header.Get("Origin")), "/")
+	if origin == "" {
+		return false
+	}
 	expected := strings.TrimRight(strings.TrimSpace(os.Getenv("RYOKU_SITE_ORIGIN")), "/")
 	if expected == "" {
 		expected = "https://play.vanshdev.online"
 	}
-	return strings.TrimRight(r.Header.Get("Origin"), "/") == expected
+	if origin == expected {
+		return true
+	}
+	return origin == "http://localhost" || origin == "http://127.0.0.1"
+}
+
+func cookieSecure(r *http.Request) bool {
+	origin := strings.TrimRight(strings.TrimSpace(r.Header.Get("Origin")), "/")
+	if origin == "http://localhost" || origin == "http://127.0.0.1" {
+		return false
+	}
+	host := strings.TrimSpace(r.Header.Get("X-Forwarded-Host"))
+	if host == "" {
+		host = strings.TrimSpace(r.Host)
+	}
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+	if (host == "localhost" || host == "127.0.0.1") && r.Header.Get("X-Forwarded-Proto") != "https" {
+		return false
+	}
+	return true
 }
 
 func authenticatedClaims(r *http.Request) (*playerIdentity, error) {
@@ -760,15 +810,22 @@ func accountDatabasePath() string {
 }
 
 func loadAccountsLocked() error {
-	if accountsLoaded {
-		return nil
-	}
-	accounts = make(map[string]localAccount)
-	content, err := os.ReadFile(accountDatabasePath())
-	if errors.Is(err, os.ErrNotExist) {
+	path := accountDatabasePath()
+	info, statErr := os.Stat(path)
+	if errors.Is(statErr, os.ErrNotExist) {
+		accounts = make(map[string]localAccount)
 		accountsLoaded = true
+		accountsModTime = time.Time{}
+		accountsSize = 0
 		return nil
 	}
+	if statErr != nil {
+		return statErr
+	}
+	if accountsLoaded && info.ModTime().Equal(accountsModTime) && info.Size() == accountsSize {
+		return nil
+	}
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
@@ -776,6 +833,7 @@ func loadAccountsLocked() error {
 	if err := json.Unmarshal(content, &stored); err != nil {
 		return err
 	}
+	loaded := make(map[string]localAccount, len(stored))
 	for _, account := range stored {
 		salt, saltErr := base64.RawURLEncoding.DecodeString(account.Salt)
 		hash, hashErr := base64.RawURLEncoding.DecodeString(account.PasswordHash)
@@ -789,13 +847,16 @@ func loadAccountsLocked() error {
 			return errors.New("invalid local account role")
 		}
 		username := strings.ToLower(account.Username)
-		if _, exists := accounts[username]; exists {
+		if _, exists := loaded[username]; exists {
 			return errors.New("duplicate local account database entry")
 		}
 		account.Username = username
-		accounts[username] = account
+		loaded[username] = account
 	}
+	accounts = loaded
 	accountsLoaded = true
+	accountsModTime = info.ModTime()
+	accountsSize = info.Size()
 	return nil
 }
 
@@ -816,7 +877,14 @@ func persistAccountsLocked() error {
 	if err := os.WriteFile(temporary, content, 0600); err != nil {
 		return err
 	}
-	return os.Rename(temporary, path)
+	if err := os.Rename(temporary, path); err != nil {
+		return err
+	}
+	if info, err := os.Stat(path); err == nil {
+		accountsModTime = info.ModTime()
+		accountsSize = info.Size()
+	}
+	return nil
 }
 
 func passwordKey(password string, salt []byte) []byte {
@@ -868,12 +936,11 @@ func allowRequest(r *http.Request, purpose string, limit int, window time.Durati
 }
 
 func requestIP(r *http.Request) string {
-	for _, candidate := range []string{
-		r.Header.Get("CF-Connecting-IP"),
-		lastForwardedIP(r.Header.Get("X-Forwarded-For")),
-	} {
-		if address, err := netip.ParseAddr(strings.TrimSpace(candidate)); err == nil {
-			return address.Unmap().String()
+	if cookieSecure(r) {
+		if cfRay := strings.TrimSpace(r.Header.Get("CF-Ray")); cfRay != "" {
+			if address, err := netip.ParseAddr(strings.TrimSpace(r.Header.Get("CF-Connecting-IP"))); err == nil {
+				return address.Unmap().String()
+			}
 		}
 	}
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
@@ -885,18 +952,10 @@ func requestIP(r *http.Request) string {
 	return "unknown"
 }
 
-func lastForwardedIP(value string) string {
-	parts := strings.Split(value, ",")
-	if len(parts) == 0 {
-		return ""
-	}
-	return strings.TrimSpace(parts[len(parts)-1])
-}
-
-func updateWolfAppHome(profileHome string) error {
+func wolfUnixClient() (*http.Client, string, error) {
 	clientID := strings.TrimSpace(os.Getenv("WOLF_WEB_CLIENT_ID"))
 	if !regexp.MustCompile(`^[0-9]+$`).MatchString(clientID) {
-		return errors.New("WOLF_WEB_CLIENT_ID must be a numeric Wolf client id")
+		return nil, "", errors.New("WOLF_WEB_CLIENT_ID must be a numeric Wolf client id")
 	}
 	socketPath := strings.TrimSpace(os.Getenv("WOLF_SOCKET_PATH"))
 	if socketPath == "" {
@@ -905,7 +964,62 @@ func updateWolfAppHome(profileHome string) error {
 	transport := &http.Transport{DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 		return (&net.Dialer{Timeout: 3 * time.Second}).DialContext(ctx, "unix", socketPath)
 	}}
-	client := &http.Client{Transport: transport, Timeout: 5 * time.Second}
+	return &http.Client{Transport: transport, Timeout: 5 * time.Second}, clientID, nil
+}
+
+func stopWolfClientSession() {
+	client, clientID, err := wolfUnixClient()
+	if err != nil {
+		return
+	}
+	listReq, err := http.NewRequest(http.MethodGet, "http://wolf/api/v1/sessions", nil)
+	if err != nil {
+		return
+	}
+	listResp, err := client.Do(listReq)
+	if err != nil {
+		return
+	}
+	listBody, _ := io.ReadAll(io.LimitReader(listResp.Body, 64*1024))
+	_ = listResp.Body.Close()
+	var sessionList struct {
+		Sessions []struct {
+			ClientID string `json:"client_id"`
+		} `json:"sessions"`
+	}
+	if json.Unmarshal(listBody, &sessionList) != nil {
+		return
+	}
+	found := false
+	for _, s := range sessionList.Sessions {
+		if s.ClientID == clientID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return
+	}
+	body, err := json.Marshal(map[string]string{"session_id": clientID})
+	if err != nil {
+		return
+	}
+	stopReq, err := http.NewRequest(http.MethodPost, "http://wolf/api/v1/sessions/stop", strings.NewReader(string(body)))
+	if err != nil {
+		return
+	}
+	stopReq.Header.Set("Content-Type", "application/json")
+	stopResp, err := client.Do(stopReq)
+	if err == nil {
+		_ = stopResp.Body.Close()
+	}
+}
+
+func updateWolfAppHome(profileHome string) error {
+	client, clientID, err := wolfUnixClient()
+	if err != nil {
+		return err
+	}
 	body, err := json.Marshal(map[string]any{
 		"client_id":        clientID,
 		"app_state_folder": profileHome,
@@ -1040,7 +1154,7 @@ func leasePath() string {
 	return "/var/lib/ryoku-access/session.json"
 }
 
-func setSessionCookie(w http.ResponseWriter, value string) {
+func setSessionCookie(w http.ResponseWriter, r *http.Request, value string) {
 	if value == "" {
 		return
 	}
@@ -1050,7 +1164,7 @@ func setSessionCookie(w http.ResponseWriter, value string) {
 		Path:     "/",
 		MaxAge:   int(leaseDuration.Seconds()),
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   cookieSecure(r),
 		SameSite: http.SameSiteStrictMode,
 	})
 }
@@ -1071,15 +1185,43 @@ func authCookieValue(r *http.Request) string {
 	return cookie.Value
 }
 
-func authSessionPath(token string) string {
+func authSessionDir() string {
 	base := strings.TrimSpace(os.Getenv("RYOKU_AUTH_SESSION_DIR"))
 	if base == "" {
 		base = "/var/lib/ryoku-access/auth-sessions"
 	}
-	return filepath.Join(base, digest(token)+".json")
+	return base
+}
+
+func authSessionPath(token string) string {
+	return filepath.Join(authSessionDir(), digest(token)+".json")
+}
+
+func revokeAccountAuthSessions(targetAccountID string) {
+	dir := authSessionDir()
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
+	}
+	now := time.Now().Unix()
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
+			continue
+		}
+		fullPath := filepath.Join(dir, entry.Name())
+		content, err := os.ReadFile(fullPath)
+		if err != nil {
+			continue
+		}
+		var s authSession
+		if json.Unmarshal(content, &s) != nil || s.ExpiresAt <= now || (targetAccountID != "" && s.AccountID == targetAccountID) {
+			_ = os.Remove(fullPath)
+		}
+	}
 }
 
 func saveAuthSession(token string, session authSession) error {
+	revokeAccountAuthSessions("")
 	path := authSessionPath(token)
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return err
@@ -1099,7 +1241,8 @@ func loadAuthSession(token string) (*authSession, error) {
 	if !regexp.MustCompile(`^[A-Za-z0-9_-]{40,64}$`).MatchString(token) {
 		return nil, errors.New("invalid sign-in session")
 	}
-	content, err := os.ReadFile(authSessionPath(token))
+	path := authSessionPath(token)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -1111,6 +1254,7 @@ func loadAuthSession(token string) (*authSession, error) {
 		session.Role = "player"
 	}
 	if !validAccountID.MatchString(session.AccountID) || !validUsername.MatchString(session.Username) || (session.Role != "admin" && session.Role != "player") || session.ExpiresAt <= time.Now().Unix() {
+		_ = os.Remove(path)
 		return nil, errors.New("expired or invalid sign-in session")
 	}
 	return &session, nil

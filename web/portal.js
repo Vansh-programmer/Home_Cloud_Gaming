@@ -413,6 +413,16 @@ function closeStream() {
   if (video && homepageVideoVisible && !document.hidden) video.play().catch(() => {});
 }
 
+document.getElementById('stream-popout-btn')?.addEventListener('click', () => {
+  sessionActive = false;
+  if (sessionHeartbeat) clearInterval(sessionHeartbeat);
+  sessionHeartbeat = null;
+  if (modal) modal.classList.add('hidden');
+  if (streamFrame) streamFrame.src = 'about:blank';
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  showNotice('Stream opened in a new tab. Close that tab when finished to release your session.');
+});
+
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
     const target = modal || streamFrame;

@@ -198,12 +198,10 @@ isolated Wayland session, GPU/device access, and the shared read-only mount.
 
 ## 7. Host startup and service recovery
 
-The host uses two systemd scopes:
+The host uses system systemd services:
 
 1. `docker.service` is a system service and must be enabled at boot.
-2. `ryoku-cloud-gaming.service` is a user `systemd --user` oneshot service. The
-   installer enables lingering for the user so the user service manager can
-   start without a desktop login. Its `ExecStart` runs `autostart.sh start`.
+2. `ryoku-cloud-gaming.service` is a system oneshot service (`/etc/systemd/system/ryoku-cloud-gaming.service`) installed by `deploy/one_click_arch_setup.sh` (with `deploy/enable_autostart.sh` available as a lingering user-service alternative). Its `ExecStart` runs `autostart.sh start` headlessly on boot without requiring a desktop login.
 3. `autostart.sh` waits for Docker (up to 90 seconds), checks the NVIDIA driver
    and input-device nodes, then runs `docker compose up -d` and waits for the
    local gateway health endpoint.
@@ -211,11 +209,11 @@ The host uses two systemd scopes:
    online and reconnects on failure. It forwards `play.vanshdev.online` and
    `vanshdev.online` to local Caddy.
 
-Core Compose services use `restart: unless-stopped`, so Docker can recover
-them after daemon restart. Initialization containers use a `no` restart policy
-because Compose runs them as dependencies when needed. Game containers are
-on-demand and are not expected to auto-launch at machine boot; players sign in
-and choose a launcher after the platform is online.
+Core Compose services use `restart: on-failure`, so Docker does not start them
+out of Compose dependency order during daemon boot before initialization
+containers (`wolf-config`, `moonlight-config`) and `access-gate` complete.
+Game containers are on-demand and are not expected to auto-launch at machine
+boot; players sign in and choose a launcher after the platform is online.
 
 Useful operational commands:
 
@@ -223,7 +221,7 @@ Useful operational commands:
 ./autostart.sh status
 docker compose ps
 curl -s http://127.0.0.1/api/health
-systemctl --user status ryoku-cloud-gaming.service
+systemctl status ryoku-cloud-gaming.service
 systemctl status ryoku-cloudflare-tunnel.service
 ```
 

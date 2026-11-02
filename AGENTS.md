@@ -136,7 +136,7 @@ Agents modifying this repository must respect the following known failure modes:
 
 | Service Unit | Scope | Role |
 | :--- | :--- | :--- |
-| `ryoku-cloud-gaming.service` | User (`~/.config/systemd/user/`) | Runs `./autostart.sh start` on system boot. Linger is enabled (`loginctl enable-linger vansh`) so it runs headlessly without graphical login. |
+| `ryoku-cloud-gaming.service` | System (`/etc/systemd/system/`) | Runs `./autostart.sh start` on system boot as user `vansh` with `SupplementaryGroups=docker` without requiring graphical login. |
 | `ryoku-cloudflare-tunnel.service` | System (`/etc/systemd/system/`) | Maintains persistent outbound Cloudflare Tunnel connection (`vansh-cloud-gaming`). |
 
 ---

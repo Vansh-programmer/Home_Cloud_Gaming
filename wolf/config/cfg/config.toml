@@ -194,7 +194,6 @@ DJyWmZSmHPlK9sKqOp5unH7YgZ1MbnLmxmbMwj9uKwbt5BoKclzkpuyZS/+WxZm9
 id = 'moonlight-profile-id'
 
     [[profiles.apps]]
-    icon_png_path = 'https://raw.githubusercontent.com/games-on-whales/wolf/refs/heads/stable/docs/images/steam_icon.png'
     start_virtual_compositor = true
     title = 'Steam Cloud Gaming'
 
