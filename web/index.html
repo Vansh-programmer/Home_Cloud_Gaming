@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#ffffff">
-  <title>Ryoku | Cloud Gaming</title>
+  <meta name="theme-color" content="#050811">
+  <link rel="icon" href="/portal-assets/ryoku-mark.svg" type="image/svg+xml">
+  <link rel="manifest" href="/portal-assets/ryoku-manifest.webmanifest">
+  <title>Ryoku PS5 UI</title>
   <script>
     (() => {
       const url = new URL(window.location.href);
@@ -20,167 +22,193 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="/portal.css?v=ui-4">
+  <link rel="stylesheet" href="/portal.css?v=ps5-1">
 </head>
-<body>
-  <header class="navbar">
-    <div class="nav-container">
-      <a class="brand" href="/" aria-label="Ryoku home">
-        <span class="brand-title">Ryoku</span>
-      </a>
+<body data-theme-accent="steam">
+  <!-- Full-Screen Dynamic PS5 Background Stage -->
+  <div class="ps5-backdrop" aria-hidden="true">
+    <video id="homepage-video" muted loop playsinline preload="none" poster="/portal-assets/homepage-poster.webp">
+      <source data-src="/portal-assets/homepage.mp4" type="video/mp4">
+    </video>
+    <div class="ps5-ambient-glow"></div>
+    <div class="ps5-vignette"></div>
+  </div>
 
-      <div class="system-status">
-        <div class="status-indicator" id="node-status-pill" role="status" aria-live="polite">
-          <span class="status-dot" aria-hidden="true"></span>
-          <span class="status-text" id="node-status-text">Checking status</span>
-        </div>
-        <a href="#library" class="nav-link hidden" id="browse-games-link">Games</a>
-        <div class="user-chip" aria-live="polite">
-          <span class="user-avatar" id="user-avatar" aria-hidden="true">P</span>
-          <span class="user-name" id="account-name">Signed out</span>
-        </div>
-        <button type="button" class="nav-link sign-out-link hidden" id="sign-out-link">Sign out</button>
+  <!-- PS5 Top Header Bar (Games | Media ... Status | Pad | Profile | Clock) -->
+  <header class="ps5-topbar">
+    <nav class="ps5-tabs" aria-label="Console categories">
+      <a href="#library" class="ps5-tab active" id="browse-games-link">Games</a>
+      <button type="button" class="ps5-tab hidden" id="admin-toggle-btn">System</button>
+    </nav>
+
+    <div class="ps5-status-cluster">
+      <div class="ps5-net-pill" id="node-status-pill" data-state="checking" role="status" aria-live="polite">
+        <span class="ps5-led" aria-hidden="true"></span>
+        <span id="node-status-text">Checking</span>
       </div>
+      <div class="hero-connection ps5-slot-pill" data-state="checking">
+        <span class="ps5-led" aria-hidden="true"></span>
+        <span id="hero-status-text">Syncing</span>
+      </div>
+      <div id="gamepad-status-pill" class="ps5-pad-pill" data-connected="false" title="Controller status">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M6 9h12l2 7-3 3-3-3H10l-3 3-3-3 2-7z"/>
+          <path d="M9 12v2M8 13h2M15 12.5h.01M17 13.5h.01"/>
+        </svg>
+      </div>
+      <div class="ps5-profile" aria-live="polite">
+        <span class="ps5-avatar" id="user-avatar" aria-hidden="true">P</span>
+        <span class="ps5-username" id="account-name">Guest</span>
+      </div>
+      <button type="button" class="ps5-icon-btn hidden" id="sign-out-link" title="Sign out">Sign Out</button>
+      <span class="ps5-clock" id="console-clock">00:00</span>
     </div>
   </header>
 
-  <main class="main-content">
-    <section class="hero-section" aria-labelledby="page-title">
-      <div class="hero-layout">
-        <div class="hero-copy">
-          <h1 class="hero-title" id="page-title">Your games, ready to play.</h1>
-          <p class="hero-subtitle">Steam and Heroic, streamed to your browser.</p>
-          <div class="hero-connection" data-state="checking">
-            <span class="status-dot" aria-hidden="true"></span>
-            <span id="hero-status-text">Checking connection</span>
+  <main class="ps5-stage">
+    <div id="session-notice" class="session-notice hidden" role="status" aria-live="polite"></div>
+
+    <!-- PS5 Profile Sign-In Overlay -->
+    <section id="sign-in-panel" class="ps5-auth-wrap" aria-labelledby="sign-in-title">
+      <div class="ps5-auth-card">
+        <div class="ps5-auth-head">
+          <span class="ps5-eyebrow">RYOKU SYSTEM</span>
+          <h1 id="sign-in-title">Sign In</h1>
+        </div>
+        <form id="local-auth-form" class="ps5-auth-form">
+          <div class="field-group">
+            <label for="auth-username">Username</label>
+            <input id="auth-username" name="username" type="text" minlength="3" maxlength="32" pattern="[A-Za-z0-9_-]{3,32}" autocomplete="username" placeholder="Username" required>
           </div>
-        </div>
-        <div class="hero-media">
-          <video id="homepage-video" muted loop playsinline preload="none"
-            poster="/portal-assets/homepage-poster.webp" aria-label="Ryoku cloud gaming preview">
-            <source data-src="/portal-assets/homepage.mp4" type="video/mp4">
-          </video>
-        </div>
+          <div class="field-group">
+            <label for="auth-password">Password</label>
+            <input id="auth-password" name="password" type="password" minlength="12" maxlength="128" autocomplete="current-password" placeholder="Password" aria-describedby="password-hint" required>
+            <span class="field-hint" id="password-hint">12+ characters</span>
+          </div>
+          <div class="auth-actions">
+            <button id="auth-submit" class="ps5-btn ps5-btn-primary" type="submit">Sign In</button>
+            <button id="auth-mode-toggle" class="ps5-btn ps5-btn-ghost" type="button">New User</button>
+          </div>
+          <p id="sign-in-status" class="sign-in-status" role="status" aria-live="polite"></p>
+        </form>
       </div>
     </section>
 
-    <section id="sign-in-panel" class="sign-in-panel" aria-labelledby="sign-in-title">
-      <div class="sign-in-copy">
-        <p class="eyebrow">PLAYER ACCOUNT</p>
-        <h2 id="sign-in-title">Sign in to play</h2>
-        <p>Access your private gaming profile.</p>
+    <!-- Admin Overlay Drawer -->
+    <section id="admin-panel" class="ps5-admin-drawer hidden" aria-labelledby="admin-title">
+      <div class="admin-header">
+        <h2 id="admin-title">System Sessions &amp; Users</h2>
+        <button id="admin-refresh" class="ps5-btn ps5-btn-ghost" type="button">Refresh</button>
       </div>
-      <form id="local-auth-form" class="local-auth-form">
-        <div class="field-group">
-          <label for="auth-username">Username</label>
-          <input id="auth-username" name="username" type="text" minlength="3" maxlength="32" pattern="[A-Za-z0-9_-]{3,32}" autocomplete="username" placeholder="Username" required>
-        </div>
-        <div class="field-group">
-          <label for="auth-password">Password</label>
-          <input id="auth-password" name="password" type="password" minlength="12" maxlength="128" autocomplete="current-password" placeholder="Password" aria-describedby="password-hint" required>
-          <span class="field-hint" id="password-hint">12 characters minimum for new accounts.</span>
-        </div>
-        <div class="auth-actions">
-          <button id="auth-submit" class="btn btn-primary" type="submit">Sign in</button>
-          <button id="auth-mode-toggle" class="btn btn-secondary" type="button">Create account</button>
-        </div>
-        <p id="sign-in-status" class="sign-in-status" role="status" aria-live="polite">Sign in with your player account.</p>
-      </form>
-    </section>
-
-    <section id="admin-panel" class="admin-panel hidden" aria-labelledby="admin-title">
-      <div class="section-header">
-        <div>
-          <p class="eyebrow">ADMIN</p>
-          <h2 id="admin-title">Player accounts</h2>
-        </div>
-        <button id="admin-refresh" class="btn btn-secondary" type="button">Refresh</button>
+      <div class="admin-session-row">
+        <p id="admin-session-status" class="admin-session-status" role="status" aria-live="polite">Checking</p>
+        <button id="admin-end-session" class="ps5-btn ps5-btn-danger hidden" type="button">End Session</button>
       </div>
       <p id="admin-status" class="admin-status" role="status" aria-live="polite"></p>
-      <div class="admin-session-row">
-        <p id="admin-session-status" class="admin-session-status" role="status" aria-live="polite">Checking game session…</p>
-        <button id="admin-end-session" class="btn btn-danger hidden" type="button">End active session</button>
-      </div>
       <div class="admin-table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Username</th><th>Account ID</th><th>Role</th><th>Created</th></tr></thead>
+          <thead><tr><th>User</th><th>ID</th><th>Role</th><th>Created</th></tr></thead>
           <tbody id="admin-account-list"></tbody>
         </table>
       </div>
     </section>
 
-    <div id="session-notice" class="session-notice hidden" role="status" aria-live="polite"></div>
-
-    <section class="library-section hidden" id="library" aria-labelledby="library-title">
-      <div class="section-header library-header">
-        <div>
-          <p class="eyebrow">GAME LIBRARY</p>
-          <h2 id="library-title">Choose a launcher</h2>
-          <p class="section-hint">Select a launcher to open your stream directly. To switch launchers, quit the current app, choose End session above, then select the other launcher here.</p>
+    <!-- PS5 Home Screen (Top-Left Tile Row + Bottom-Left Hub) -->
+    <section class="ps5-home hidden" id="library" aria-labelledby="spotlight-title">
+      <!-- Iconic PS5 Top-Left Horizontal Tile Bar -->
+      <div class="ps5-tile-row" role="listbox" aria-label="Installed launchers">
+        <div class="ps5-tile-item">
+          <article class="console-blade ps5-tile active" role="option" aria-selected="true" tabindex="0"
+            data-tile-index="0"
+            data-accent="steam"
+            data-app-name="Steam"
+            data-title="Steam"
+            data-index="PS5 // CLOUD"
+            data-badge="BIG PICTURE"
+            data-env="RTX 4060"
+            data-desc="Steam Big Picture">
+            <img src="/portal-assets/steam.svg" alt="Steam">
+          </article>
+          <span class="ps5-tile-label">Steam</span>
         </div>
-        <div class="library-controls" aria-label="Stream settings">
-          <label class="stream-setting">
-            <span>Quality</span>
-            <select id="stream-preset-select">
-              <option value="1080p60">1080p 60 FPS · 20 Mbps</option>
-              <option value="1080p60-hq">1080p 60 FPS · 35 Mbps</option>
-              <option value="1080p120">1080p 120 FPS · 35 Mbps</option>
-              <option value="1440p60">1440p 60 FPS · 45 Mbps</option>
-              <option value="720p60">720p 60 FPS · 10 Mbps</option>
-            </select>
-          </label>
-          <label class="stream-setting">
-            <span>Codec</span>
-            <select id="stream-codec-select">
-              <option value="auto">Auto (HEVC / H.264)</option>
-              <option value="hevc">HEVC (H.265)</option>
-              <option value="av1">AV1 (RTX 4060)</option>
-              <option value="h264">H.264</option>
-            </select>
-          </label>
+
+        <div class="ps5-tile-item">
+          <article class="console-blade ps5-tile" role="option" aria-selected="false" tabindex="0"
+            data-tile-index="1"
+            data-accent="heroic"
+            data-app-name="Heroic Games Launcher"
+            data-title="Heroic Launcher"
+            data-index="PS5 // CLOUD"
+            data-badge="EPIC &amp; GOG"
+            data-env="RTX 4060"
+            data-desc="Epic Games &amp; GOG">
+            <img src="/portal-assets/heroic.png" alt="Heroic">
+          </article>
+          <span class="ps5-tile-label">Heroic Launcher</span>
         </div>
       </div>
 
-      <div class="grid-container">
-        <article class="game-card" data-app-name="Steam" data-app-type="steam">
-          <div class="launcher-image launcher-image-steam">
-            <img src="/portal-assets/steam.svg" alt="" aria-hidden="true" loading="lazy">
-          </div>
-          <div class="card-body">
-            <h3 class="card-title">Steam</h3>
-            <p class="card-desc">Your Steam library</p>
-            <button class="btn btn-primary launch-btn" onclick="launchGame('Steam')">Launch Steam <span aria-hidden="true">→</span></button>
-          </div>
-        </article>
+      <!-- PS5 Bottom-Left Game Hub Action Area -->
+      <div class="ps5-hub">
+        <div class="ps5-hub-meta">
+          <span class="ps5-tag" id="spotlight-badge">BIG PICTURE</span>
+          <span class="ps5-sub" id="spotlight-desc">Steam Big Picture</span>
+          <span class="hidden" id="spotlight-index"></span>
+          <span class="hidden" id="spotlight-env"></span>
+        </div>
+        <h1 class="ps5-game-title" id="spotlight-title">Steam</h1>
 
-        <article class="game-card" data-app-name="Heroic Games Launcher" data-app-type="heroic">
-          <div class="launcher-image launcher-image-heroic">
-            <img src="/portal-assets/heroic.png" alt="" aria-hidden="true" loading="lazy">
+        <div class="ps5-action-row">
+          <button id="spotlight-launch-btn" class="ps5-play-btn" type="button" onclick="launchSelectedTile()">
+            Play
+          </button>
+
+          <div class="ps5-quick-settings" aria-label="Stream settings">
+            <label class="ps5-select-box">
+              <span>Quality</span>
+              <select id="stream-preset-select">
+                <option value="1080p60">1080p 60</option>
+                <option value="1080p60-hq">1080p 60 HQ</option>
+                <option value="1080p120">1080p 120</option>
+                <option value="1440p60">1440p 60</option>
+                <option value="720p60">720p 60</option>
+              </select>
+            </label>
+            <label class="ps5-select-box">
+              <span>Codec</span>
+              <select id="stream-codec-select">
+                <option value="auto">Auto</option>
+                <option value="hevc">HEVC</option>
+                <option value="av1">AV1</option>
+                <option value="h264">H.264</option>
+              </select>
+            </label>
           </div>
-          <div class="card-body">
-            <h3 class="card-title">Heroic</h3>
-            <p class="card-desc">Epic and GOG games</p>
-            <button class="btn btn-primary launch-btn" onclick="launchGame('Heroic Games Launcher')">Launch Heroic <span aria-hidden="true">→</span></button>
-          </div>
-        </article>
+        </div>
       </div>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="footer-inner"><span>Ryoku Cloud Gaming</span></div>
+  <!-- PS5 Bottom Controller Legend -->
+  <footer class="ps5-bottombar">
+    <div class="ps5-prompts">
+      <span><kbd>←</kbd><kbd>→</kbd> Select</span>
+      <span><kbd>Enter</kbd> Play</span>
+      <span><kbd>Esc</kbd> Exit Stream</span>
+    </div>
   </footer>
 
+  <!-- Full-Screen Stream Modal -->
   <div id="stream-modal" class="stream-modal hidden" role="dialog" aria-modal="true" aria-label="Game stream">
     <div class="stream-bar">
       <div class="stream-info">
-        <span class="status-dot stream-dot" aria-hidden="true"></span>
-        <span id="active-game-title" class="stream-title">Select a game in the stream menu</span>
+        <span class="ps5-led stream-led" aria-hidden="true"></span>
+        <span id="active-game-title" class="stream-title">Steam</span>
       </div>
       <div class="stream-controls">
-        <a id="stream-popout-btn" href="/play.html" target="_blank" rel="noopener" class="ctrl-btn">New tab</a>
-        <button class="ctrl-btn" onclick="toggleFullscreen()">Fullscreen</button>
-        <button class="ctrl-btn ctrl-btn-exit" onclick="closeStream()">End session</button>
+        <a id="stream-popout-btn" href="/play.html" target="_blank" rel="noopener" class="ctrl-btn">New Tab</a>
+        <button class="ctrl-btn" type="button" onclick="toggleFullscreen()">Fullscreen</button>
+        <button class="ctrl-btn ctrl-btn-exit" type="button" onclick="closeStream()">Close</button>
       </div>
     </div>
     <div class="stream-viewport">
@@ -189,6 +217,6 @@
   </div>
 
   <script src="/portal-assets/stream-branding.js?v=3"></script>
-  <script src="/portal.js?v=ui-4"></script>
+  <script src="/portal.js?v=ps5-1"></script>
 </body>
 </html>

@@ -55,6 +55,17 @@ const authSubmit = document.getElementById('auth-submit');
 const authModeToggle = document.getElementById('auth-mode-toggle');
 const streamPresetSelect = document.getElementById('stream-preset-select');
 const streamCodecSelect = document.getElementById('stream-codec-select');
+const gamepadStatusPill = document.getElementById('gamepad-status-pill');
+const adminToggleBtn = document.getElementById('admin-toggle-btn');
+const consoleClock = document.getElementById('console-clock');
+const spotlightIndex = document.getElementById('spotlight-index');
+const spotlightBadge = document.getElementById('spotlight-badge');
+const spotlightTitle = document.getElementById('spotlight-title');
+const spotlightDesc = document.getElementById('spotlight-desc');
+const spotlightEnv = document.getElementById('spotlight-env');
+const spotlightLaunchBtn = document.getElementById('spotlight-launch-btn');
+const consoleBlades = Array.from(document.querySelectorAll('.console-blade'));
+let selectedTileIndex = 0;
 let sessionId = null;
 let sessionHeartbeat = null;
 let sessionActive = false;
@@ -191,14 +202,62 @@ function setSignedIn(isSignedIn, username = '', role = 'player') {
   gameLibrary?.classList.toggle('hidden', !isSignedIn);
   signOutLink?.classList.toggle('hidden', !isSignedIn);
   browseGamesLink?.classList.toggle('hidden', !isSignedIn);
-  adminPanel?.classList.toggle('hidden', !isSignedIn || role !== 'admin');
-  if (accountName) accountName.textContent = isSignedIn ? `${username}${role === 'admin' ? ' · Admin' : ''}` : 'Signed out';
+  const isAdmin = isSignedIn && role === 'admin';
+  adminToggleBtn?.classList.toggle('hidden', !isAdmin);
+  if (!isAdmin) adminPanel?.classList.add('hidden');
+  if (accountName) accountName.textContent = isSignedIn ? `${username}${role === 'admin' ? ' // ADMIN' : ''}` : 'LOCKED';
   if (userAvatar) userAvatar.textContent = isSignedIn ? (username.trim().charAt(0) || 'P') : 'P';
-  if (isSignedIn && role === 'admin') {
+  if (isAdmin) {
     loadAdminAccounts();
     loadAdminSession();
   }
 }
+
+adminToggleBtn?.addEventListener('click', () => {
+  if (!adminPanel) return;
+  const hidden = adminPanel.classList.toggle('hidden');
+  if (!hidden) {
+    loadAdminAccounts();
+    loadAdminSession();
+  }
+});
+
+function selectTile(index) {
+  if (!consoleBlades.length) return;
+  selectedTileIndex = (index + consoleBlades.length) % consoleBlades.length;
+  consoleBlades.forEach((blade, idx) => {
+    const isActive = idx === selectedTileIndex;
+    blade.classList.toggle('active', isActive);
+    blade.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    if (isActive) {
+      if (blade.dataset.accent) document.body.dataset.themeAccent = blade.dataset.accent;
+      if (spotlightIndex && blade.dataset.index) spotlightIndex.textContent = blade.dataset.index;
+      if (spotlightBadge && blade.dataset.badge) spotlightBadge.textContent = blade.dataset.badge;
+      if (spotlightTitle && blade.dataset.title) spotlightTitle.textContent = blade.dataset.title;
+      if (spotlightDesc && blade.dataset.desc) spotlightDesc.textContent = blade.dataset.desc;
+      if (spotlightEnv && blade.dataset.env) spotlightEnv.textContent = blade.dataset.env;
+      if (spotlightLaunchBtn) {
+        spotlightLaunchBtn.textContent = 'Play';
+      }
+    }
+  });
+}
+
+function launchSelectedTile() {
+  const activeBlade = consoleBlades[selectedTileIndex];
+  const appName = activeBlade?.dataset.appName || 'Steam';
+  launchGame(appName);
+}
+
+consoleBlades.forEach((blade, idx) => {
+  blade.addEventListener('click', () => selectTile(idx));
+  blade.addEventListener('dblclick', () => {
+    selectTile(idx);
+    launchSelectedTile();
+  });
+  blade.addEventListener('focus', () => selectTile(idx));
+});
+selectTile(0);
 
 async function loadAdminAccounts() {
   if (!adminAccountList || !adminStatus) return;
@@ -278,14 +337,14 @@ function setSignInStatus(message) {
 function setAuthMode(mode) {
   authMode = mode;
   const creatingAccount = mode === 'register';
-  if (authSubmit) authSubmit.textContent = creatingAccount ? 'Create Account' : 'Sign In';
-  if (authModeToggle) authModeToggle.textContent = creatingAccount ? 'Back to sign in' : 'Create an account';
+  if (authSubmit) authSubmit.textContent = creatingAccount ? 'CREATE PROFILE' : 'AUTHENTICATE';
+  if (authModeToggle) authModeToggle.textContent = creatingAccount ? 'EXISTING PROFILE' : 'NEW PROFILE';
   const signInTitle = document.getElementById('sign-in-title');
-  if (signInTitle) signInTitle.textContent = creatingAccount ? 'Create your account' : 'Sign in to play';
+  if (signInTitle) signInTitle.textContent = creatingAccount ? 'PROVISION PROFILE' : 'UNLOCK CONSOLE';
   if (authPassword) authPassword.autocomplete = creatingAccount ? 'new-password' : 'current-password';
   setSignInStatus(creatingAccount
-    ? 'Choose a 3-32 character username and a password with at least 12 characters.'
-    : 'Sign in with your local player account.');
+    ? 'SPECIFY 3-32 CHAR CALLSIGN AND 12+ CHAR PASSKEY.'
+    : 'READY FOR OPERATOR INPUT.');
 }
 
 async function submitLocalAuth(event) {
@@ -470,9 +529,25 @@ function toggleFullscreen() {
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && modal && !modal.classList.contains('hidden') && !document.fullscreenElement) {
     closeStream();
+    return;
   }
   if (event.ctrlKey && event.altKey && event.shiftKey && event.key.toLowerCase() === 'q') {
     closeStream();
+    return;
+  }
+  const activeTag = document.activeElement?.tagName;
+  if (activeTag === 'INPUT' || activeTag === 'SELECT' || activeTag === 'TEXTAREA') return;
+  if (!gameLibrary || gameLibrary.classList.contains('hidden')) return;
+  if (modal && !modal.classList.contains('hidden')) return;
+  if (event.key === 'ArrowLeft') {
+    event.preventDefault();
+    selectTile(selectedTileIndex - 1);
+  } else if (event.key === 'ArrowRight') {
+    event.preventDefault();
+    selectTile(selectedTileIndex + 1);
+  } else if (event.key === 'Enter' && document.activeElement?.tagName !== 'BUTTON') {
+    event.preventDefault();
+    launchSelectedTile();
   }
 });
 
@@ -488,21 +563,21 @@ async function checkHostHealth() {
     const state = !online ? 'offline' : (busyOther ? 'busy' : 'online');
     if (statusText) {
       statusText.textContent = !online
-        ? 'Offline'
-        : (busyOther ? `Busy · ${rttMs} ms` : `Online · ${rttMs} ms`);
+        ? 'NODE OFFLINE'
+        : (busyOther ? `BUSY // ${rttMs} MS` : `ONLINE // ${rttMs} MS`);
     }
     if (heroStatusText) {
       heroStatusText.textContent = !online
-        ? 'Portal offline'
+        ? 'LINK OFFLINE'
         : (busyOther
-          ? `Server in use · ${rttMs} ms ping`
-          : (data.you ? `Active session · ${rttMs} ms ping` : `Slot available · ${rttMs} ms ping`));
+          ? `SLOT LOCKED // ${rttMs} MS`
+          : (data.you ? `ACTIVE LEASE // ${rttMs} MS` : `SLOT READY // ${rttMs} MS`));
     }
     if (statusPill) statusPill.dataset.state = state;
     if (heroConnection) heroConnection.dataset.state = state;
   } catch (_error) {
-    if (statusText) statusText.textContent = 'Status unavailable';
-    if (heroStatusText) heroStatusText.textContent = 'Connection unavailable';
+    if (statusText) statusText.textContent = 'TELEMETRY LOST';
+    if (heroStatusText) heroStatusText.textContent = 'LINK OFFLINE';
     if (statusPill) statusPill.dataset.state = 'offline';
     if (heroConnection) heroConnection.dataset.state = 'offline';
   }
@@ -527,6 +602,61 @@ window.addEventListener('pagehide', () => {
     fetch(CONFIG.releaseUrl, { method: 'POST', credentials: 'same-origin', keepalive: true }).catch(() => {});
   }
 });
+
+function updateGamepadStatus() {
+  if (!gamepadStatusPill || typeof navigator.getGamepads !== 'function') return;
+  try {
+    const pads = Array.from(navigator.getGamepads() || []).filter(Boolean);
+    gamepadStatusPill.dataset.connected = pads.length > 0 ? 'true' : 'false';
+  } catch (_error) {
+    // Ignore gamepad query errors.
+  }
+}
+
+let lastPadNavAt = 0;
+function pollGamepadConsoleNav() {
+  if (typeof navigator.getGamepads === 'function'
+      && gameLibrary && !gameLibrary.classList.contains('hidden')
+      && (!modal || modal.classList.contains('hidden'))) {
+    try {
+      const pad = Array.from(navigator.getGamepads() || []).find(Boolean);
+      const now = performance.now();
+      if (pad && now - lastPadNavAt > 240) {
+        const leftPressed = pad.buttons?.[14]?.pressed || (pad.axes?.[0] ?? 0) < -0.6;
+        const rightPressed = pad.buttons?.[15]?.pressed || (pad.axes?.[0] ?? 0) > 0.6;
+        const aPressed = pad.buttons?.[0]?.pressed;
+        if (leftPressed) {
+          selectTile(selectedTileIndex - 1);
+          lastPadNavAt = now;
+        } else if (rightPressed) {
+          selectTile(selectedTileIndex + 1);
+          lastPadNavAt = now;
+        } else if (aPressed) {
+          lastPadNavAt = now + 600;
+          launchSelectedTile();
+        }
+      }
+    } catch (_error) {
+      // Ignore gamepad read errors.
+    }
+  }
+  requestAnimationFrame(pollGamepadConsoleNav);
+}
+
+function updateConsoleClock() {
+  if (!consoleClock) return;
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const mins = String(now.getMinutes()).padStart(2, '0');
+  consoleClock.textContent = `${hours}:${mins}`;
+}
+
+window.addEventListener('gamepadconnected', updateGamepadStatus);
+window.addEventListener('gamepaddisconnected', updateGamepadStatus);
+updateGamepadStatus();
+updateConsoleClock();
+setInterval(updateConsoleClock, 10000);
+requestAnimationFrame(pollGamepadConsoleNav);
 
 loadAccount();
 checkHostHealth();

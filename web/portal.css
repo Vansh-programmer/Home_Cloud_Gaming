@@ -1,175 +1,765 @@
 :root {
-  color-scheme: light;
-  --page: #f6f7f8;
-  --surface: #ffffff;
-  --surface-soft: #f1f2f3;
-  --border: #e2e5e8;
-  --border-strong: #cbd0d5;
-  --text: #191b1e;
-  --muted: #707780;
-  --muted-dark: #4d545c;
-  --primary: #202327;
-  --primary-hover: #393e44;
-  --success: #337553;
-  --danger: #a33d3d;
-  --radius: 12px;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+  --ps5-bg: #050811;
+  --ps5-glass: rgba(14, 21, 38, 0.72);
+  --ps5-glass-strong: rgba(10, 15, 28, 0.88);
+  --ps5-border: rgba(255, 255, 255, 0.14);
+  --ps5-focus: #ffffff;
+  --ps5-blue: #0070d1;
+  --ps5-glow: rgba(0, 112, 209, 0.42);
+  --text: #f8fafc;
+  --text-dim: rgba(248, 250, 252, 0.64);
+  --text-muted: rgba(248, 250, 252, 0.42);
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-* { box-sizing: border-box; }
-html { min-width: 320px; scroll-behavior: smooth; }
-body { min-height: 100vh; margin: 0; display: flex; flex-direction: column; color: var(--text); background: var(--page); line-height: 1.5; }
-button, input, select { font: inherit; }
-a { color: inherit; }
-.hidden { display: none !important; }
-
-.navbar { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); background: #fff; }
-.nav-container { width: min(100% - 48px, 1120px); min-height: 66px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
-.brand { color: var(--text); text-decoration: none; }
-.brand-title { font-size: 1.02rem; font-weight: 680; letter-spacing: -0.035em; }
-.system-status { display: flex; align-items: center; gap: 20px; }
-.status-indicator { display: inline-flex; align-items: center; gap: 8px; color: var(--muted-dark); font-size: 0.81rem; white-space: nowrap; }
-.status-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #aeb5bc; }
-[data-state="online"] .status-dot { background: var(--success); }
-[data-state="busy"] .status-dot { background: #c27d28; }
-[data-state="offline"] .status-dot { background: var(--danger); }
-.nav-link { color: var(--muted-dark); font-size: 0.85rem; text-decoration: none; }
-.nav-link:hover { color: var(--text); }
-.user-chip { min-width: 0; display: inline-flex; align-items: center; gap: 8px; }
-.user-avatar { width: 29px; height: 29px; flex: 0 0 29px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: var(--surface-soft); color: var(--muted-dark); font-size: 0.75rem; font-weight: 650; text-transform: uppercase; }
-.user-name { max-width: 180px; overflow: hidden; color: var(--muted-dark); font-size: 0.83rem; text-overflow: ellipsis; white-space: nowrap; }
-.sign-out-link { min-height: 40px; padding: 5px 0 5px 16px; border: 0; border-left: 1px solid var(--border); background: transparent; text-align: left; cursor: pointer; }
-.sign-out-link:hover { color: var(--text); }
-
-.main-content { width: min(100% - 48px, 1040px); margin: 0 auto; padding: 30px 0 44px; flex: 1; }
-.hero-section { min-height: 320px; margin-bottom: 24px; padding: 28px 30px; display: flex; align-items: center; border: 1px solid var(--border); border-radius: 16px; background: linear-gradient(120deg, #fff 42%, #fafbfc 100%); box-shadow: 0 8px 24px rgba(20, 28, 36, 0.035); }
-.hero-layout { width: 100%; display: grid; grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr); align-items: center; gap: 36px; }
-.hero-copy { max-width: 660px; padding: 4px 0; }
-.hero-media { width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: #111; box-shadow: 0 10px 28px rgba(15, 20, 26, 0.12); }
-.hero-media video { width: 100%; height: 100%; display: block; object-fit: cover; }
-.hero-title { max-width: 410px; margin: 0; font-size: clamp(2.1rem, 4vw, 3.1rem); font-weight: 640; letter-spacing: -0.06em; line-height: 1.06; }
-.hero-subtitle { max-width: 340px; margin: 15px 0 23px; color: var(--muted); font-size: 0.94rem; line-height: 1.65; }
-.hero-connection { display: inline-flex; align-items: center; gap: 8px; color: var(--muted-dark); font-size: 0.78rem; }
-
-.sign-in-panel { margin: 0 auto 30px; padding: 25px 30px; display: grid; grid-template-columns: minmax(190px, 0.78fr) minmax(300px, 1.22fr); align-items: start; gap: clamp(28px, 7vw, 78px); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-.sign-in-copy { padding-top: 3px; }
-.eyebrow { margin: 0 0 7px; color: var(--muted); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.12em; }
-.sign-in-copy h2, .section-header h2 { margin: 0; font-size: 1.28rem; font-weight: 620; letter-spacing: -0.035em; }
-.sign-in-copy > p:not(.eyebrow) { margin: 8px 0 0; color: var(--muted); font-size: 0.86rem; }
-.local-auth-form { display: grid; gap: 13px; }
-.field-group { display: grid; gap: 6px; }
-.field-group label { color: var(--muted-dark); font-size: 0.8rem; font-weight: 580; }
-.local-auth-form input { width: 100%; min-height: 43px; padding: 9px 11px; border: 1px solid var(--border-strong); border-radius: 8px; outline: none; color: var(--text); background: #fff; font-size: 0.88rem; }
-.local-auth-form input::placeholder { color: #9ba2a9; }
-.local-auth-form input:focus { border-color: #727a82; box-shadow: 0 0 0 3px rgba(88, 98, 108, 0.1); }
-.field-hint { color: var(--muted); font-size: 0.72rem; }
-.auth-actions { margin-top: 1px; display: flex; align-items: center; gap: 9px; }
-.auth-actions .btn-primary { min-width: 112px; }
-.sign-in-status { min-height: 1.15em; margin: -5px 0 0; color: var(--muted); font-size: 0.75rem; }
-
-.btn { min-height: 39px; padding: 8px 13px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid transparent; border-radius: 8px; font-size: 0.83rem; font-weight: 570; text-align: center; text-decoration: none; cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease; }
-.btn:disabled { cursor: wait; opacity: 0.58; }
-.btn-primary { border-color: var(--primary); background: var(--primary); color: #fff; }
-.btn-primary:hover { border-color: var(--primary-hover); background: var(--primary-hover); }
-.btn-secondary { border-color: var(--border-strong); background: #fff; color: var(--text); }
-.btn-secondary:hover { background: var(--surface-soft); }
-:focus-visible { outline: 3px solid rgba(65, 77, 89, 0.28); outline-offset: 3px; }
-
-.section-header { margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.section-header .eyebrow { margin-bottom: 5px; }
-.section-hint { max-width: 600px; margin: 6px 0 0; color: var(--muted); font-size: 0.78rem; }
-.library-section { margin-bottom: 32px; }
-.library-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.stream-setting { display: inline-flex; align-items: center; gap: 7px; color: var(--muted-dark); font-size: 0.75rem; font-weight: 560; }
-.stream-setting select { min-height: 34px; padding: 5px 10px; border: 1px solid var(--border-strong); border-radius: 8px; background: #fff; color: var(--text); font-size: 0.77rem; cursor: pointer; }
-.library-count { padding: 5px 9px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted-dark); background: #fff; font-size: 0.73rem; white-space: nowrap; }
-.grid-container { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.game-card { min-height: 156px; padding: 18px; display: grid; grid-template-columns: 60px minmax(0, 1fr); align-items: center; gap: 17px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); transition: border-color 120ms ease, box-shadow 120ms ease; }
-.game-card:hover { border-color: var(--border-strong); box-shadow: 0 7px 19px rgba(20, 28, 36, 0.045); }
-.launcher-image { width: 60px; height: 60px; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: #f5f6f7; }
-.launcher-image img { width: 40px; height: 40px; display: block; object-fit: contain; }
-.launcher-image-steam img { filter: grayscale(1); }
-.launcher-image-heroic img { filter: grayscale(1); }
-.card-body { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
-.card-title { margin: 0; font-size: 1rem; font-weight: 620; letter-spacing: -0.025em; }
-.card-desc { margin: 3px 0 12px; color: var(--muted); font-size: 0.8rem; }
-.launch-btn { min-height: 36px; padding: 7px 11px; font-size: 0.78rem; }
-
-.session-notice { margin: 0 0 18px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--muted-dark); font-size: 0.82rem; }
-.session-notice.error { border-color: #e7caca; background: #fffafa; color: var(--danger); }
-.admin-panel { margin: 0 0 30px; padding: 21px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-.admin-status { min-height: 1.2em; color: var(--muted); font-size: 0.8rem; }
-.admin-session-row { margin: 0 0 16px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
-.admin-session-status { margin: 0; color: var(--muted-dark); font-size: 0.82rem; }
-.btn-danger { border-color: #e7caca; background: #fffafa; color: var(--danger); }
-.btn-danger:hover { border-color: #d9a5a5; background: #fff3f3; }
-.admin-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
-.admin-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.81rem; }
-.admin-table th, .admin-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-.admin-table tr:last-child td { border-bottom: 0; }
-.admin-table th { color: var(--muted); background: #fafbfc; font-size: 0.7rem; font-weight: 650; }
-.admin-table td:nth-child(2) { color: var(--muted-dark); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.74rem; }
-
-.site-footer { border-top: 1px solid var(--border); background: #fff; }
-.footer-inner { width: min(100% - 48px, 1040px); min-height: 48px; margin: 0 auto; display: flex; align-items: center; color: var(--muted); font-size: 0.72rem; }
-
-.stream-modal { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; background: #08090a; }
-.stream-modal.hidden { display: none; }
-.stream-bar { min-height: 56px; padding: 8px 14px 8px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border); background: #fff; }
-.stream-info { min-width: 0; display: flex; align-items: center; gap: 9px; }
-.stream-title { overflow: hidden; color: var(--text); font-size: 0.84rem; font-weight: 550; text-overflow: ellipsis; white-space: nowrap; }
-.stream-controls { display: flex; flex: 0 0 auto; gap: 7px; }
-.ctrl-btn { min-height: 35px; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border-strong); border-radius: 7px; background: #fff; color: var(--muted-dark); font-size: 0.76rem; text-decoration: none; cursor: pointer; }
-.ctrl-btn:hover { background: var(--surface-soft); color: var(--text); }
-.ctrl-btn-exit { color: #8d4141; }
-.stream-dot { background: var(--success); }
-.stream-viewport { width: 100%; min-height: 0; flex: 1; background: #08090a; }
-.stream-viewport iframe { width: 100%; height: 100%; border: 0; }
-
-@media (max-width: 720px) {
-  .nav-container, .main-content, .footer-inner { width: min(100% - 32px, 1040px); }
-  .hero-section { min-height: 260px; padding: 22px; }
-  .hero-layout { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 22px; }
-  .sign-in-panel { grid-template-columns: minmax(160px, 0.7fr) minmax(270px, 1.3fr); gap: 22px; padding: 21px; }
+* {
+  box-sizing: border-box;
+  border-radius: 0 !important;
 }
 
-@media (max-width: 560px) {
-  .nav-container { min-height: 58px; }
-  .system-status { gap: 10px; }
-  .status-indicator { gap: 6px; font-size: 0.73rem; }
-  .user-name { max-width: 80px; font-size: 0.76rem; }
-  #browse-games-link { display: none; }
-  .sign-out-link { min-height: 44px; padding-left: 10px; font-size: 0.76rem; touch-action: manipulation; }
-  .main-content { width: min(100% - 28px, 1040px); padding: 18px 0 32px; }
-  .hero-section { padding: 20px; }
-  .hero-layout { grid-template-columns: 1fr; gap: 18px; }
-  .hero-media { max-width: none; }
-  .hero-title { max-width: 320px; font-size: 2rem; }
-  .hero-subtitle { margin: 7px 0 12px; font-size: 0.82rem; }
-  .sign-in-panel { grid-template-columns: 1fr; gap: 17px; margin-bottom: 24px; padding: 19px; }
-  .sign-in-copy > p:not(.eyebrow) { margin-top: 4px; }
-  .local-auth-form { gap: 11px; }
-  .auth-actions { align-items: stretch; flex-direction: column; }
-  .auth-actions .btn { width: 100%; }
-  .section-header { align-items: flex-start; flex-direction: column; }
-  .library-controls { width: 100%; }
-  .stream-setting { flex: 1 1 100%; justify-content: space-between; }
-  .stream-setting select { flex: 1; }
-  .grid-container { grid-template-columns: 1fr; gap: 10px; }
-  .game-card { min-height: 132px; padding: 15px; grid-template-columns: 52px minmax(0, 1fr); gap: 13px; }
-  .launcher-image { width: 52px; height: 52px; }
-  .launcher-image img { width: 35px; height: 35px; }
-  .card-desc { margin-bottom: 9px; }
-  .footer-inner { width: min(100% - 28px, 1040px); min-height: 42px; }
-  .stream-bar { min-height: 52px; padding: 7px 9px; gap: 7px; }
-  .stream-controls { gap: 5px; }
-  .ctrl-btn { min-height: 33px; padding: 5px 7px; font-size: 0.71rem; }
+html, body {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: var(--ps5-bg);
+  color: var(--text);
+  overflow: hidden;
+  user-select: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+button, input, select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ============================================================================
+   PS5 DYNAMIC AMBIENT BACKDROP
+   ============================================================================ */
+.ps5-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: #04070f;
+}
+
+.ps5-backdrop video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.42;
+  filter: contrast(1.08) saturate(1.1);
+}
+
+.ps5-ambient-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 75% 25%, rgba(0, 112, 209, 0.28), transparent 55%),
+    radial-gradient(circle at 20% 80%, rgba(14, 165, 233, 0.16), transparent 50%);
+  transition: background 400ms ease;
+}
+
+body[data-theme-accent="heroic"] .ps5-ambient-glow {
+  background:
+    radial-gradient(circle at 75% 25%, rgba(56, 189, 248, 0.26), transparent 55%),
+    radial-gradient(circle at 20% 80%, rgba(245, 158, 11, 0.16), transparent 50%);
+}
+
+.ps5-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(4, 7, 15, 0.92) 0%, rgba(4, 7, 15, 0.48) 55%, rgba(4, 7, 15, 0.75) 100%),
+    linear-gradient(180deg, rgba(4, 7, 15, 0.82) 0%, transparent 25%, transparent 65%, rgba(4, 7, 15, 0.95) 100%);
+}
+
+/* ============================================================================
+   PS5 TOP HEADER BAR
+   ============================================================================ */
+.ps5-topbar {
+  position: relative;
+  z-index: 10;
+  padding: 28px 56px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ps5-tabs {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.ps5-tab {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.ps5-tab.active,
+.ps5-tab:hover {
+  color: var(--text);
+}
+
+.ps5-status-cluster {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.ps5-net-pill, .ps5-slot-pill {
+  height: 30px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--ps5-border);
+  background: var(--ps5-glass);
+  backdrop-filter: blur(12px);
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.ps5-led {
+  width: 7px;
+  height: 7px;
+  background: var(--text-muted);
+}
+
+[data-state="online"] .ps5-led {
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+
+[data-state="busy"] .ps5-led {
+  background: var(--warning);
+  box-shadow: 0 0 8px var(--warning);
+}
+
+[data-state="offline"] .ps5-led {
+  background: var(--danger);
+}
+
+.ps5-pad-pill {
+  width: 32px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ps5-border);
+  background: var(--ps5-glass);
+  color: var(--text-muted);
+}
+
+.ps5-pad-pill[data-connected="true"] {
+  border-color: rgba(255, 255, 255, 0.45);
+  color: var(--text);
+}
+
+.ps5-profile {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ps5-avatar {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  background: var(--ps5-blue);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ps5-username {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.ps5-icon-btn {
+  height: 30px;
+  padding: 0 11px;
+  border: 1px solid var(--ps5-border);
+  background: var(--ps5-glass);
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ps5-icon-btn:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.ps5-clock {
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================================
+   MAIN PS5 STAGE
+   ============================================================================ */
+.ps5-stage {
+  position: relative;
+  z-index: 5;
+  flex: 1;
+  padding: 28px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.session-notice {
+  position: absolute;
+  top: 16px;
+  right: 56px;
+  z-index: 25;
+  padding: 10px 16px;
+  border: 1px solid var(--ps5-border);
+  border-left: 3px solid var(--ps5-blue);
+  background: var(--ps5-glass-strong);
+  backdrop-filter: blur(16px);
+  font-size: 0.82rem;
+}
+
+.session-notice.error {
+  border-left-color: var(--danger);
+  color: #fecaca;
+}
+
+/* ============================================================================
+   PS5 SIGN-IN CARD
+   ============================================================================ */
+.ps5-auth-wrap {
+  margin: auto;
+  width: min(100%, 400px);
+}
+
+.ps5-auth-card {
+  padding: 32px;
+  border: 1px solid var(--ps5-border);
+  background: var(--ps5-glass-strong);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.65);
+}
+
+.ps5-eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.ps5-auth-head h1 {
+  margin: 0 0 22px;
+  font-size: 1.7rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.ps5-auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.field-group {
+  display: grid;
+  gap: 6px;
+}
+
+.field-group label {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+
+.ps5-auth-form input {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--ps5-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.ps5-auth-form input:focus {
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.field-hint {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.auth-actions {
+  margin-top: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ps5-btn {
+  height: 42px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease;
+}
+
+.ps5-btn-primary {
+  background: rgba(255, 255, 255, 0.92);
+  color: #050811;
+}
+
+.ps5-btn-primary:hover {
+  background: #ffffff;
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.45);
+}
+
+.ps5-btn-ghost {
+  border-color: var(--ps5-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.ps5-btn-ghost:hover {
+  border-color: var(--text);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ps5-btn-danger {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.18);
+  color: #fecaca;
+}
+
+.sign-in-status {
+  margin: 0;
+  min-height: 1.1em;
+  color: var(--text-dim);
+  font-size: 0.76rem;
+}
+
+/* ============================================================================
+   PS5 HOME SCREEN (TOP-LEFT TILE BAR + BOTTOM-LEFT HUB)
+   ============================================================================ */
+.ps5-home {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ps5-tile-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  min-height: 124px;
+}
+
+.ps5-tile-item {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.ps5-tile {
+  width: 78px;
+  height: 78px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  background: var(--ps5-glass-strong);
+  backdrop-filter: blur(16px);
+  cursor: pointer;
+  outline: none;
+  transition: width 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              height 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 200ms ease,
+              box-shadow 200ms ease;
+}
+
+.ps5-tile img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  transition: width 200ms ease, height 200ms ease;
+}
+
+.ps5-tile.active {
+  width: 112px;
+  height: 112px;
+  border-color: #ffffff;
+  box-shadow:
+    0 0 0 3px rgba(0, 112, 209, 0.65),
+    0 18px 38px rgba(0, 0, 0, 0.65);
+}
+
+.ps5-tile.active img {
+  width: 64px;
+  height: 64px;
+}
+
+.ps5-tile-label {
+  display: none;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.ps5-tile.active + .ps5-tile-label {
+  display: inline-block;
+}
+
+/* ============================================================================
+   PS5 BOTTOM-LEFT GAME HUB
+   ============================================================================ */
+.ps5-hub {
+  margin-top: auto;
+  padding-bottom: 18px;
+  max-width: 580px;
+}
+
+.ps5-hub-meta {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ps5-tag {
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.ps5-sub {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.ps5-game-title {
+  margin: 0 0 22px;
+  font-size: clamp(2.6rem, 4.6vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+}
+
+.ps5-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.ps5-play-btn {
+  min-width: 210px;
+  height: 52px;
+  padding: 0 32px;
+  border: 2px solid #ffffff;
+  background: rgba(255, 255, 255, 0.92);
+  color: #050811;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(255, 255, 255, 0.25);
+  transition: background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.ps5-play-btn:hover,
+.ps5-play-btn:focus-visible {
+  background: #ffffff;
+  box-shadow:
+    0 0 0 3px rgba(0, 112, 209, 0.75),
+    0 0 32px rgba(255, 255, 255, 0.45);
+  transform: scale(1.02);
+  outline: none;
+}
+
+.ps5-quick-settings {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ps5-select-box {
+  height: 52px;
+  padding: 0 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid var(--ps5-border);
+  background: var(--ps5-glass);
+  backdrop-filter: blur(16px);
+}
+
+.ps5-select-box span {
+  color: var(--text-muted);
+  font-size: 0.64rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ps5-select-box select {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.ps5-select-box select option {
+  background: #0a0f1c;
+  color: var(--text);
+}
+
+/* ============================================================================
+   ADMIN DRAWER
+   ============================================================================ */
+.ps5-admin-drawer {
+  position: absolute;
+  top: 24px;
+  right: 56px;
+  z-index: 30;
+  width: min(100% - 64px, 560px);
+  max-height: 75vh;
+  overflow-y: auto;
+  padding: 22px;
+  border: 1px solid var(--ps5-border);
+  background: var(--ps5-glass-strong);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+}
+
+.admin-header {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.admin-session-row {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--ps5-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-session-status, .admin-status {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+
+.admin-status {
+  margin-bottom: 8px;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+  text-align: left;
+}
+
+.admin-table th, .admin-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--ps5-border);
+  white-space: nowrap;
+}
+
+.admin-table th {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+/* ============================================================================
+   PS5 BOTTOM CONTROLLER PROMPT BAR
+   ============================================================================ */
+.ps5-bottombar {
+  position: relative;
+  z-index: 10;
+  padding: 0 56px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.ps5-prompts {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+
+.ps5-prompts kbd {
+  margin-right: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--ps5-border);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-size: 0.7rem;
+}
+
+/* ============================================================================
+   STREAM VIEWPORT MODAL
+   ============================================================================ */
+.stream-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: #04060b;
+}
+
+.stream-bar {
+  min-height: 42px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--ps5-border);
+  background: #070b14;
+}
+
+.stream-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stream-led {
+  background: var(--success);
+}
+
+.stream-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.stream-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.ctrl-btn {
+  height: 28px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--ps5-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
+.ctrl-btn:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.ctrl-btn-exit {
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fecaca;
+}
+
+.stream-viewport {
+  flex: 1;
+  min-height: 0;
+  background: #000;
+}
+
+.stream-viewport iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ============================================================================
+   MOBILE & SMALL VIEWPORT
+   ============================================================================ */
+@media (max-width: 760px) {
+  .ps5-topbar, .ps5-stage, .ps5-bottombar {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+  .ps5-slot-pill, .ps5-username {
+    display: none;
+  }
+  .ps5-play-btn {
+    min-width: 140px;
+  }
 }
