@@ -55,6 +55,7 @@ const authSubmit = document.getElementById('auth-submit');
 const authModeToggle = document.getElementById('auth-mode-toggle');
 const streamPresetSelect = document.getElementById('stream-preset-select');
 const streamCodecSelect = document.getElementById('stream-codec-select');
+const streamTransportSelect = document.getElementById('stream-transport-select');
 const gamepadStatusPill = document.getElementById('gamepad-status-pill');
 const adminToggleBtn = document.getElementById('admin-toggle-btn');
 const consoleClock = document.getElementById('console-clock');
@@ -141,6 +142,7 @@ function setClearStreamDefaults() {
   const settingsKey = 'mw-streaming-settings';
   const presetKey = streamPresetSelect?.value || localStorage.getItem('ryoku-stream-preset') || '1080p60';
   const codecKey = streamCodecSelect?.value || localStorage.getItem('ryoku-stream-codec') || 'auto';
+  const transportKey = streamTransportSelect?.value || localStorage.getItem('ryoku-stream-transport') || 'all';
   const preset = STREAM_PRESETS[presetKey] || STREAM_PRESETS['1080p60'];
   try {
     if (window.indexedDB) {
@@ -153,6 +155,7 @@ function setClearStreamDefaults() {
     localStorage.removeItem('mw_hevc_failed');
     localStorage.setItem('ryoku-stream-preset', presetKey);
     localStorage.setItem('ryoku-stream-codec', codecKey);
+    localStorage.setItem('ryoku-stream-transport', transportKey);
     const stored = JSON.parse(localStorage.getItem(settingsKey) || '{}');
     const settings = stored && typeof stored === 'object' && !Array.isArray(stored) ? stored : {};
     Object.assign(settings, {
@@ -163,7 +166,7 @@ function setClearStreamDefaults() {
       stream_fps: preset.fps,
       stream_aspect: '16:9',
       stream_aspect_forced: true,
-      transport_mode: 'webrtc-dc-udp',
+      transport_mode: transportKey,
       gaming_mode: true,
       video_codec: codecKey,
       video_enhancement: 'off',
@@ -179,17 +182,22 @@ function initStreamSettingsControls() {
   try {
     const savedPreset = localStorage.getItem('ryoku-stream-preset');
     const savedCodec = localStorage.getItem('ryoku-stream-codec');
+    const savedTransport = localStorage.getItem('ryoku-stream-transport');
     if (streamPresetSelect && savedPreset && STREAM_PRESETS[savedPreset]) {
       streamPresetSelect.value = savedPreset;
     }
     if (streamCodecSelect && savedCodec && ['auto', 'hevc', 'av1', 'h264'].includes(savedCodec)) {
       streamCodecSelect.value = savedCodec;
     }
+    if (streamTransportSelect && savedTransport && ['all', 'webrtc-dc-udp', 'webrtc-media-udp', 'webrtc-dc-tcp', 'wss'].includes(savedTransport)) {
+      streamTransportSelect.value = savedTransport;
+    }
   } catch (_error) {
     // Ignore storage access errors.
   }
   streamPresetSelect?.addEventListener('change', setClearStreamDefaults);
   streamCodecSelect?.addEventListener('change', setClearStreamDefaults);
+  streamTransportSelect?.addEventListener('change', setClearStreamDefaults);
   setClearStreamDefaults();
 }
 
@@ -252,6 +260,7 @@ function selectTile(index) {
       if (spotlightLaunchBtn) {
         spotlightLaunchBtn.textContent = 'Play';
       }
+      blade.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
   });
 }
@@ -493,6 +502,7 @@ async function launchGame(appName) {
   setClearStreamDefaults();
   try {
     sessionStorage.setItem('ryoku-launch-app', appName);
+    localStorage.setItem('ryoku-last-app', appName);
   } catch (_error) {
     // Auto-launch falls back to manual click if sessionStorage is unavailable.
   }
@@ -505,6 +515,22 @@ async function launchGame(appName) {
     }
   }, 400);
 }
+
+function toggleStreamStats() {
+  try {
+    streamFrame?.contentWindow?.postMessage({ type: 'ryoku-toggle-stats' }, window.location.origin);
+    streamFrame?.contentWindow?.focus();
+  } catch (_error) {
+    // Ignore cross-frame messaging errors.
+  }
+}
+
+window.addEventListener('message', (event) => {
+  if (event.origin !== window.location.origin) return;
+  if (event.data?.type === 'ryoku-stream-quit') {
+    closeStream();
+  }
+});
 
 function closeStream() {
   try {

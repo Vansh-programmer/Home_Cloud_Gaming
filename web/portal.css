@@ -89,6 +89,24 @@ body[data-theme-accent="heroic"] .ps5-ambient-glow {
     radial-gradient(circle at 20% 80%, rgba(245, 158, 11, 0.16), transparent 50%);
 }
 
+body[data-theme-accent="voxel"] .ps5-ambient-glow {
+  background:
+    radial-gradient(circle at 75% 25%, rgba(34, 197, 94, 0.26), transparent 55%),
+    radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.16), transparent 50%);
+}
+
+body[data-theme-accent="space"] .ps5-ambient-glow {
+  background:
+    radial-gradient(circle at 75% 25%, rgba(129, 140, 248, 0.28), transparent 55%),
+    radial-gradient(circle at 20% 80%, rgba(56, 189, 248, 0.16), transparent 50%);
+}
+
+body[data-theme-accent="arcade"] .ps5-ambient-glow {
+  background:
+    radial-gradient(circle at 75% 25%, rgba(244, 63, 94, 0.26), transparent 55%),
+    radial-gradient(circle at 20% 80%, rgba(245, 158, 11, 0.16), transparent 50%);
+}
+
 .ps5-vignette {
   position: absolute;
   inset: 0;
@@ -398,9 +416,18 @@ body[data-theme-accent="heroic"] .ps5-ambient-glow {
   align-items: flex-end;
   gap: 16px;
   min-height: 124px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+
+.ps5-tile-row::-webkit-scrollbar {
+  display: none;
 }
 
 .ps5-tile-item {
+  flex-shrink: 0;
   display: flex;
   align-items: flex-end;
   gap: 14px;
@@ -685,13 +712,35 @@ body[data-theme-accent="heroic"] .ps5-ambient-glow {
 }
 
 .stream-bar {
-  min-height: 42px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  min-height: 40px;
   padding: 0 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--ps5-border);
-  background: #070b14;
+  background: rgba(5, 8, 17, 0.88);
+  backdrop-filter: blur(16px);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.stream-bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 16px;
+}
+
+.stream-bar:hover,
+.stream-bar:focus-within {
+  opacity: 1;
 }
 
 .stream-info {
@@ -737,8 +786,8 @@ body[data-theme-accent="heroic"] .ps5-ambient-glow {
 }
 
 .stream-viewport {
-  flex: 1;
-  min-height: 0;
+  width: 100vw;
+  height: 100vh;
   background: #000;
 }
 
@@ -746,6 +795,7 @@ body[data-theme-accent="heroic"] .ps5-ambient-glow {
   width: 100%;
   height: 100%;
   border: 0;
+  display: block;
 }
 
 /* ============================================================================

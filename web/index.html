@@ -22,7 +22,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="/portal.css?v=ps5-1">
+  <link rel="stylesheet" href="/portal.css?v=ps5-5">
 </head>
 <body data-theme-accent="steam">
   <!-- Full-Screen Dynamic PS5 Background Stage -->
@@ -146,6 +146,96 @@
           </article>
           <span class="ps5-tile-label">Heroic Launcher</span>
         </div>
+
+        <div class="ps5-tile-item">
+          <article class="console-blade ps5-tile" role="option" aria-selected="false" tabindex="0"
+            data-tile-index="2"
+            data-accent="steam"
+            data-app-name="SuperTux"
+            data-title="SuperTux"
+            data-index="LINUX // NATIVE"
+            data-badge="PLATFORMER"
+            data-env="OPENGL // 60 FPS"
+            data-desc="Classic 2D Jump &amp; Run">
+            <img src="/portal-assets/game-supertux.svg" alt="SuperTux">
+          </article>
+          <span class="ps5-tile-label">SuperTux</span>
+        </div>
+
+        <div class="ps5-tile-item">
+          <article class="console-blade ps5-tile" role="option" aria-selected="false" tabindex="0"
+            data-tile-index="3"
+            data-accent="steam"
+            data-app-name="Extreme Tux Racer"
+            data-title="Extreme Tux Racer"
+            data-index="LINUX // NATIVE"
+            data-badge="3D RACING"
+            data-env="OPENGL // 60 FPS"
+            data-desc="High-Speed Alpine Downhill">
+            <img src="/portal-assets/game-tuxracer.svg" alt="Extreme Tux Racer">
+          </article>
+          <span class="ps5-tile-label">Extreme Tux Racer</span>
+        </div>
+
+        <div class="ps5-tile-item">
+          <article class="console-blade ps5-tile" role="option" aria-selected="false" tabindex="0"
+            data-tile-index="4"
+            data-accent="heroic"
+            data-app-name="Neverball"
+            data-title="Neverball"
+            data-index="LINUX // NATIVE"
+            data-badge="3D ARCADE"
+            data-env="OPENGL // 60 FPS"
+            data-desc="3D Tilt-Table Puzzle Action">
+            <img src="/portal-assets/game-neverball.svg" alt="Neverball">
+          </article>
+          <span class="ps5-tile-label">Neverball</span>
+        </div>
+
+        <div class="ps5-tile-item">
+          <article class="console-blade ps5-tile" role="option" aria-selected="false" tabindex="0"
+            data-tile-index="5"
+            data-accent="voxel"
+            data-app-name="Luanti Voxel Sandbox"
+            data-title="Luanti Sandbox"
+            data-index="LINUX // NATIVE"
+            data-badge="VOXEL WORLD"
+            data-env="OPENGL // 60 FPS"
+            data-desc="3D Open-World Voxel Engine">
+            <img src="/portal-assets/game-minetest.svg" alt="Luanti Voxel Sandbox">
+          </article>
+          <span class="ps5-tile-label">Luanti Sandbox</span>
+        </div>
+
+        <div class="ps5-tile-item">
+          <article class="console-blade ps5-tile" role="option" aria-selected="false" tabindex="0"
+            data-tile-index="6"
+            data-accent="space"
+            data-app-name="Endless Sky"
+            data-title="Endless Sky"
+            data-index="LINUX // NATIVE"
+            data-badge="SPACE RPG"
+            data-env="OPENGL // 60 FPS"
+            data-desc="Galaxy Exploration &amp; Combat">
+            <img src="/portal-assets/game-endlesssky.svg" alt="Endless Sky">
+          </article>
+          <span class="ps5-tile-label">Endless Sky</span>
+        </div>
+
+        <div class="ps5-tile-item">
+          <article class="console-blade ps5-tile" role="option" aria-selected="false" tabindex="0"
+            data-tile-index="7"
+            data-accent="arcade"
+            data-app-name="Chromium B.S.U."
+            data-title="Chromium B.S.U."
+            data-index="LINUX // NATIVE"
+            data-badge="SHMUP"
+            data-env="OPENGL // 60 FPS"
+            data-desc="Fast-Paced Arcade Space Shooter">
+            <img src="/portal-assets/game-chromiumbsu.svg" alt="Chromium B.S.U.">
+          </article>
+          <span class="ps5-tile-label">Chromium B.S.U.</span>
+        </div>
       </div>
 
       <!-- PS5 Bottom-Left Game Hub Action Area -->
@@ -183,6 +273,16 @@
                 <option value="h264">H.264</option>
               </select>
             </label>
+            <label class="ps5-select-box">
+              <span>Network</span>
+              <select id="stream-transport-select">
+                <option value="all">Auto</option>
+                <option value="webrtc-dc-udp">UDP Fast</option>
+                <option value="webrtc-media-udp">Media UDP</option>
+                <option value="webrtc-dc-tcp">TCP Relay</option>
+                <option value="wss">WSS Tunnel</option>
+              </select>
+            </label>
           </div>
         </div>
       </div>
@@ -206,6 +306,7 @@
         <span id="active-game-title" class="stream-title">Steam</span>
       </div>
       <div class="stream-controls">
+        <button id="stream-stats-btn" class="ctrl-btn" type="button" onclick="toggleStreamStats()">Stats</button>
         <a id="stream-popout-btn" href="/play.html" target="_blank" rel="noopener" class="ctrl-btn">New Tab</a>
         <button class="ctrl-btn" type="button" onclick="toggleFullscreen()">Fullscreen</button>
         <button class="ctrl-btn ctrl-btn-exit" type="button" onclick="closeStream()">Close</button>
@@ -216,7 +317,7 @@
     </div>
   </div>
 
-  <script src="/portal-assets/stream-branding.js?v=5"></script>
-  <script src="/portal.js?v=ps5-3"></script>
+  <script src="/portal-assets/stream-branding.js?v=7"></script>
+  <script src="/portal.js?v=ps5-5"></script>
 </body>
 </html>

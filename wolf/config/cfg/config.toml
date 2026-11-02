@@ -203,7 +203,7 @@ id = 'moonlight-profile-id'
     "IpcMode": "host",
     "CapAdd": ["NET_RAW", "MKNOD", "NET_ADMIN", "SYS_ADMIN", "SYS_NICE", "SYS_PTRACE"],
     "SecurityOpt": ["seccomp=unconfined"],
-    "Ulimits": [{"Name":"nofile", "Hard":10240, "Soft":10240}],
+    "Ulimits": [{"Name":"nofile", "Hard":524288, "Soft":10240}],
     "Privileged": false,
     "DeviceCgroupRules": ["c 13:* rmw", "c 244:* rmw"]
   }
@@ -217,12 +217,16 @@ id = 'moonlight-profile-id'
             '__GL_SHADER_DISK_CACHE=1',
             '__GL_SHADER_DISK_CACHE_PATH=/home/retro/.cache/nvidia/GLCache',
             '__GL_SHADER_DISK_CACHE_SKIP_CLEANUP=1',
+            'PROTON_ENABLE_NVAPI=1',
+            'PROTON_HIDE_NVIDIA_GPU=0',
             'DXVK_STATE_CACHE_PATH=/home/retro/.cache/dxvk',
             'MESA_SHADER_CACHE_DIR=/home/retro/.cache/mesa_shader_cache'
         ]
         image = 'ghcr.io/games-on-whales/steam:edge'
         mounts = [
-            '/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/shared_games:ro'
+            '/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/shared_games:ro',
+            '/home/vansh/Projects/Home_Cloud_Gaming/deploy/steam-manual-games/ryoku-steam-sync.py:/opt/gow/ryoku-steam-sync.py:ro',
+            '/home/vansh/Projects/Home_Cloud_Gaming/deploy/steam-manual-games/startup-app.sh:/opt/gow/startup-app.sh:ro'
         ]
         name = 'steam-cloud'
         ports = []
@@ -237,8 +241,9 @@ id = 'moonlight-profile-id'
         base_create_json = '''{
   "HostConfig": {
     "IpcMode": "host",
-    "CapAdd": ["NET_RAW", "MKNOD", "NET_ADMIN", "SYS_ADMIN", "SYS_NICE"],
+    "CapAdd": ["NET_RAW", "MKNOD", "NET_ADMIN", "SYS_ADMIN", "SYS_NICE", "SYS_PTRACE"],
     "SecurityOpt": ["seccomp=unconfined"],
+    "Ulimits": [{"Name":"nofile", "Hard":524288, "Soft":10240}],
     "Privileged": false,
     "DeviceCgroupRules": ["c 13:* rmw", "c 244:* rmw"]
   }
@@ -251,12 +256,182 @@ id = 'moonlight-profile-id'
             '__GL_SHADER_DISK_CACHE=1',
             '__GL_SHADER_DISK_CACHE_PATH=/home/retro/.cache/nvidia/GLCache',
             '__GL_SHADER_DISK_CACHE_SKIP_CLEANUP=1',
+            'PROTON_ENABLE_NVAPI=1',
+            'PROTON_HIDE_NVIDIA_GPU=0',
             'DXVK_STATE_CACHE_PATH=/home/retro/.cache/dxvk',
             'MESA_SHADER_CACHE_DIR=/home/retro/.cache/mesa_shader_cache'
         ]
         image = 'ghcr.io/games-on-whales/heroic-games-launcher:edge'
         mounts = [ '/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/shared_games:ro' ]
         name = 'heroic-cloud'
+        ports = []
+        type = 'docker'
+
+    [[profiles.apps]]
+    start_virtual_compositor = true
+    title = 'SuperTux'
+
+        [profiles.apps.runner]
+        base_create_json = '''{
+  "HostConfig": {
+    "IpcMode": "host",
+    "CapAdd": ["NET_RAW", "MKNOD", "NET_ADMIN", "SYS_ADMIN", "SYS_NICE"],
+    "SecurityOpt": ["seccomp=unconfined"],
+    "Ulimits": [{"Name":"nofile", "Hard":524288, "Soft":10240}],
+    "Privileged": false,
+    "DeviceCgroupRules": ["c 13:* rmw", "c 244:* rmw"]
+  }
+}'''
+        devices = []
+        env = [
+            'XDG_RUNTIME_DIR=/tmp',
+            'RUN_SWAY=1',
+            'GOW_REQUIRED_DEVICES=/dev/input/* /dev/dri/* /dev/nvidia*',
+            'RYOKU_GAME_CMD=supertux2 --fullscreen --renderer opengl'
+        ]
+        image = 'ryoku-linux-games:local'
+        mounts = [ '/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/shared_games:ro' ]
+        name = 'ryoku-supertux'
+        ports = []
+        type = 'docker'
+
+    [[profiles.apps]]
+    start_virtual_compositor = true
+    title = 'Extreme Tux Racer'
+
+        [profiles.apps.runner]
+        base_create_json = '''{
+  "HostConfig": {
+    "IpcMode": "host",
+    "CapAdd": ["NET_RAW", "MKNOD", "NET_ADMIN", "SYS_ADMIN", "SYS_NICE"],
+    "SecurityOpt": ["seccomp=unconfined"],
+    "Ulimits": [{"Name":"nofile", "Hard":524288, "Soft":10240}],
+    "Privileged": false,
+    "DeviceCgroupRules": ["c 13:* rmw", "c 244:* rmw"]
+  }
+}'''
+        devices = []
+        env = [
+            'XDG_RUNTIME_DIR=/tmp',
+            'RUN_SWAY=1',
+            'GOW_REQUIRED_DEVICES=/dev/input/* /dev/dri/* /dev/nvidia*',
+            'RYOKU_GAME_CMD=etr'
+        ]
+        image = 'ryoku-linux-games:local'
+        mounts = [ '/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/shared_games:ro' ]
+        name = 'ryoku-tuxracer'
+        ports = []
+        type = 'docker'
+
+    [[profiles.apps]]
+    start_virtual_compositor = true
+    title = 'Neverball'
+
+        [profiles.apps.runner]
+        base_create_json = '''{
+  "HostConfig": {
+    "IpcMode": "host",
+    "CapAdd": ["NET_RAW", "MKNOD", "NET_ADMIN", "SYS_ADMIN", "SYS_NICE"],
+    "SecurityOpt": ["seccomp=unconfined"],
+    "Ulimits": [{"Name":"nofile", "Hard":524288, "Soft":10240}],
+    "Privileged": false,
+    "DeviceCgroupRules": ["c 13:* rmw", "c 244:* rmw"]
+  }
+}'''
+        devices = []
+        env = [
+            'XDG_RUNTIME_DIR=/tmp',
+            'RUN_SWAY=1',
+            'GOW_REQUIRED_DEVICES=/dev/input/* /dev/dri/* /dev/nvidia*',
+            'RYOKU_GAME_CMD=neverball'
+        ]
+        image = 'ryoku-linux-games:local'
+        mounts = [ '/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/shared_games:ro' ]
+        name = 'ryoku-neverball'
+        ports = []
+        type = 'docker'
+
+    [[profiles.apps]]
+    start_virtual_compositor = true
+    title = 'Luanti Voxel Sandbox'
+
+        [profiles.apps.runner]
+        base_create_json = '''{
+  "HostConfig": {
+    "IpcMode": "host",
+    "CapAdd": ["NET_RAW", "MKNOD", "NET_ADMIN", "SYS_ADMIN", "SYS_NICE"],
+    "SecurityOpt": ["seccomp=unconfined"],
+    "Ulimits": [{"Name":"nofile", "Hard":524288, "Soft":10240}],
+    "Privileged": false,
+    "DeviceCgroupRules": ["c 13:* rmw", "c 244:* rmw"]
+  }
+}'''
+        devices = []
+        env = [
+            'XDG_RUNTIME_DIR=/tmp',
+            'RUN_SWAY=1',
+            'GOW_REQUIRED_DEVICES=/dev/input/* /dev/dri/* /dev/nvidia*',
+            'RYOKU_GAME_CMD=minetest'
+        ]
+        image = 'ryoku-linux-games:local'
+        mounts = [ '/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/shared_games:ro' ]
+        name = 'ryoku-minetest'
+        ports = []
+        type = 'docker'
+
+    [[profiles.apps]]
+    start_virtual_compositor = true
+    title = 'Endless Sky'
+
+        [profiles.apps.runner]
+        base_create_json = '''{
+  "HostConfig": {
+    "IpcMode": "host",
+    "CapAdd": ["NET_RAW", "MKNOD", "NET_ADMIN", "SYS_ADMIN", "SYS_NICE"],
+    "SecurityOpt": ["seccomp=unconfined"],
+    "Ulimits": [{"Name":"nofile", "Hard":524288, "Soft":10240}],
+    "Privileged": false,
+    "DeviceCgroupRules": ["c 13:* rmw", "c 244:* rmw"]
+  }
+}'''
+        devices = []
+        env = [
+            'XDG_RUNTIME_DIR=/tmp',
+            'RUN_SWAY=1',
+            'GOW_REQUIRED_DEVICES=/dev/input/* /dev/dri/* /dev/nvidia*',
+            'RYOKU_GAME_CMD=endless-sky --fullscreen'
+        ]
+        image = 'ryoku-linux-games:local'
+        mounts = [ '/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/shared_games:ro' ]
+        name = 'ryoku-endlesssky'
+        ports = []
+        type = 'docker'
+
+    [[profiles.apps]]
+    start_virtual_compositor = true
+    title = 'Chromium B.S.U.'
+
+        [profiles.apps.runner]
+        base_create_json = '''{
+  "HostConfig": {
+    "IpcMode": "host",
+    "CapAdd": ["NET_RAW", "MKNOD", "NET_ADMIN", "SYS_ADMIN", "SYS_NICE"],
+    "SecurityOpt": ["seccomp=unconfined"],
+    "Ulimits": [{"Name":"nofile", "Hard":524288, "Soft":10240}],
+    "Privileged": false,
+    "DeviceCgroupRules": ["c 13:* rmw", "c 244:* rmw"]
+  }
+}'''
+        devices = []
+        env = [
+            'XDG_RUNTIME_DIR=/tmp',
+            'RUN_SWAY=1',
+            'GOW_REQUIRED_DEVICES=/dev/input/* /dev/dri/* /dev/nvidia*',
+            'RYOKU_GAME_CMD=chromium-bsu -f'
+        ]
+        image = 'ryoku-linux-games:local'
+        mounts = [ '/home/vansh/Projects/Home_Cloud_Gaming/data/shared_games:/shared_games:ro' ]
+        name = 'ryoku-chromiumbsu'
         ports = []
         type = 'docker'
 

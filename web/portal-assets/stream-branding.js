@@ -38,18 +38,129 @@
     }
   }
 
+  function injectDeepEmbedStyles(doc) {
+    if (!doc?.head || doc.getElementById('ryoku-deep-embed-style')) return;
+    const style = doc.createElement('style');
+    style.id = 'ryoku-deep-embed-style';
+    style.textContent = `
+      * {
+        border-radius: 0 !important;
+      }
+      html, body, #app {
+        background: #04070f !important;
+        overflow: hidden !important;
+      }
+      .app-header,
+      .app-footer,
+      .discord-fab,
+      #btn-bmc,
+      .stream-header {
+        display: none !important;
+      }
+      .hosts-view {
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: -1 !important;
+      }
+      .stream-view,
+      .stream-stage,
+      .stream-video-container,
+      #stream-video {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #000 !important;
+      }
+      #stream-stats-overlay {
+        top: 52px !important;
+        left: 18px !important;
+        background: rgba(5, 8, 17, 0.88) !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        backdrop-filter: blur(16px) !important;
+      }
+      #ryoku-boot-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        background: radial-gradient(circle at 50% 35%, rgba(0, 112, 209, 0.22), #04070f 65%);
+        color: #f8fafc;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 0.82rem;
+        font-weight: 600;
+        pointer-events: none;
+      }
+      #ryoku-boot-splash .ryoku-boot-bar {
+        width: 220px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.14);
+        position: relative;
+        overflow: hidden;
+      }
+      #ryoku-boot-splash .ryoku-boot-bar::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        width: 45%;
+        background: #0070d1;
+        box-shadow: 0 0 12px #0070d1;
+        animation: ryokuSlide 1.1s infinite ease-in-out;
+      }
+      @keyframes ryokuSlide {
+        0% { transform: translateX(-110%); }
+        100% { transform: translateX(250%); }
+      }
+    `;
+    doc.head.appendChild(style);
+
+    if (doc.body && !doc.getElementById('ryoku-boot-splash')) {
+      const splash = doc.createElement('div');
+      splash.id = 'ryoku-boot-splash';
+      splash.innerHTML = '<span>INITIALIZING RYOKU STREAM LINK</span><div class="ryoku-boot-bar"></div>';
+      doc.body.appendChild(splash);
+    }
+  }
+
+  function syncBootSplash(doc) {
+    const splash = doc?.getElementById('ryoku-boot-splash');
+    if (!splash) return;
+    const hasStream = Boolean(doc.querySelector('.stream-view, #stream-video, .stream-startup-loader'));
+    splash.style.display = hasStream ? 'none' : 'flex';
+  }
+
   function attemptAutoLaunch(doc) {
+    syncBootSplash(doc);
     let targetApp = '';
     try {
-      targetApp = (sessionStorage.getItem('ryoku-launch-app') || '').trim().toLowerCase();
+      targetApp = (
+        sessionStorage.getItem('ryoku-launch-app') ||
+        localStorage.getItem('ryoku-last-app') ||
+        'Steam'
+      ).trim().toLowerCase();
     } catch (_error) {
       return;
     }
     if (!targetApp) return;
-    if (doc.querySelector('.app-card--launching')) return;
+    if (doc.querySelector('.stream-view, .app-card--launching')) return;
     const cards = doc.querySelectorAll('.host-apps[data-loaded="1"] .app-card');
     if (!cards.length) return;
-    const keyword = targetApp.includes('heroic') ? 'heroic' : (targetApp.includes('steam') ? 'steam' : targetApp);
+    let keyword = targetApp;
+    if (targetApp.includes('heroic')) keyword = 'heroic';
+    else if (targetApp.includes('steam')) keyword = 'steam';
+    else if (targetApp.includes('tux racer')) keyword = 'extreme tux racer';
+    else if (targetApp.includes('supertux')) keyword = 'supertux';
+    else if (targetApp.includes('luanti') || targetApp.includes('minetest')) keyword = 'luanti';
     for (const card of cards) {
       const text = (card.textContent || '').toLowerCase();
       if (text.includes(keyword)) {
@@ -86,10 +197,31 @@
             set() {}
           });
         }).catch(() => {});
-        import('/js/api/UdpProbe.js').then((mod) => {
-          if (mod && typeof mod.probeUdp === 'function') {
-            try { mod.probeUdp = async () => true; } catch (_e) {}
-          }
+
+        import('/js/app.js').then(({ MoonlightApp }) => {
+          if (!MoonlightApp || MoonlightApp.__ryokuHooked) return;
+          MoonlightApp.__ryokuHooked = true;
+          const origQuit = MoonlightApp._onStreamingQuit?.bind(MoonlightApp);
+          MoonlightApp._onStreamingQuit = function(...args) {
+            const res = origQuit ? origQuit(...args) : undefined;
+            try {
+              window.parent?.postMessage({ type: 'ryoku-stream-quit' }, window.location.origin);
+            } catch (_e) {}
+            return res;
+          };
+          window.addEventListener('message', (event) => {
+            if (event.origin !== window.location.origin) return;
+            const msg = event.data;
+            if (!msg || typeof msg !== 'object') return;
+            if (msg.type === 'ryoku-toggle-stats') {
+              const sv = MoonlightApp.streamView;
+              if (sv && sv._overlayEl) {
+                sv._showPerfStats = !sv._showPerfStats;
+                sv._statsClosed = !sv._showPerfStats;
+                sv._overlayEl.style.display = sv._showPerfStats ? '' : 'none';
+              }
+            }
+          });
         }).catch(() => {});
       `);
     } catch (_error) {
@@ -103,6 +235,7 @@
       const app = doc?.querySelector('#app');
       if (!doc?.documentElement || !app) return;
 
+      injectDeepEmbedStyles(doc);
       stabilizeStreamTransport(frame.contentWindow);
       doc.title = 'Ryoku | Cloud Gaming';
       updateNode(app, doc);
