@@ -7,9 +7,20 @@ temporary_file="$settings_file.tmp"
 
 mkdir -p "$settings_dir"
 if [ -s "$settings_file" ]; then
-  jq '.domain = "play.vanshdev.online" | .setup_completed = true | .native_host_enabled = false | .cert_auth_enabled = true' "$settings_file" > "$temporary_file"
+  jq 'del(.sessions)
+    | .domain = "play.vanshdev.online"
+    | .setup_completed = true
+    | .native_host_enabled = false
+    | .cert_auth_enabled = true
+    | .upnp_enabled = false
+    | .internet_access_enabled = false
+    | .ice_tcp_passive = false
+    | .transport_mode = "webrtc-dc-udp"
+    | .gaming_mode = true
+    | .latency_flag_enabled = true
+    | .video_enhancement = "off"' "$settings_file" > "$temporary_file"
 else
-  printf '{"domain":"play.vanshdev.online","setup_completed":true,"native_host_enabled":false,"cert_auth_enabled":true}\n' > "$temporary_file"
+  printf '{"domain":"play.vanshdev.online","setup_completed":true,"native_host_enabled":false,"cert_auth_enabled":true,"upnp_enabled":false,"internet_access_enabled":false,"ice_tcp_passive":false,"transport_mode":"webrtc-dc-udp","gaming_mode":true,"latency_flag_enabled":true,"video_enhancement":"off"}\n' > "$temporary_file"
 fi
 chmod 600 "$temporary_file"
 mv "$temporary_file" "$settings_file"

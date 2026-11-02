@@ -19,11 +19,11 @@ const CONFIG = {
 };
 
 const STREAM_PRESETS = {
-  '1080p60': { height: 1080, fps: 60, bitrate: 20000 },
+  '1080p60': { height: 1080, fps: 60, bitrate: 25000 },
   '1080p60-hq': { height: 1080, fps: 60, bitrate: 35000 },
-  '1080p120': { height: 1080, fps: 120, bitrate: 35000 },
+  '1080p120': { height: 1080, fps: 120, bitrate: 40000 },
   '1440p60': { height: 1440, fps: 60, bitrate: 45000 },
-  '720p60': { height: 720, fps: 60, bitrate: 10000 }
+  '720p60': { height: 720, fps: 60, bitrate: 15000 }
 };
 
 const modal = document.getElementById('stream-modal');
@@ -143,6 +143,14 @@ function setClearStreamDefaults() {
   const codecKey = streamCodecSelect?.value || localStorage.getItem('ryoku-stream-codec') || 'auto';
   const preset = STREAM_PRESETS[presetKey] || STREAM_PRESETS['1080p60'];
   try {
+    if (window.indexedDB) {
+      window.indexedDB.deleteDatabase('mw-pairing');
+    }
+  } catch (_error) {
+    // Ignore IndexedDB cleanup errors.
+  }
+  try {
+    localStorage.removeItem('mw_hevc_failed');
     localStorage.setItem('ryoku-stream-preset', presetKey);
     localStorage.setItem('ryoku-stream-codec', codecKey);
     const stored = JSON.parse(localStorage.getItem(settingsKey) || '{}');
@@ -153,8 +161,13 @@ function setClearStreamDefaults() {
       stream_bitrate: preset.bitrate,
       stream_bitrate_auto: false,
       stream_fps: preset.fps,
+      stream_aspect: '16:9',
+      stream_aspect_forced: true,
+      transport_mode: 'webrtc-dc-udp',
+      gaming_mode: true,
       video_codec: codecKey,
-      video_enhancement: 'off'
+      video_enhancement: 'off',
+      power_save: false
     });
     localStorage.setItem(settingsKey, JSON.stringify(settings));
   } catch (_error) {

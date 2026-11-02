@@ -81,7 +81,7 @@ services:
     environment:
       - MW_HTTP_PORT=8080
       - MW_HTTPS_PORT=8443
-      - MW_UPNP=1
+      - MW_UPNP=0
       # Do not expose MoonlightWeb's separate public entry link; browser access
       # must pass through the local player-account gate.
       - MW_RENDEZVOUS_URL=https://rendezvous-disabled.invalid

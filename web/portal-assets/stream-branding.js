@@ -64,12 +64,46 @@
     }
   }
 
+  function stabilizeStreamTransport(win) {
+    if (!win || win.__ryokuTransportStabilized) return;
+    win.__ryokuTransportStabilized = true;
+    try {
+      if (win.indexedDB) {
+        win.indexedDB.deleteDatabase('mw-pairing');
+      }
+      win.localStorage?.removeItem('mw_hevc_failed');
+    } catch (_error) {
+      // Ignore storage access errors.
+    }
+    try {
+      win.eval(`
+        import('/js/ui/StreamView.js').then(({ StreamView }) => {
+          if (!StreamView || !StreamView.prototype) return;
+          StreamView.prototype._recordCongestionEvent = function() {};
+          Object.defineProperty(StreamView.prototype, 'onCongestion', {
+            configurable: true,
+            get() { return null; },
+            set() {}
+          });
+        }).catch(() => {});
+        import('/js/api/UdpProbe.js').then((mod) => {
+          if (mod && typeof mod.probeUdp === 'function') {
+            try { mod.probeUdp = async () => true; } catch (_e) {}
+          }
+        }).catch(() => {});
+      `);
+    } catch (_error) {
+      // Ignore if frame context is not ready yet.
+    }
+  }
+
   window.applyRyokuStreamBranding = (frame) => {
     try {
       const doc = frame.contentDocument;
       const app = doc?.querySelector('#app');
       if (!doc?.documentElement || !app) return;
 
+      stabilizeStreamTransport(frame.contentWindow);
       doc.title = 'Ryoku | Cloud Gaming';
       updateNode(app, doc);
       attemptAutoLaunch(doc);

@@ -46,8 +46,21 @@ http://play.vanshdev.online, http://localhost, http://127.0.0.1 {
 		file_server
 	}
 	handle /portal-assets/* {
+		header Cache-Control "no-store, no-cache, must-revalidate"
 		root * /usr/share/caddy
 		file_server
+	}
+	handle /js/util/pairingCrypto.js* {
+		header Content-Type "application/javascript; charset=utf-8"
+		header Cache-Control "no-store, no-cache, must-revalidate"
+		rewrite * /portal-assets/pairingCrypto.js
+		root * /usr/share/caddy
+		file_server
+	}
+	handle /api/auth/pairing-key {
+		header Content-Type "application/json"
+		header Cache-Control "no-store"
+		respond `{"error":"not_authenticated"}` 401
 	}
 	handle /api/auth/register {
 		rewrite * /auth/register
