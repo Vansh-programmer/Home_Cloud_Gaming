@@ -141,13 +141,10 @@
 
   function attemptAutoLaunch(doc) {
     syncBootSplash(doc);
+    if (!doc || doc.__ryokuAutoLaunched) return;
     let targetApp = '';
     try {
-      targetApp = (
-        sessionStorage.getItem('ryoku-launch-app') ||
-        localStorage.getItem('ryoku-last-app') ||
-        'Steam'
-      ).trim().toLowerCase();
+      targetApp = (sessionStorage.getItem('ryoku-launch-app') || '').trim().toLowerCase();
     } catch (_error) {
       return;
     }
@@ -164,6 +161,7 @@
     for (const card of cards) {
       const text = (card.textContent || '').toLowerCase();
       if (text.includes(keyword)) {
+        doc.__ryokuAutoLaunched = true;
         try {
           sessionStorage.removeItem('ryoku-launch-app');
         } catch (_error) {
@@ -234,6 +232,11 @@
       const doc = frame.contentDocument;
       const app = doc?.querySelector('#app');
       if (!doc?.documentElement || !app) return;
+      if (doc.__ryokuBrandingApplied) {
+        attemptAutoLaunch(doc);
+        return;
+      }
+      doc.__ryokuBrandingApplied = true;
 
       injectDeepEmbedStyles(doc);
       stabilizeStreamTransport(frame.contentWindow);

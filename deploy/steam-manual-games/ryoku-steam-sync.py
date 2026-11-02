@@ -68,6 +68,16 @@ WRITABLE_CONFIG_EXTS = {
     ".save",
     ".dat",
     ".log",
+    ".vdf",
+}
+
+REAL_BINARY_EXTS = {
+    ".exe",
+    ".dll",
+    ".cdx",
+    ".asi",
+    ".sh",
+    ".x86_64",
 }
 
 
@@ -104,15 +114,21 @@ def mirror_game_to_writable_overlay(src_dir: Path, dst_dir: Path) -> None:
             dst_file = target_root / f
             ext = src_file.suffix.lower()
             try:
-                is_small_cfg = ext in WRITABLE_CONFIG_EXTS and src_file.stat().st_size < 1024 * 1024
+                fsize = src_file.stat().st_size
+                is_real_copy = (
+                    (ext in WRITABLE_CONFIG_EXTS and fsize < 4 * 1024 * 1024)
+                    or (ext in REAL_BINARY_EXTS and fsize < 256 * 1024 * 1024)
+                )
             except OSError:
-                is_small_cfg = False
+                is_real_copy = False
 
-            if is_small_cfg:
-                if not dst_file.exists() and not dst_file.is_symlink():
+            if is_real_copy:
+                if dst_file.is_symlink():
+                    dst_file.unlink(missing_ok=True)
+                if not dst_file.exists():
                     try:
                         shutil.copy2(src_file, dst_file)
-                        dst_file.chmod(0o664)
+                        dst_file.chmod(0o775 if ext in REAL_BINARY_EXTS else 0o664)
                     except OSError:
                         pass
             else:
