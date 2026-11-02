@@ -117,6 +117,7 @@ func main() {
 	http.HandleFunc("/session/acquire", acquireHandler)
 	http.HandleFunc("/session/heartbeat", heartbeatHandler)
 	http.HandleFunc("/session/release", releaseHandler)
+	http.HandleFunc("/status", statusHandler)
 	http.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	})
@@ -757,6 +758,28 @@ func releaseHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func statusHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	claims, _ := authenticatedClaims(r)
+	leaseMu.Lock()
+	_ = loadLeaseLocked()
+	busy := leaseIsActive()
+	you := false
+	if busy && claims != nil && lease.AccountID == accountID(claims.AccountID) {
+		you = true
+	}
+	leaseMu.Unlock()
+	writeJSON(w, http.StatusOK, map[string]any{
+		"ok":     true,
+		"online": true,
+		"busy":   busy,
+		"you":    you,
+	})
+}
+
 func sameOriginRequest(r *http.Request) bool {
 	origin := strings.TrimRight(strings.TrimSpace(r.Header.Get("Origin")), "/")
 	if origin == "" {
@@ -1073,6 +1096,19 @@ func prepareProfileHome(profileHome string) error {
 		}
 		if err := os.Chmod(appPath, 0777); err != nil {
 			return err
+		}
+		for _, relCache := range []string{
+			".cache",
+			".cache/nvidia",
+			".cache/nvidia/GLCache",
+			".cache/dxvk",
+			".cache/mesa_shader_cache",
+		} {
+			cachePath := filepath.Join(appPath, relCache)
+			if err := os.MkdirAll(cachePath, 0777); err != nil {
+				return err
+			}
+			_ = os.Chmod(cachePath, 0777)
 		}
 	}
 	return nil

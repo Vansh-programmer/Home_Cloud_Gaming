@@ -29,6 +29,10 @@ http://play.vanshdev.online, http://localhost, http://127.0.0.1 {
 		header Cache-Control "no-store"
 		respond `{"ok":true,"online":true,"server":"Ryoku Cloud Gaming PC","gpu":"NVIDIA GeForce RTX 4060","status":"ready"}` 200
 	}
+	handle /api/status {
+		rewrite * /status
+		reverse_proxy 127.0.0.1:9080
+	}
 
 	# 2. Custom Branded Portal Assets
 	handle /portal.css {

@@ -3,6 +3,7 @@
 const CONFIG = {
   streamUrl: '/stream',
   healthUrl: '/api/health',
+  statusUrl: '/api/status',
   accountUrl: '/api/account',
   adminAccountsUrl: '/api/admin/accounts',
   adminSessionUrl: '/api/admin/session',
@@ -15,6 +16,14 @@ const CONFIG = {
   moonlightLogoutUrl: '/api/auth/logout',
   heartbeatUrl: '/api/session/heartbeat',
   releaseUrl: '/api/session/release'
+};
+
+const STREAM_PRESETS = {
+  '1080p60': { height: 1080, fps: 60, bitrate: 20000 },
+  '1080p60-hq': { height: 1080, fps: 60, bitrate: 35000 },
+  '1080p120': { height: 1080, fps: 120, bitrate: 35000 },
+  '1440p60': { height: 1440, fps: 60, bitrate: 45000 },
+  '720p60': { height: 720, fps: 60, bitrate: 10000 }
 };
 
 const modal = document.getElementById('stream-modal');
@@ -44,6 +53,8 @@ const authUsername = document.getElementById('auth-username');
 const authPassword = document.getElementById('auth-password');
 const authSubmit = document.getElementById('auth-submit');
 const authModeToggle = document.getElementById('auth-mode-toggle');
+const streamPresetSelect = document.getElementById('stream-preset-select');
+const streamCodecSelect = document.getElementById('stream-codec-select');
 let sessionId = null;
 let sessionHeartbeat = null;
 let sessionActive = false;
@@ -117,34 +128,48 @@ function clearNotice() {
 
 function setClearStreamDefaults() {
   const settingsKey = 'mw-streaming-settings';
-  const configuredKey = 'ryoku-stream-quality-fixed-1080-v3';
+  const presetKey = streamPresetSelect?.value || localStorage.getItem('ryoku-stream-preset') || '1080p60';
+  const codecKey = streamCodecSelect?.value || localStorage.getItem('ryoku-stream-codec') || 'auto';
+  const preset = STREAM_PRESETS[presetKey] || STREAM_PRESETS['1080p60'];
   try {
-    if (localStorage.getItem(configuredKey) === '1') return;
+    localStorage.setItem('ryoku-stream-preset', presetKey);
+    localStorage.setItem('ryoku-stream-codec', codecKey);
     const stored = JSON.parse(localStorage.getItem(settingsKey) || '{}');
     const settings = stored && typeof stored === 'object' && !Array.isArray(stored) ? stored : {};
-    const has1080p60Quality = settings.stream_resolution === 'fixed'
-      && Number(settings.stream_height) >= 1080
-      && Number(settings.stream_bitrate) >= 20000
-      && settings.stream_bitrate_auto === false
-      && Number(settings.stream_fps) >= 60;
-    if (!has1080p60Quality) {
-      Object.assign(settings, {
-        stream_resolution: 'fixed',
-        stream_height: 1080,
-        stream_bitrate: 20000,
-        stream_bitrate_auto: false,
-        stream_fps: 60
-      });
-    }
     Object.assign(settings, {
+      stream_resolution: 'fixed',
+      stream_height: preset.height,
+      stream_bitrate: preset.bitrate,
+      stream_bitrate_auto: false,
+      stream_fps: preset.fps,
+      video_codec: codecKey,
       video_enhancement: 'off'
     });
     localStorage.setItem(settingsKey, JSON.stringify(settings));
-    localStorage.setItem(configuredKey, '1');
   } catch (_error) {
     // MoonlightWeb still loads with its own settings if browser storage is unavailable.
   }
 }
+
+function initStreamSettingsControls() {
+  try {
+    const savedPreset = localStorage.getItem('ryoku-stream-preset');
+    const savedCodec = localStorage.getItem('ryoku-stream-codec');
+    if (streamPresetSelect && savedPreset && STREAM_PRESETS[savedPreset]) {
+      streamPresetSelect.value = savedPreset;
+    }
+    if (streamCodecSelect && savedCodec && ['auto', 'hevc', 'av1', 'h264'].includes(savedCodec)) {
+      streamCodecSelect.value = savedCodec;
+    }
+  } catch (_error) {
+    // Ignore storage access errors.
+  }
+  streamPresetSelect?.addEventListener('change', setClearStreamDefaults);
+  streamCodecSelect?.addEventListener('change', setClearStreamDefaults);
+  setClearStreamDefaults();
+}
+
+initStreamSettingsControls();
 
 async function loadAccount() {
   try {
@@ -390,10 +415,15 @@ async function launchGame(appName) {
     return;
   }
 
-  activeGameTitle.textContent = `Select ${appName} in the stream menu`;
+  activeGameTitle.textContent = appName;
   modal.classList.remove('hidden');
   document.getElementById('homepage-video')?.pause();
   setClearStreamDefaults();
+  try {
+    sessionStorage.setItem('ryoku-launch-app', appName);
+  } catch (_error) {
+    // Auto-launch falls back to manual click if sessionStorage is unavailable.
+  }
   streamFrame.src = CONFIG.streamUrl;
   setTimeout(() => {
     try {
@@ -405,6 +435,11 @@ async function launchGame(appName) {
 }
 
 function closeStream() {
+  try {
+    sessionStorage.removeItem('ryoku-launch-app');
+  } catch (_error) {
+    // Ignore storage errors.
+  }
   if (modal) modal.classList.add('hidden');
   if (streamFrame) streamFrame.src = 'about:blank';
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
@@ -443,15 +478,28 @@ document.addEventListener('keydown', (event) => {
 
 async function checkHostHealth() {
   try {
-    const response = await fetch(CONFIG.healthUrl, { cache: 'no-store' });
-    if (!response.ok) throw new Error('Health endpoint returned an error');
+    const startedAt = performance.now();
+    const response = await fetch(CONFIG.statusUrl, { cache: 'no-store', credentials: 'same-origin' });
+    if (!response.ok) throw new Error('Status endpoint returned an error');
+    const rttMs = Math.max(1, Math.round(performance.now() - startedAt));
     const data = await response.json();
     const online = Boolean(data.online);
-    const label = online ? 'Online' : 'Offline';
-    if (statusText) statusText.textContent = label;
-    if (heroStatusText) heroStatusText.textContent = online ? 'Portal online' : 'Portal offline';
-    if (statusPill) statusPill.dataset.state = online ? 'online' : 'offline';
-    if (heroConnection) heroConnection.dataset.state = online ? 'online' : 'offline';
+    const busyOther = online && Boolean(data.busy) && !data.you;
+    const state = !online ? 'offline' : (busyOther ? 'busy' : 'online');
+    if (statusText) {
+      statusText.textContent = !online
+        ? 'Offline'
+        : (busyOther ? `Busy · ${rttMs} ms` : `Online · ${rttMs} ms`);
+    }
+    if (heroStatusText) {
+      heroStatusText.textContent = !online
+        ? 'Portal offline'
+        : (busyOther
+          ? `Server in use · ${rttMs} ms ping`
+          : (data.you ? `Active session · ${rttMs} ms ping` : `Slot available · ${rttMs} ms ping`));
+    }
+    if (statusPill) statusPill.dataset.state = state;
+    if (heroConnection) heroConnection.dataset.state = state;
   } catch (_error) {
     if (statusText) statusText.textContent = 'Status unavailable';
     if (heroStatusText) heroStatusText.textContent = 'Connection unavailable';

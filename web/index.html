@@ -20,7 +20,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="/portal.css?v=ui-3">
+  <link rel="stylesheet" href="/portal.css?v=ui-4">
 </head>
 <body>
   <header class="navbar">
@@ -116,9 +116,29 @@
         <div>
           <p class="eyebrow">GAME LIBRARY</p>
           <h2 id="library-title">Choose a launcher</h2>
-          <p class="section-hint">The stream menu opens next. Select the matching launcher there. To switch launchers, quit the current app, choose End session above, then select the other launcher here.</p>
+          <p class="section-hint">Select a launcher to open your stream directly. To switch launchers, quit the current app, choose End session above, then select the other launcher here.</p>
         </div>
-        <span class="library-count" id="launcher-count">2 launchers</span>
+        <div class="library-controls" aria-label="Stream settings">
+          <label class="stream-setting">
+            <span>Quality</span>
+            <select id="stream-preset-select">
+              <option value="1080p60">1080p 60 FPS · 20 Mbps</option>
+              <option value="1080p60-hq">1080p 60 FPS · 35 Mbps</option>
+              <option value="1080p120">1080p 120 FPS · 35 Mbps</option>
+              <option value="1440p60">1440p 60 FPS · 45 Mbps</option>
+              <option value="720p60">720p 60 FPS · 10 Mbps</option>
+            </select>
+          </label>
+          <label class="stream-setting">
+            <span>Codec</span>
+            <select id="stream-codec-select">
+              <option value="auto">Auto (HEVC / H.264)</option>
+              <option value="hevc">HEVC (H.265)</option>
+              <option value="av1">AV1 (RTX 4060)</option>
+              <option value="h264">H.264</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       <div class="grid-container">
@@ -129,7 +149,7 @@
           <div class="card-body">
             <h3 class="card-title">Steam</h3>
             <p class="card-desc">Your Steam library</p>
-            <button class="btn btn-primary launch-btn" onclick="launchGame('Steam')">Open stream menu <span aria-hidden="true">→</span></button>
+            <button class="btn btn-primary launch-btn" onclick="launchGame('Steam')">Launch Steam <span aria-hidden="true">→</span></button>
           </div>
         </article>
 
@@ -140,7 +160,7 @@
           <div class="card-body">
             <h3 class="card-title">Heroic</h3>
             <p class="card-desc">Epic and GOG games</p>
-            <button class="btn btn-primary launch-btn" onclick="launchGame('Heroic Games Launcher')">Open stream menu <span aria-hidden="true">→</span></button>
+            <button class="btn btn-primary launch-btn" onclick="launchGame('Heroic Games Launcher')">Launch Heroic <span aria-hidden="true">→</span></button>
           </div>
         </article>
       </div>
@@ -168,7 +188,7 @@
     </div>
   </div>
 
-  <script src="/portal-assets/stream-branding.js?v=2"></script>
-  <script src="/portal.js?v=ui-3"></script>
+  <script src="/portal-assets/stream-branding.js?v=3"></script>
+  <script src="/portal.js?v=ui-4"></script>
 </body>
 </html>

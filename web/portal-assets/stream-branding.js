@@ -38,6 +38,32 @@
     }
   }
 
+  function attemptAutoLaunch(doc) {
+    let targetApp = '';
+    try {
+      targetApp = (sessionStorage.getItem('ryoku-launch-app') || '').trim().toLowerCase();
+    } catch (_error) {
+      return;
+    }
+    if (!targetApp) return;
+    if (doc.querySelector('.app-card--launching')) return;
+    const cards = doc.querySelectorAll('.host-apps[data-loaded="1"] .app-card');
+    if (!cards.length) return;
+    const keyword = targetApp.includes('heroic') ? 'heroic' : (targetApp.includes('steam') ? 'steam' : targetApp);
+    for (const card of cards) {
+      const text = (card.textContent || '').toLowerCase();
+      if (text.includes(keyword)) {
+        try {
+          sessionStorage.removeItem('ryoku-launch-app');
+        } catch (_error) {
+          // Ignore storage removal errors.
+        }
+        card.click();
+        return;
+      }
+    }
+  }
+
   window.applyRyokuStreamBranding = (frame) => {
     try {
       const doc = frame.contentDocument;
@@ -46,6 +72,7 @@
 
       doc.title = 'Ryoku | Cloud Gaming';
       updateNode(app, doc);
+      attemptAutoLaunch(doc);
 
       const favicon = doc.querySelector('link[rel~="icon"]');
       if (favicon) {
@@ -67,13 +94,14 @@
           }
           if (record.type === 'attributes') updateAttributes(record.target);
         }
+        attemptAutoLaunch(doc);
       });
       observer.observe(app, {
         subtree: true,
         childList: true,
         characterData: true,
         attributes: true,
-        attributeFilter: ['title', 'aria-label', 'alt', 'placeholder']
+        attributeFilter: ['title', 'aria-label', 'alt', 'placeholder', 'data-loaded']
       });
 
       const titleNode = doc.querySelector('title');
