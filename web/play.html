@@ -44,6 +44,18 @@
       }
     }, 20000);
     let sessionEnded = false;
+    window.addEventListener('message', async (event) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type === 'ryoku-stream-quit') {
+        sessionEnded = true;
+        window.clearInterval(sessionHeartbeat);
+        frame.src = 'about:blank';
+        try {
+          await fetch('/api/session/release', { method: 'POST', credentials: 'same-origin', keepalive: true });
+        } catch (_e) {}
+        window.location.href = '/';
+      }
+    });
     window.addEventListener('pagehide', () => {
       if (!sessionEnded) {
         fetch('/api/session/release', { method: 'POST', credentials: 'same-origin', keepalive: true }).catch(() => {});

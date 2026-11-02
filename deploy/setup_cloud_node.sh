@@ -84,6 +84,22 @@ docker tag "ghcr.io/games-on-whales/steam@${STEAM_DIGEST}" ghcr.io/games-on-whal
 docker pull "ghcr.io/games-on-whales/heroic-games-launcher@${HEROIC_DIGEST}"
 docker tag "ghcr.io/games-on-whales/heroic-games-launcher@${HEROIC_DIGEST}" ghcr.io/games-on-whales/heroic-games-launcher:edge
 
+echo "[INFO] Building native Linux games container image (ryoku-linux-games:local)..."
+docker build -t ryoku-linux-games:local "$PROJECT_DIR/deploy/linux-games"
+
+if [[ ! -f "$PROJECT_DIR/deploy/heroic-fixes/steamclient/linux64/steamclient.so" ]]; then
+  echo "[INFO] Extracting Proton steamclient.so libraries for Heroic Games Launcher..."
+  mkdir -p "$PROJECT_DIR/deploy/heroic-fixes/steamclient/linux64" "$PROJECT_DIR/deploy/heroic-fixes/steamclient/linux32"
+  docker run --rm -v "$PROJECT_DIR/deploy/heroic-fixes/steamclient:/out" --entrypoint bash ghcr.io/games-on-whales/steam:edge -c '
+    tmpdir=$(mktemp -d)
+    dpkg-deb -x /usr/lib/games/steam/steam.deb "$tmpdir"
+    tar -xf "$tmpdir/usr/lib/games/steam/bootstraplinux_ubuntu12_32.tar.xz" -C "$tmpdir"
+    cp -f "$tmpdir/ubuntu12_64/steamclient.so" /out/linux64/steamclient.so
+    cp -f "$tmpdir/ubuntu12_32/steamclient.so" /out/linux32/steamclient.so
+    chmod 755 /out/linux64/steamclient.so /out/linux32/steamclient.so
+  '
+fi
+
 echo ""
 echo "========================================================================"
 echo "  RYOKU CLOUD GAMING NODE READY!"

@@ -66,8 +66,35 @@ check_prerequisites() {
     fi
   done
 
-  # 4. Verify shared games directory
+  # 4. Verify shared games directory & user storage volume
   mkdir -p "$SCRIPT_DIR/data/shared_games"
+  if ! docker volume inspect ryoku-user-storage >/dev/null 2>&1; then
+    docker volume create ryoku-user-storage >/dev/null
+    docker run --rm -v ryoku-user-storage:/home/retro alpine sh -c "chmod -R 777 /home/retro"
+    log_ok "Created and initialized volume: ryoku-user-storage"
+  fi
+
+  # 5. Ensure native Linux games image exists
+  if [[ -f "$SCRIPT_DIR/deploy/linux-games/Dockerfile" ]] && ! docker image inspect ryoku-linux-games:local >/dev/null 2>&1; then
+    log_info "Building native Linux games container image (ryoku-linux-games:local)..."
+    docker build -t ryoku-linux-games:local "$SCRIPT_DIR/deploy/linux-games"
+    log_ok "Built ryoku-linux-games:local"
+  fi
+
+  # 6. Ensure Heroic Proton steamclient.so runtime libraries are extracted
+  if [[ ! -f "$SCRIPT_DIR/deploy/heroic-fixes/steamclient/linux64/steamclient.so" ]] && docker image inspect ghcr.io/games-on-whales/steam:edge >/dev/null 2>&1; then
+    log_info "Extracting Proton steamclient.so libraries for Heroic Games Launcher..."
+    mkdir -p "$SCRIPT_DIR/deploy/heroic-fixes/steamclient/linux64" "$SCRIPT_DIR/deploy/heroic-fixes/steamclient/linux32"
+    docker run --rm -v "$SCRIPT_DIR/deploy/heroic-fixes/steamclient:/out" --entrypoint bash ghcr.io/games-on-whales/steam:edge -c '
+      tmpdir=$(mktemp -d)
+      dpkg-deb -x /usr/lib/games/steam/steam.deb "$tmpdir"
+      tar -xf "$tmpdir/usr/lib/games/steam/bootstraplinux_ubuntu12_32.tar.xz" -C "$tmpdir"
+      cp -f "$tmpdir/ubuntu12_64/steamclient.so" /out/linux64/steamclient.so
+      cp -f "$tmpdir/ubuntu12_32/steamclient.so" /out/linux32/steamclient.so
+      chmod 755 /out/linux64/steamclient.so /out/linux32/steamclient.so
+    '
+    log_ok "Extracted Proton steamclient.so libraries"
+  fi
 
 }
 

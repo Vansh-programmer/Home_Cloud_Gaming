@@ -660,11 +660,12 @@ func acquireHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if leaseIsActive() {
-		if lease.AccountID != accountID || lease.SessionID != sessionID {
+		if lease.AccountID != accountID {
 			w.Header().Set("Retry-After", "20")
 			writeJSON(w, http.StatusConflict, map[string]string{"error": "another player is using the game server"})
 			return
 		}
+		lease.SessionID = sessionID
 	} else {
 		if lease != nil && lease.AccountID != accountID {
 			stopWolfClientSession()
@@ -1088,6 +1089,12 @@ func prepareProfileHome(profileHome string) error {
 	for _, appTitle := range []string{
 		"Steam Cloud Gaming",
 		"Heroic Games Launcher (Epic & GOG)",
+		"SuperTux",
+		"Extreme Tux Racer",
+		"Neverball",
+		"Luanti Voxel Sandbox",
+		"Endless Sky",
+		"Chromium B.S.U.",
 		"Test ball",
 	} {
 		appPath := filepath.Join(basePath, profileHome, appTitle)

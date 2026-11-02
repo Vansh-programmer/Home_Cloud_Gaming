@@ -118,10 +118,15 @@ No identity provider or payment configuration is required. New players can regis
 ### Step 4: Enable Automatic Startup
 The one-command installer enables the system-level `ryoku-cloud-gaming.service`, which starts the gaming stack at boot without a desktop login and retries if startup fails. For a manual setup, use `./deploy/enable_autostart.sh` to install the equivalent lingering user service.
 
-### Step 5: Play Games
+### Step 5: Play Games & Manage Library
 * **In Web Browser**: Open `https://play.vanshdev.online` and create a local player account or sign in.
-* Select **Steam Cloud Gaming** or **Heroic Games Launcher (Epic & GOG)**. The first launch may take a few minutes while the launcher container starts.
-
-No games are preloaded. Players install games they own into their private profile. The optional `data/shared_games` directory is empty by default and is mounted read-only; only place shared game files there when the launcher supports using them from a read-only library.
+* Select **Steam Cloud Gaming**, **Heroic Games Launcher (Epic & GOG)**, or any of the 6 built-in **Native Linux Games** (`SuperTux`, `Extreme Tux Racer`, `Neverball`, `Luanti Voxel Sandbox`, `Endless Sky`, `Chromium B.S.U.`).
+* **Adding Manual / Repack Games to Steam**:
+  Drop game folders into `data/shared_games/<Game Title>/` or run:
+  ```bash
+  ./add-game.sh add /path/to/game-folder-or-archive "Game Title"
+  ./add-game.sh list
+  ```
+  `deploy/steam-manual-games/ryoku-steam-sync.py` automatically creates writable overlay directories in each player's private storage, symlinks read-only multi-GB assets from `/shared_games`, and registers Non-Steam shortcuts with `Proton - Experimental`.
 
 For low-latency internet media, forward UDP ports `48550-48573` to the gaming host if the router does not support UPnP. Cloudflare Tunnel carries the site and WebSocket signalling; it does not carry WebRTC media. See [`deploy/LOCAL_ACCOUNTS.md`](deploy/LOCAL_ACCOUNTS.md) for account storage and registration details.

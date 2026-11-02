@@ -76,7 +76,8 @@ Thumbs.db
 .idea/
 .vscode/
 
-# 7. Wolf Runtime State & Client Tokens
+# 7. Wolf Runtime State, Client Tokens & Extracted Runtime Libraries
 wolf/config/fake-udev
 wolf/config/[0-9]*/
+deploy/heroic-fixes/steamclient/
 

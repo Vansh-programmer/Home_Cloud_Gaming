@@ -73,12 +73,13 @@ Ryoku Cloud Gaming is a headless, self-hosted cloud gaming infrastructure runnin
 
 | Path | Purpose |
 | :--- | :--- |
-| `docker-compose.yml` | Master container orchestration (Wolf, Moonlight Web, Caddy gateway). |
+| `docker-compose.yml` | Master container orchestration (Wolf, Moonlight Web, access-gate, Caddy gateway). |
 | `Caddyfile` | Reverse proxy routing, header manipulation, and static portal asset serving. |
 | `autostart.sh` | Main lifecycle script (`start`, `stop`, `restart`, `status`, `check-ip`). |
-| `web/` | Custom branded dark-mode portal files (`index.html`, `portal.css`, `portal.js`). |
+| `add-game.sh` | CLI manager for importing manual/repack games into `data/shared_games/` (`list`, `add`, `sync`). |
+| `web/` | Custom branded PS5-style dark-mode portal (`index.html`, `play.html`, `portal.css`, `portal.js`, `portal-assets/`). |
 | `wolf/config/` | Games on Whales configuration files (`config.toml`, app definitions). |
-| `deploy/` | Deployment configs including `cloudflared-config.yml` and provisioning scripts. |
+| `deploy/` | Deployment configs, `access-gate/`, `steam-manual-games/`, `heroic-fixes/`, `linux-games/`, and provisioning scripts. |
 | `data/shared_games/` | Master shared game library root (mounted `:ro`). |
 
 ---
@@ -129,6 +130,12 @@ Agents modifying this repository must respect the following known failure modes:
 ### E. Dynamic IP vs Cloudflare Tunnel Ingress
 * **Direct DMZ Mode**: Requires an `A` record in Cloudflare pointing to the active WAN IP. When the router restarts, the ISP reassigns the IP, requiring an update to the DNS record. Local LAN clients must access `http://192.168.1.5` if the router lacks NAT loopback.
 * **Cloudflare Tunnel Mode (Preferred)**: Uses systemd unit `ryoku-cloudflare-tunnel.service`. Routes outbound through Cloudflare Edge, meaning dynamic IP changes and NAT loopback limitations do not break external or local access.
+
+### F. Proton Pressure Vessel (`bwrap`), `.cdx` Loaders & Heroic `steamclient.so`
+* **Pressure Vessel Mounts**: Steam Linux Runtime 3.0 (`bwrap`) isolates the container filesystem and hides `/shared_games` unless `STEAM_COMPAT_MOUNTS=/shared_games` and `"SecurityOpt": ["seccomp=unconfined", "apparmor=unconfined"]` are set in `wolf/config/cfg/config.toml`.
+* **Proton 11 Xalia Crash**: Proton Experimental (`11.0+`) spawns `xalia.exe`, which crashes on Mono `NumberBuffer..ctor`. Set `PROTON_USE_XALIA=0` in both Steam and Heroic app definitions.
+* **Standalone `.exe`/`.cdx`/`.dll` Loaders**: `deploy/steam-manual-games/ryoku-steam-sync.py` copies `.exe`, `.dll`, and `.cdx` files as real writable files into `/home/retro/.local/share/ryoku-games/<Game>/` while symlinking multi-GB asset archives from `/shared_games` (`:ro`), preventing Wine `realpath()` from resolving the game directory to `:ro` storage.
+* **Heroic Proton `steamclient.so`**: Valve's `Proton-Experimental` requires `$HOME/.steam/steam/{ubuntu12_64,ubuntu12_32,linux64,linux32}/steamclient.so`, seeded automatically by `deploy/heroic-fixes/startup-app.sh`.
 
 ---
 

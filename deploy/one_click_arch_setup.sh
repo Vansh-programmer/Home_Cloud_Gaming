@@ -101,6 +101,19 @@ sudo docker pull "ghcr.io/games-on-whales/steam@$STEAM_DIGEST"
 sudo docker tag "ghcr.io/games-on-whales/steam@$STEAM_DIGEST" ghcr.io/games-on-whales/steam:edge
 sudo docker pull "ghcr.io/games-on-whales/heroic-games-launcher@$HEROIC_DIGEST"
 sudo docker tag "ghcr.io/games-on-whales/heroic-games-launcher@$HEROIC_DIGEST" ghcr.io/games-on-whales/heroic-games-launcher:edge
+sudo docker build -t ryoku-linux-games:local "$PROJECT_DIR/deploy/linux-games"
+if [[ ! -f "$PROJECT_DIR/deploy/heroic-fixes/steamclient/linux64/steamclient.so" ]]; then
+  mkdir -p "$PROJECT_DIR/deploy/heroic-fixes/steamclient/linux64" "$PROJECT_DIR/deploy/heroic-fixes/steamclient/linux32"
+  sudo docker run --rm -v "$PROJECT_DIR/deploy/heroic-fixes/steamclient:/out" --entrypoint bash ghcr.io/games-on-whales/steam:edge -c '
+    tmpdir=$(mktemp -d)
+    dpkg-deb -x /usr/lib/games/steam/steam.deb "$tmpdir"
+    tar -xf "$tmpdir/usr/lib/games/steam/bootstraplinux_ubuntu12_32.tar.xz" -C "$tmpdir"
+    cp -f "$tmpdir/ubuntu12_64/steamclient.so" /out/linux64/steamclient.so
+    cp -f "$tmpdir/ubuntu12_32/steamclient.so" /out/linux32/steamclient.so
+    chmod 755 /out/linux64/steamclient.so /out/linux32/steamclient.so
+  '
+  sudo chown -R "$RUN_USER":"$RUN_USER" "$PROJECT_DIR/deploy/heroic-fixes/steamclient"
+fi
 
 # The system unit gets docker as a supplementary group only for this service.
 # This works on a fresh host without requiring the user to log out and back in.

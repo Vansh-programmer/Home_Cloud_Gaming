@@ -38,6 +38,17 @@ services:
       - /dev/uhid
     device_cgroup_rules:
       - 'c 13:* rmw'
+    healthcheck:
+      test: ["CMD-SHELL", "test -S /run/user/wolf/wolf.sock"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     deploy:
       resources:
         reservations:
@@ -54,6 +65,7 @@ services:
     container_name: ryoku-wolf-config
     restart: "no"
     environment:
+      - HOST_PROJECT_ROOT=${PWD}
       - HOST_SHARED_GAMES_PATH=${PWD}/data/shared_games
     volumes:
       - ./wolf/config/cfg:/source:ro
@@ -83,6 +95,17 @@ services:
       - MW_HTTPS_PORT=8443
     volumes:
       - mw-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "grep -qi ':1F90' /proc/net/tcp /proc/net/tcp6"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Keep MoonlightWeb on the player custom hostname across clean
   # installs and container rebuilds, without replacing its generated secrets.
@@ -127,6 +150,11 @@ services:
       timeout: 3s
       retries: 5
       start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ============================================================================
   # 3. GATEWAY // CADDY EDGE REVERSE PROXY & AUTOMATED SSL (vanshdev.online)
@@ -146,6 +174,17 @@ services:
       - ./web:/usr/share/caddy:ro
       - caddy-data:/data
       - caddy-config:/config
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:80/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   mw-data:
